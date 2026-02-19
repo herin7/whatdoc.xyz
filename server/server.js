@@ -1,13 +1,9 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-mongoose.connect("mongodb://localhost:27017/wtd");
-
+mongoose.connect(process.env.MONGO_URI);
 const authRoutes = require("./routes/auth");
-
-
 const app = express();
-
 app.use(express.json());
 app.use("/auth", authRoutes);
 
