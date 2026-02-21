@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { optional } = require('zod');
 const Schema = mongoose.Schema;
 const model = mongoose.model;
 
@@ -8,7 +7,8 @@ const userSchema = new Schema({
     password: String,
     firstName: String,
     lastName: String,
-    githubId: { type: String,optional:true, sparse: true },
+    githubId: { type: String, sparse: true },
+    githubUsername: String,
     githubAccessToken: String
 })
 

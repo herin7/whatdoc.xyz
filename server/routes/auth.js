@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const authmware = require("../middlewares/authmware.js");
-const { signup, signin, getMe, githubAuth, githubCallback } = require('../controllers/authController.js');
+const { signup, signin, getMe, githubAuth, githubCallback, getRepos } = require('../controllers/authController.js');
 
 const router = Router();
 
@@ -9,5 +9,6 @@ router.post("/signin", signin);
 router.get("/me", authmware, getMe);
 router.get("/github", authmware, githubAuth);
 router.get("/github/callback", githubCallback);
+router.get("/github/repos", authmware, getRepos);
 
 module.exports = router;

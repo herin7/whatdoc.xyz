@@ -7,6 +7,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID;
 const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
 const GITHUB_CALLBACK_URL = process.env.GITHUB_CALLBACK_URL;
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
 
 const signupSchema = z.object({
     fname: z.string(),
@@ -34,15 +35,28 @@ async function signup(req, res) {
 
         const hashed = await bcrypt.hash(password, 10);
 
-        await UserModel.create({
+        const user = await UserModel.create({
             firstName: fname,
             lastName: lname,
             email,
             password: hashed
         });
 
+        const token = jwt.sign(
+            { id: user._id.toString() },
+            JWT_SECRET,
+            { expiresIn: "7d" }
+        );
+
         return res.status(201).json({
-            message: "Welcome to whatdoc!"
+            message: "Welcome to whatdoc!",
+            token,
+            user: {
+                id: user._id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email
+            }
         });
 
     } catch (e) {
@@ -75,9 +89,15 @@ async function signin(req, res) {
                 JWT_SECRET,
                 { expiresIn: "7d" }
             );
-            return res.send({
-                message: "Welcome back" + response.lastName,
-                token
+            return res.json({
+                message: "Welcome back " + response.firstName,
+                token,
+                user: {
+                    id: response._id,
+                    firstName: response.firstName,
+                    lastName: response.lastName,
+                    email: response.email
+                }
             });
         }
         else {
@@ -108,18 +128,22 @@ async function getMe(req, res) {
     });
 }
 
+// Returns the GitHub OAuth URL for the frontend to redirect to
 function githubAuth(req, res) {
     const state = req.userId;
-    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${GITHUB_CALLBACK_URL}&scope=user:email,repo&state=${state}`;
-    res.redirect(githubAuthUrl);
+    const includePrivate = req.query.includePrivate === 'true';
+    const scope = includePrivate ? 'user:email,repo' : 'user:email,public_repo';
+    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${GITHUB_CALLBACK_URL}&scope=${scope}&state=${state}`;
+    res.json({ url: githubAuthUrl });
 }
 
+// GitHub redirects here after user authorizes — we then redirect back to the SPA
 async function githubCallback(req, res) {
     const { code, state } = req.query;
     const userId = state;
 
     if (!code) {
-        return res.status(400).json({ message: "No code provided" });
+        return res.redirect(`${CLIENT_URL}/dashboard?github=error&reason=no_code`);
     }
 
     try {
@@ -132,41 +156,105 @@ async function githubCallback(req, res) {
             body: JSON.stringify({
                 client_id: GITHUB_CLIENT_ID,
                 client_secret: GITHUB_CLIENT_SECRET,
-                code: code
+                code
             })
         });
 
         const tokenData = await tokenResponse.json();
 
         if (tokenData.error) {
-            return res.status(400).json({ message: tokenData.error_description });
+            return res.redirect(`${CLIENT_URL}/dashboard?github=error&reason=${tokenData.error}`);
         }
 
         const accessToken = tokenData.access_token;
 
+        // Fetch GitHub user profile
         const userResponse = await fetch("https://api.github.com/user", {
             headers: {
-                "Authorization": `Bearer ${accessToken}`,
-                "Accept": "application/vnd.github.v3+json"
+                Authorization: `Bearer ${accessToken}`,
+                Accept: "application/vnd.github.v3+json"
             }
         });
 
         const githubUser = await userResponse.json();
 
+        // Save GitHub info to the user
         await UserModel.findByIdAndUpdate(userId, {
             githubId: githubUser.id.toString(),
+            githubUsername: githubUser.login,
             githubAccessToken: accessToken
         });
 
-        res.json({
-            message: "GitHub linked successfully",
-            githubUsername: githubUser.login
-        });
+        // Redirect back to the frontend with success
+        res.redirect(`${CLIENT_URL}/dashboard?github=success`);
 
     } catch (e) {
-        console.error(e);
-        res.status(500).json({ message: "Failed to link GitHub" });
+        console.error("GitHub callback error:", e);
+        res.redirect(`${CLIENT_URL}/dashboard?github=error&reason=server_error`);
     }
 }
 
-module.exports = { signup, signin, getMe, githubAuth, githubCallback };
+// Fetch all repos for the authenticated user from GitHub
+async function getRepos(req, res) {
+    try {
+        const user = await UserModel.findById(req.userId);
+
+        if (!user || !user.githubAccessToken) {
+            return res.status(400).json({ message: "GitHub not connected" });
+        }
+
+        // Fetch all repos (paginated — GitHub returns max 100 per page)
+        let allRepos = [];
+        let page = 1;
+        let hasMore = true;
+
+        while (hasMore) {
+            const response = await fetch(
+                `https://api.github.com/user/repos?per_page=100&page=${page}&sort=updated&affiliation=owner`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${user.githubAccessToken}`,
+                        Accept: "application/vnd.github.v3+json"
+                    }
+                }
+            );
+
+            if (!response.ok) {
+                const err = await response.json();
+                return res.status(response.status).json({ message: err.message || "GitHub API error" });
+            }
+
+            const repos = await response.json();
+            allRepos = allRepos.concat(repos);
+
+            // If we got fewer than 100, we've reached the last page
+            hasMore = repos.length === 100;
+            page++;
+        }
+
+        // Return a clean list
+        const repoList = allRepos.map((repo) => ({
+            id: repo.id,
+            name: repo.name,
+            fullName: repo.full_name,
+            private: repo.private,
+            url: repo.html_url,
+            description: repo.description,
+            language: repo.language,
+            updatedAt: repo.updated_at,
+            defaultBranch: repo.default_branch,
+            starCount: repo.stargazers_count
+        }));
+
+        res.json({
+            username: user.githubUsername,
+            repos: repoList
+        });
+
+    } catch (e) {
+        console.error("getRepos error:", e);
+        res.status(500).json({ message: "Failed to fetch repos" });
+    }
+}
+
+module.exports = { signup, signin, getMe, githubAuth, githubCallback, getRepos };
