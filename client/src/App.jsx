@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import ImportRepo from './pages/ImportRepo';
+import ConfigureProject from './pages/ConfigureProject';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
 
@@ -22,6 +23,7 @@ function App() {
       <Route path="/signup" element={<GuestRoute><Signup /></GuestRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/import" element={<ProtectedRoute><ImportRepo /></ProtectedRoute>} />
+      <Route path="/configure" element={<ProtectedRoute><ConfigureProject /></ProtectedRoute>} />
     </Routes>
   );
 }

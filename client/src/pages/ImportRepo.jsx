@@ -149,8 +149,7 @@ export default function ImportRepo() {
     }, [repos, filter, search]);
 
     const handleImport = (repo) => {
-        // For now navigate to a future "new project" page with the repo pre-selected
-        navigate(`/new?repo=${encodeURIComponent(repo.fullName)}`);
+        navigate(`/configure?repo=${encodeURIComponent(repo.fullName)}`);
     };
 
     // ── Not connected state ──

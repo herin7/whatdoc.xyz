@@ -32,6 +32,11 @@ export const auth = {
     me: () => apiRequest('/auth/me'),
 };
 
+export const project = {
+    create: (body) =>
+        apiRequest('/projects', { method: 'POST', body: JSON.stringify(body) }),
+};
+
 export const github = {
     // Get the GitHub OAuth URL — pass includePrivate to control scope
     getAuthUrl: (includePrivate = false) =>
