@@ -211,7 +211,7 @@ export default function Dashboard() {
                         </div>
                         <div>
                             <h3 className="text-lg font-semibold text-white">Vibe Check 🚀</h3>
-                            <p className="text-sm text-zinc-400">How's whatdoc working for you? We read every single review.</p>
+                            <p className="text-sm text-zinc-400">How's <span className="font-logo font-bold">WHATDOC</span> working for you? We read every single review.</p>
                         </div>
                     </div>
 

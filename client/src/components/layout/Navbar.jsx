@@ -23,7 +23,7 @@ export default function Navbar() {
       <nav className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-2">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
-          <span className="logo text-lg tracking-tight"> <span className='font-bold'>W</span>HATDOC.XYZ</span>
+          <span className="font-logo text-lg tracking-tight"> <span className='font-bold'>W</span>HATDOC.XYZ</span>
         </Link>
 
         {/* Desktop Links */}

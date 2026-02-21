@@ -94,7 +94,7 @@ export default function Hero() {
               <div className="h-3 w-3 rounded-full bg-green-500" />
             </div>
             <div className="flex gap-4">
-              <span className="font-bold text-zinc-200">whatdoc</span>
+              <span className="font-logo font-bold text-zinc-200"><span className="font-bold">W</span>HATDOC</span>
               <span>File</span>
               <span>Edit</span>
               <span>View</span>

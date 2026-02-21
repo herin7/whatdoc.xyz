@@ -160,8 +160,8 @@ export default function TwilioTemplate({ project }) {
                         View on GitHub <ExternalLink className="size-3" />
                     </a>
                     <div className="h-5 w-px bg-slate-700/50 hidden sm:block" />
-                    <Link to="/" className="text-xs text-slate-500 hover:text-white transition-colors">
-                        whatdoc.xyz
+                    <Link to="/" className="text-xs text-slate-500 hover:text-white transition-colors font-logo">
+                        <span className="font-bold">W</span>HATDOC.XYZ
                     </Link>
                 </div>
             </header>
@@ -222,7 +222,7 @@ export default function TwilioTemplate({ project }) {
                     <div className="p-3 border-t border-slate-700/30 text-center">
                         <span className="text-[10px] text-slate-600">
                             Built with{' '}
-                            <Link to="/" className="text-blue-400/70 hover:text-blue-400">whatdoc.xyz</Link>
+                            <Link to="/" className="text-blue-400/70 hover:text-blue-400 font-logo"><span className="font-bold">W</span>HATDOC.XYZ</Link>
                         </span>
                     </div>
                 </aside>

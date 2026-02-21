@@ -13,7 +13,7 @@ export default function CTA() {
       <div className="relative mx-auto max-w-7xl px-6 py-24 md:py-32 text-center z-10">
         <Reveal>
           <h3 className="mx-auto max-w-2xl text-3xl md:text-5xl font-medium leading-tight text-white mb-6">
-            Try whatdoc today
+            Try <span className="font-logo"><span className="font-bold">W</span>HATDOC</span> today
           </h3>
         </Reveal>
         <Reveal delay={100}>

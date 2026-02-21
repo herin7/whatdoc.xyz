@@ -217,7 +217,7 @@ export default function MDNTemplate({ project }) {
                     <div className="p-3 border-t border-gray-100 text-center">
                         <span className="text-[10px] text-gray-400">
                             Powered by{' '}
-                            <Link to="/" className="text-blue-600 hover:underline">whatdoc.xyz</Link>
+                            <Link to="/" className="text-blue-600 hover:underline font-logo"><span className="font-bold">W</span>HATDOC.XYZ</Link>
                         </span>
                     </div>
                 </aside>

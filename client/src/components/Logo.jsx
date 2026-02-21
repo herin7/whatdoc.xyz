@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 export default function Logo({ className = 'text-lg', linked = true }) {
     const content = (
-        <span className={`logo tracking-tight ${className}`}>
+        <span className={`font-logo  ${className}`}>
             {' '}<span className="font-bold">W</span>HATDOC.XYZ
         </span>
     );

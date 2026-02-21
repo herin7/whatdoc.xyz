@@ -122,8 +122,8 @@ export default function ConfigureProject() {
                                 URL slug
                             </label>
                             <div className="flex items-center h-11 rounded-lg bg-zinc-900/60 border border-zinc-700/40 overflow-hidden focus-within:ring-2 focus-within:ring-emerald-400/50 focus-within:border-transparent transition-all">
-                                <span className="shrink-0 pl-4 text-sm text-zinc-500 select-none">
-                                    whatdoc.xyz/p/
+                                <span className="shrink-0 pl-4 text-sm text-zinc-500 select-none font-logo">
+                                    <span className="font-bold">W</span>HATDOC.XYZ/p/
                                 </span>
                                 <input
                                     type="text"

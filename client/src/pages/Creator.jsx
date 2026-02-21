@@ -202,7 +202,7 @@ export default function Creator() {
 
             {/* Subtle footer */}
             <p className="text-center text-[11px] text-zinc-700 mt-12 pb-8">
-                Built with obsession · whatdoc.xyz
+                Built with obsession · <span className="font-logo"><span className="font-bold">W</span>HATDOC.XYZ</span>
             </p>
         </div>
     );

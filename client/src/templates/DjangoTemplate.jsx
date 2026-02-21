@@ -203,7 +203,7 @@ export default function DjangoTemplate({ project }) {
                     <div className="px-4 py-3 border-t border-gray-100 text-center">
                         <span className="text-[10px] text-gray-400">
                             Generated with{' '}
-                            <Link to="/" className="text-[#44b78b] hover:underline">whatdoc.xyz</Link>
+                            <Link to="/" className="text-[#44b78b] hover:underline font-logo"><span className="font-bold">W</span>HATDOC.XYZ</Link>
                         </span>
                     </div>
                 </aside>

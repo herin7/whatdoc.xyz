@@ -24,7 +24,7 @@ const steps = [
     num: '04',
     icon: Rocket,
     title: 'Deployed instantly',
-    description: 'Live at whatdoc.xyz/p/your-slug. Share it, embed it, own it.',
+    description: 'Live at WHATDOC.XYZ/p/your-slug. Share it, embed it, own it.',
   },
 ];
 

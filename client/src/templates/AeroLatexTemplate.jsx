@@ -249,8 +249,8 @@ export default function AeroLatexTemplate({ project }) {
                     >
                         Source <ExternalLink className="size-3" />
                     </a>
-                    <Link to="/" className="text-xs text-zinc-400 hover:text-zinc-800 transition-colors">
-                        whatdoc.xyz
+                    <Link to="/" className="text-xs text-zinc-400 hover:text-zinc-800 transition-colors font-logo">
+                        <span className="font-bold">W</span>HATDOC.XYZ
                     </Link>
                 </div>
             </header>
@@ -301,8 +301,8 @@ export default function AeroLatexTemplate({ project }) {
                     <div className="px-8 py-4">
                         <span className="text-[10px] text-zinc-300 select-none">
                             Generated with{' '}
-                            <Link to="/" className="text-zinc-400 hover:text-zinc-700 transition-colors underline decoration-zinc-300 underline-offset-2">
-                                whatdoc.xyz
+                            <Link to="/" className="text-zinc-400 hover:text-zinc-700 transition-colors underline decoration-zinc-300 underline-offset-2 font-logo">
+                                <span className="font-bold">W</span>HATDOC.XYZ
                             </Link>
                         </span>
                     </div>
@@ -414,8 +414,8 @@ export default function AeroLatexTemplate({ project }) {
                         <footer className="mt-12 pt-8 border-t border-zinc-200/60 flex items-center justify-between text-xs text-zinc-400">
                             <span>
                                 Typeset by{' '}
-                                <Link to="/" className="underline decoration-zinc-300 underline-offset-2 hover:decoration-zinc-600 transition-colors">
-                                    whatdoc.xyz
+                                <Link to="/" className="underline decoration-zinc-300 underline-offset-2 hover:decoration-zinc-600 transition-colors font-logo">
+                                    <span className="font-bold">W</span>HATDOC.XYZ
                                 </Link>
                             </span>
                             <button

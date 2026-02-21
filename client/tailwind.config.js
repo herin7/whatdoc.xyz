@@ -8,7 +8,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Space Grotesk', 'sans-serif'],
-        logo : 'Major Mono Display'
+        logo : 'Space Grotesk'
       },
     },
   },

@@ -261,7 +261,7 @@ export default function ProjectEditor() {
                                             placeholder="my-org"
                                             className="flex-1 h-9 px-3 bg-transparent text-sm text-white placeholder-zinc-600 outline-none"
                                         />
-                                        <span className="pr-3 text-xs text-zinc-600 select-none">.whatdoc.xyz</span>
+                                        <span className="pr-3 text-xs text-zinc-600 select-none font-logo">.<span className="font-bold">W</span>HATDOC.XYZ</span>
                                     </div>
                                 </Field>
 
