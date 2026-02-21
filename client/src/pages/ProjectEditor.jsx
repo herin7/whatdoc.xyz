@@ -237,7 +237,7 @@ export default function ProjectEditor() {
 
                 {/* ── LEFT PANEL ─────────────────────────────────── */}
                 <div
-                    className={`flex flex-col border-r border-zinc-800/60 transition-all duration-300 ${
+                    className={`flex flex-col border-r border-zinc-800/60 transition-all duration-300 relative z-20 ${
                         previewVisible ? 'w-1/2' : 'w-full'
                     }`}
                 >
@@ -333,13 +333,13 @@ export default function ProjectEditor() {
                 {previewVisible && (
                     <div className="w-1/2 overflow-hidden bg-zinc-950 flex flex-col">
                         {/* Preview label */}
-                        <div className="shrink-0 flex items-center gap-2 px-4 h-8 bg-zinc-950/80 border-b border-zinc-800/40 text-[10px] font-semibold tracking-widest uppercase text-zinc-600">
+                        <div className="shrink-0 flex items-center gap-2 px-4 h-8 bg-zinc-950/80 border-b border-zinc-800/40 text-[10px] font-semibold tracking-widest uppercase text-zinc-600 z-10">
                             <Eye className="size-3" />
                             Live Preview
                         </div>
 
-                        {/* Rendered template */}
-                        <div className="flex-1 overflow-auto">
+                        {/* Rendered template — transform creates a new containing block so fixed-position template headers stay inside this pane */}
+                        <div className="flex-1 overflow-auto relative" style={{ transform: 'scale(1)' }}>
                             <PreviewTemplate project={previewProject} />
                         </div>
                     </div>

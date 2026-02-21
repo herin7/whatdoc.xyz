@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Settings, ExternalLink, Loader2, FolderGit2, Sparkles, Plus } from 'lucide-react';
+import { Settings, ExternalLink, Loader2, FolderGit2, Sparkles, Plus, Trash2, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { project as projectApi } from '../lib/api';
 import Navbar from '../components/layout/Navbar';
@@ -14,6 +14,23 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [toast, setToast] = useState(null);
     const [feedbackGiven, setFeedbackGiven] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [deleting, setDeleting] = useState(false);
+
+    const handleDelete = async () => {
+        if (!deleteTarget) return;
+        setDeleting(true);
+        try {
+            await projectApi.delete(deleteTarget._id);
+            setProjects((prev) => prev.filter((p) => p._id !== deleteTarget._id));
+            setToast({ type: 'success', message: `"${deleteTarget.repoName?.split('/').pop()}" deleted.` });
+        } catch {
+            setToast({ type: 'error', message: 'Failed to delete project.' });
+        } finally {
+            setDeleting(false);
+            setDeleteTarget(null);
+        }
+    };
 
     useEffect(() => {
         (async () => {
@@ -186,11 +203,11 @@ export default function Dashboard() {
                                                 Edit Studio
                                             </Link>
                                             <button
-                                                onClick={() => {/* todo: settings modal */}}
-                                                className="h-9 w-9 rounded-lg border border-white/10 flex items-center justify-center text-zinc-500 hover:text-white hover:border-white/20 hover:bg-white/5 transition-colors shrink-0"
-                                                title="Settings"
+                                                onClick={() => setDeleteTarget(p)}
+                                                className="h-9 w-9 rounded-lg border border-white/10 flex items-center justify-center text-zinc-500 hover:text-red-400 hover:border-red-500/30 hover:bg-red-500/10 transition-colors shrink-0"
+                                                title="Delete project"
                                             >
-                                                <Settings size={16} />
+                                                <Trash2 size={16} />
                                             </button>
                                         </div>
                                     </div>
@@ -223,18 +240,21 @@ export default function Dashboard() {
                     ) : (
                         <div className="flex items-center gap-3 shrink-0">
                             <a
-                                href="mailto:feedback@whatdoc.xyz?subject=Bug Report"
+                                href="mailto:contactherin@gmail.com?subject=Bug Report — WHATDOC"
                                 onClick={() => setFeedbackGiven(true)}
                                 className="px-4 py-2 rounded-full bg-zinc-900 border border-zinc-700 hover:bg-zinc-800 hover:scale-105 transition-all text-sm flex items-center gap-2 cursor-pointer"
                             >
                                 🐛 Found a bug
                             </a>
-                            <button
+                            <a
+                                href="https://www.linkedin.com/in/herinsoni/"
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 onClick={() => setFeedbackGiven(true)}
                                 className="px-4 py-2 rounded-full bg-zinc-900 border border-zinc-700 hover:bg-zinc-800 hover:scale-105 transition-all text-sm flex items-center gap-2 cursor-pointer"
                             >
-                                🤔 Needs a feature
-                            </button>
+                                🤔 Reach out
+                            </a>
                             <button
                                 onClick={() => setFeedbackGiven(true)}
                                 className="px-4 py-2 rounded-full bg-zinc-900 border border-zinc-700 hover:bg-zinc-800 hover:scale-105 transition-all text-sm flex items-center gap-2 cursor-pointer"
@@ -247,6 +267,41 @@ export default function Dashboard() {
             </main>
 
             <CommandPalette projects={projects} />
+
+            {/* ── Delete Confirmation Modal ── */}
+            {deleteTarget && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                    <div className="bg-[#111] border border-zinc-800 rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl animate-[slideIn_0.2s_ease]">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-white">Delete Project</h3>
+                            <button onClick={() => setDeleteTarget(null)} className="text-zinc-500 hover:text-white transition-colors">
+                                <X size={18} />
+                            </button>
+                        </div>
+                        <p className="text-sm text-zinc-400 mb-2">
+                            Are you sure you want to delete <span className="text-white font-medium">{deleteTarget.repoName?.split('/').pop()}</span>?
+                        </p>
+                        <p className="text-xs text-zinc-600 mb-6">
+                            This will permanently remove the documentation and cannot be undone.
+                        </p>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => setDeleteTarget(null)}
+                                className="flex-1 h-10 rounded-lg border border-zinc-700 text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleDelete}
+                                disabled={deleting}
+                                className="flex-1 h-10 rounded-lg bg-red-500/10 border border-red-500/30 text-sm text-red-400 font-medium hover:bg-red-500/20 transition-colors disabled:opacity-50"
+                            >
+                                {deleting ? 'Deleting…' : 'Delete'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
