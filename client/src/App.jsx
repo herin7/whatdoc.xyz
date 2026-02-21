@@ -20,8 +20,11 @@ function getSubdomain() {
   const host = window.location.hostname; // e.g. "acme.whatdoc.xyz" or "acme.localhost"
   const parts = host.split('.');
 
+  // Vercel preview: whatdoc-xyz.vercel.app — no subdomain support there
+  if (host.endsWith('.vercel.app')) return null;
+
   // localhost / whatdoc.xyz  → no subdomain
-  // acme.localhost / acme.whatdoc.xyz / acme.app.whatdoc.xyz → "acme"
+  // acme.localhost / acme.whatdoc.xyz → "acme"
   if (parts.length <= 1) return null;
 
   // "foo.localhost" → 2 parts, "foo.whatdoc.xyz" → 3 parts

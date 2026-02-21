@@ -1,0 +1,162 @@
+╔═══════════════════════════════════════════════════════════════════════╗
+║                   WHATDOC.XYZ — HOSTING & BUILD CONFIG              ║
+╚═══════════════════════════════════════════════════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+                         DOMAIN MAP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  FRONTEND
+  ├── Production:   https://whatdoc.xyz          (custom domain on Vercel)
+  ├── Preview:      https://whatdoc-xyz.vercel.app
+  ├── Local Dev:    http://localhost:5173        (vite dev server)
+  └── Subdomains:   https://<slug>.whatdoc.xyz   (hosted docs, wildcard DNS)
+
+  BACKEND
+  ├── Production:   Deploy on Render / Railway / any Node host
+  ├── Local Dev:    http://localhost:3000
+  └── Port:         Uses process.env.PORT (default: 3000)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+                       BUILD COMMANDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  CLIENT (React + Vite)
+  ┌──────────────────────────────────────────────────┐
+  │  Install:    cd client && npm install            │
+  │  Dev:        npm run dev                         │
+  │  Build:      npm run build                       │
+  │  Preview:    npm run preview                     │
+  │  Output:     client/dist/                        │
+  └──────────────────────────────────────────────────┘
+
+  SERVER (Express + Node.js)
+  ┌──────────────────────────────────────────────────┐
+  │  Install:    cd server && npm install            │
+  │  Start:      npm start          (production)     │
+  │  Dev:        npm run dev        (watch mode)     │
+  │  Entry:      server.js                           │
+  └──────────────────────────────────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+                VERCEL SETTINGS (Frontend)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Dashboard → Project Settings:
+  ┌──────────────────────────────────────────────────────────┐
+  │  Framework Preset:    Vite                               │
+  │  Root Directory:      client                             │
+  │  Build Command:       npm run build                      │
+  │  Output Directory:    dist                               │
+  │  Install Command:     npm install                        │
+  │  Node.js Version:     20.x                               │
+  └──────────────────────────────────────────────────────────┘
+
+  Environment Variables (set in Vercel dashboard):
+  ┌──────────────────────────────────────────────────────────┐
+  │  VITE_API_URL              = https://<your-backend-url>  │
+  │  VITE_CLOUDINARY_CLOUD_NAME = dcdei0x5t                  │
+  │  VITE_CLOUDINARY_UPLOAD_PRESET = wtd profile pics        │
+  │  VITE_APP_DOMAIN           = whatdoc.xyz                 │
+  └──────────────────────────────────────────────────────────┘
+
+  Domains (Vercel dashboard → Domains):
+  ┌──────────────────────────────────────────────────────────┐
+  │  whatdoc.xyz               → Primary domain              │
+  │  www.whatdoc.xyz           → Redirect to whatdoc.xyz     │
+  │  *.whatdoc.xyz             → Wildcard for hosted docs    │
+  │  whatdoc-xyz.vercel.app    → Auto-assigned by Vercel     │
+  └──────────────────────────────────────────────────────────┘
+
+  DNS Records (at your domain registrar):
+  ┌──────────────────────────────────────────────────────────┐
+  │  Type   Name     Value                                   │
+  │  A      @        76.76.21.21          (Vercel)           │
+  │  CNAME  www      cname.vercel-dns.com (Vercel)           │
+  │  CNAME  *        cname.vercel-dns.com (wildcard subdomain│
+  └──────────────────────────────────────────────────────────┘
+
+  Note: vercel.json is in client/ with SPA rewrites already
+  configured. All routes fallback to index.html.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+           BACKEND HOSTING (Render / Railway / Fly.io)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Option A — Render.com (recommended, free tier):
+  ┌──────────────────────────────────────────────────────────┐
+  │  Service Type:       Web Service                         │
+  │  Root Directory:     server                              │
+  │  Build Command:      npm install                         │
+  │  Start Command:      npm start                           │
+  │  Environment:        Node                                │
+  └──────────────────────────────────────────────────────────┘
+
+  Option B — Railway:
+  ┌──────────────────────────────────────────────────────────┐
+  │  Root Directory:     server                              │
+  │  Start Command:      npm start                           │
+  │  Nixpacks auto-detects Node.js                           │
+  └──────────────────────────────────────────────────────────┘
+
+  Backend Environment Variables (set in hosting dashboard):
+  ┌──────────────────────────────────────────────────────────┐
+  │  JWT_SECRET            = <your-secret>                   │
+  │  MONGO_URI             = <your-mongodb-atlas-uri>        │
+  │  GITHUB_CLIENT_ID      = <github-oauth-app-client-id>   │
+  │  GITHUB_CLIENT_SECRET  = <github-oauth-app-secret>      │
+  │  GITHUB_CALLBACK_URL   = https://<backend>/auth/github/callback │
+  │  CLIENT_URL            = https://whatdoc.xyz             │
+  │  GEMINI_API_KEY        = <your-gemini-key>               │
+  │  PRO_CODE              = GENDOCFORFREE                   │
+  │  PORT                  = (auto-set by Render/Railway)    │
+  └──────────────────────────────────────────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+                      CORS CONFIGURATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  server.js allows these origins:
+  ┌──────────────────────────────────────────────────────────┐
+  │  ✔  https://whatdoc.xyz                                  │
+  │  ✔  https://www.whatdoc.xyz                              │
+  │  ✔  https://whatdoc-xyz.vercel.app                       │
+  │  ✔  http://localhost:5173                                │
+  │  ✔  http://localhost:4173                                │
+  │  ✔  process.env.CLIENT_URL (override)                    │
+  │  ✔  https://<any>.whatdoc.xyz       (regex wildcard)     │
+  │  ✔  http://<any>.localhost:5173     (regex wildcard)     │
+  └──────────────────────────────────────────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+                     LOCAL DEV QUICKSTART
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. Clone the repo
+  2. cp server/.env.example server/.env   → fill in secrets
+  3. cp client/.env.example client/.env   → fill in values
+  4. cd server && npm install && npm run dev
+  5. cd client && npm install && npm run dev
+  6. Open http://localhost:5173
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+                    DEPLOY CHECKLIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  [ ] Backend deployed & env vars set
+  [ ] Backend URL noted (e.g. https://whatdoc-api.onrender.com)
+  [ ] VITE_API_URL set to backend URL in Vercel env vars
+  [ ] Vercel project root set to "client"
+  [ ] Custom domain whatdoc.xyz added in Vercel
+  [ ] Wildcard *.whatdoc.xyz added in Vercel (for subdomains)
+  [ ] DNS records configured at registrar
+  [ ] GITHUB_CALLBACK_URL updated to production backend URL
+  [ ] CLIENT_URL set to https://whatdoc.xyz in backend env
+  [ ] Test login, GitHub OAuth, doc generation, subdomain access
