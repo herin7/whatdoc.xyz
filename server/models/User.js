@@ -12,16 +12,6 @@ const userSchema = new Schema({
     githubAccessToken: String
 })
 
-const ProjctSchema = new Schema({
-    userId : {type : Schema.Types.ObjectId , ref : 'users',required : true},
-    repoName : {type : String,required : true},
-    slug : {type : String,required : true,unique : true},
-    techstack : {type:String,enum : ['MERN','Next.js','other'],default : 'other'},
-    generatedDocs : {type : String,default : ""},
-    isPublic : {type : Boolean,default : true}
-},{timestamps : true})
+const UserModel = model('users', userSchema);
 
-const UserModel = model('users',userSchema);
-const ProjectModel = model('projects',ProjctSchema);
-
-module.exports = { UserModel, ProjectModel };
+module.exports = { UserModel };
