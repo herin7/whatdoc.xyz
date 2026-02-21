@@ -8,12 +8,22 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Space Grotesk', 'sans-serif'],
-        logo : 'Space Grotesk'
+        logo: 'Space Grotesk'
       },
+      // 1. Define the actual movement here
+      keyframes: { 
+        scan: { 
+          '0%': { transform: 'translateY(-100%)' }, 
+          '100%': { transform: 'translateY(100%)' } 
+        } 
+      },
+      // 2. Register the class name here
+      animation: {
+        scan: 'scan 3s ease-in-out infinite'
+      }
     },
   },
   plugins: [
     require('@tailwindcss/typography'),
   ],
 }
-
