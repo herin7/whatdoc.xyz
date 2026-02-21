@@ -3,7 +3,7 @@ const { runGenerationPipeline } = require('../services/engine');
 
 const createProject = async (req, res) => {
   try {
-    const { repoName, slug, techstack } = req.body;
+    const { repoName, slug, techstack, llmProvider, template } = req.body;
 
     const existingProject = await Project.findOne({ slug });
     if (existingProject) {
@@ -14,12 +14,14 @@ const createProject = async (req, res) => {
       userId: req.userId,
       repoName,
       slug,
-      techstack
+      techstack,
+      llmProvider: llmProvider || 'gemini',
+      template: template || 'modern'
     });
 
     // Fire the generation pipeline in the background (don't await)
     const repoUrl = `https://github.com/${repoName}`;
-    runGenerationPipeline(project._id.toString(), repoUrl).catch((err) =>
+    runGenerationPipeline(project._id.toString(), repoUrl, project.llmProvider).catch((err) =>
       console.error('Pipeline failed for', project._id, err)
     );
 

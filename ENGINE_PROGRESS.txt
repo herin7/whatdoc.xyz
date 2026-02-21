@@ -1,0 +1,270 @@
+========================================================================
+  WHATDOC.XYZ — ENGINE PROGRESS LOG
+  Last updated: Feb 21, 2026 (v2 — LLM integration complete)
+========================================================================
+
+  File: server/services/engine.js
+  Dependencies: simple-git, ts-morph, @google/generative-ai,
+                fs/promises, events (Node native)
+
+
+────────────────────────────────────────────────────────────────────────
+  PIPELINE OVERVIEW
+────────────────────────────────────────────────────────────────────────
+
+  runGenerationPipeline(projectId, repoUrl, llmProvider) runs 3 steps
+  sequentially. Each step updates MongoDB Project.status and emits SSE
+  events via a global EventEmitter (engineEmitter).
+
+  The third parameter `llmProvider` defaults to 'gemini'. The frontend
+  sends the user's choice via the ConfigureProject page.
+
+  Status flow:  idle → scanning → analyzing → generating → ready
+                                                         ↘ failed
+
+  Pipeline is kicked off (non-blocking) from:
+    server/controllers/projectController.js → createProject()
+
+
+────────────────────────────────────────────────────────────────────────
+  STEP 1 — SCANNING / CLONING                              ✅ DONE
+────────────────────────────────────────────────────────────────────────
+
+  Status: 'scanning'
+  SSE events emitted:
+    status → { status: 'scanning', message: 'Cloning repository…' }
+    log    → { step: 'cloning', message: 'Cloning repository...' }
+    log    → { step: 'cloning', message: 'Repository cloned — N entries found' }
+
+  Implementation:
+    - Creates temp dir: server/tmp/<projectId>  (fs.mkdir recursive)
+    - Shallow clones repo via simple-git: git.clone(url, path, ['--depth', '1'])
+    - Counts entries with fs.readdir({ recursive: true })
+    - Temp dir is ALWAYS cleaned up in finally block regardless of outcome
+
+  Security:
+    - Shallow clone minimises disk / bandwidth usage
+    - finally block guarantees fs.rm(tempPath, { recursive: true, force: true })
+    - server/tmp/ is in .gitignore
+
+
+────────────────────────────────────────────────────────────────────────
+  STEP 2 — AST ANALYSIS (ts-morph)                         ✅ DONE
+────────────────────────────────────────────────────────────────────────
+
+  Status: 'analyzing'
+  SSE events emitted:
+    status → { status: 'analyzing', message: 'Extracting AST metadata…' }
+    log    → { step: 'analyzing', message: 'Extracting AST metadata...' }
+    log    → { step: 'analyzing', message: 'Analysis complete — X routes, Y models, Z exports across N files' }
+
+  Core function: extractArchitecture(repoPath) → returns Context Map JSON
+
+  How it works:
+    1. Creates a ts-morph Project with { allowJs: true, jsx: React, noEmit: true }
+    2. Adds all **/*.{js,jsx,ts,tsx} files from the cloned repo
+    3. Filters out node_modules and .git paths
+    4. For each source file runs 4 extractors:
+
+  ── extractExpressRoutes(sourceFile, relPath, routes) ──
+    What: Finds Express route registrations
+    How:  Walks all CallExpression AST nodes → checks for PropertyAccessExpression
+          matching HTTP methods (get, post, put, delete, patch, use) →
+          reads first StringLiteral argument as URL path
+    Match patterns:
+      router.get('/users', handler)
+      app.post('/api/auth', middleware, handler)
+    Output per match:
+      { file, method: 'GET', path: '/users', type: 'express' }
+
+  ── extractNextRoutes(sourceFile, relPath, routes) ──
+    What: Finds Next.js App Router handler exports
+    How:  Only processes files named route.{ts,js,tsx,jsx} →
+          checks getExportedDeclarations() for names in [GET, POST, PUT, DELETE, PATCH] →
+          derives URL from file path (app/api/users/route.ts → /api/users)
+    Output per match:
+      { file, method: 'GET', path: '/api/users', type: 'nextjs' }
+
+  ── extractMongooseModels(sourceFile, relPath, models) ──
+    What: Finds Mongoose schema definitions and extracts field names
+    How:  Quick bail-out if file text doesn't contain "mongoose" →
+          finds NewExpression / CallExpression nodes matching Schema() or
+          mongoose.Schema() → reads ObjectLiteralExpression first argument →
+          extracts PropertyAssignment names as schema keys →
+          guessModelName() looks for mongoose.model('Name', ...) in same file,
+          falls back to filename
+    Output per match:
+      { file, modelName: 'users', schemaKeys: ['email', 'password', ...] }
+
+  ── extractExportedSignatures(sourceFile, relPath, exports_) ──
+    What: Captures all exported declarations with their signatures
+    How:  Iterates getExportedDeclarations() → for each, reads kind
+          (FunctionDeclaration, VariableDeclaration, etc.) →
+          if it has getParameters(), extracts param name + type →
+          if it has getReturnType(), extracts return type string
+    Output per match:
+      { file, name: 'createProject', kind: 'FunctionDeclaration',
+        params: [{ name: 'req', type: '...' }], returnType: '...' }
+
+  Context Map shape returned:
+    {
+      routes:    [{ file, method, path, type }],
+      models:    [{ file, modelName, schemaKeys }],
+      exports:   [{ file, name, kind, params?, returnType? }],
+      fileCount: number
+    }
+
+
+────────────────────────────────────────────────────────────────────────
+  STEP 3 — LLM DOCUMENTATION GENERATION                    ✅ DONE
+────────────────────────────────────────────────────────────────────────
+
+  Status: 'generating'
+  SSE events emitted:
+    status → { status: 'generating', message: 'AI is writing the documentation…' }
+    log    → { step: 'generating', message: 'AI is writing the documentation...' }
+    log    → { step: 'generating', message: 'Using Google Gemini (gemini-2.0-flash)' }
+    log    → { step: 'generating', message: 'Documentation generated — N characters' }
+
+  Service file: server/services/llm.js
+  SDK:          @google/generative-ai (Google Gemini)
+  Model:        gemini-2.0-flash
+  Env var:      GEMINI_API_KEY (required in server/.env)
+
+  Provider factory pattern (server/services/llm.js):
+    - PROVIDERS map holds factory functions per provider name
+    - getLLMProvider(name) → returns { name, label, generate(contextMapJSON) }
+    - listProviders() → returns array of { key, label } for the frontend
+    - Easy to add OpenAI / Anthropic later — implement a factory, register
+      it in PROVIDERS, done. No changes needed in engine.js.
+
+  System prompt instructs the LLM to:
+    1. Generate a comprehensive README.md
+       (overview, tech stack, getting started, env vars, project structure,
+        API endpoints table, database models table)
+    2. Generate an API_REFERENCE.md
+       (routes grouped by resource, method, path, description, request body,
+        response format, auth notes)
+    3. Separate the two documents with: <!-- SPLIT -->
+    4. Never hallucinate endpoints/fields not in the Context Map
+    5. Use tables, code blocks, proper heading hierarchy
+    Temperature: 0.3 (deterministic), maxOutputTokens: 8192
+
+  How it works:
+    1. engine.js Step 3 calls getLLMProvider(llmProvider) to get provider
+    2. Stringifies the Context Map with JSON.stringify(contextMap, null, 2)
+    3. Calls provider.generate(contextMapJSON) → returns combined Markdown
+    4. Saves the full Markdown string to Project.generatedDocs in MongoDB
+    5. Emits final log with character count
+
+  Project model additions (server/models/Project.js):
+    - llmProvider: { type: String, enum: ['gemini', 'openai'], default: 'gemini' }
+    - generatedDocs: String  (stores the raw Markdown output)
+
+  Backend route (server/routes/project.js):
+    - GET /projects/providers — returns listProviders() for the frontend
+
+  Frontend (client/src/pages/ConfigureProject.jsx):
+    - LLM picker with two cards: Gemini (active) and OpenAI (disabled "Coming soon")
+    - llmProvider state sent with project.create() API call
+
+  Frontend API (client/src/lib/api.js):
+    - project.getProviders() — calls GET /projects/providers
+
+
+────────────────────────────────────────────────────────────────────────
+  CLEANUP (finally block)                                   ✅ DONE
+────────────────────────────────────────────────────────────────────────
+
+  SSE events emitted:
+    log → { step: 'cleanup', message: 'Temporary files removed' }
+    log → { step: 'cleanup', message: 'Warning: cleanup failed' }  (on error)
+
+  Runs in finally {} — guaranteed even on pipeline crash.
+  Uses fs.rm(tempPath, { recursive: true, force: true }).
+  Cleanup errors are logged but don't mask the original error.
+
+
+────────────────────────────────────────────────────────────────────────
+  SSE TRANSPORT                                             ✅ DONE
+────────────────────────────────────────────────────────────────────────
+
+  Route: GET /projects/:projectId/stream  (protected, authmware)
+  File:  server/routes/project.js
+
+  How:
+    - Sets SSE headers (text/event-stream, no-cache, keep-alive)
+    - Flushes headers + sends ": connected\n\n" comment
+    - Subscribes to engineEmitter for status:<projectId> and log:<projectId>
+    - Writes events as: "event: status\ndata: {...}\n\n"
+    - 15-second keep-alive ping (": ping\n\n")
+    - req.on('close') removes listeners + clears interval + ends response
+
+  Auth for EventSource:
+    - EventSource API does not support custom headers
+    - authmware.js updated to also accept ?token=<jwt> query param
+    - Frontend passes localStorage token as query param on SSE URL
+
+
+────────────────────────────────────────────────────────────────────────
+  FRONTEND REAL-TIME TERMINAL                               ✅ DONE
+────────────────────────────────────────────────────────────────────────
+
+  Component: client/src/components/GenerationTerminal.jsx
+  Page:      client/src/pages/DeployProgress.jsx
+  Route:     /deploy/:projectId  (ProtectedRoute)
+
+  GenerationTerminal component:
+    Props: projectId (string), slug (optional string)
+
+    Connection:
+      - Opens EventSource to /projects/:projectId/stream?token=<jwt>
+      - Listens for 'status' and 'log' named events
+      - Appends each event to a logs[] state array
+      - Auto-closes connection on terminal states (ready / failed)
+      - Cleanup: closes EventSource on component unmount
+
+    UI — "hacker terminal" vibe:
+      - Dark bg-black with green monospaced text (font-mono text-[13px])
+      - Title bar with traffic-light status dot (pulse animation while running)
+      - Initial fake prompt: $ whatdoc generate --project <id>…
+      - Each log line: [HH:MM:SS] [STEP_TAG] message
+      - Colour-coded by pipeline step:
+          yellow-400   → CLONING
+          cyan-400     → ANALYZING
+          purple-400   → GENERATING
+          zinc-500     → CLEANUP / SYS
+          red-400      → ERR
+          emerald-400  → READY
+      - Blinking cursor block while pipeline is running
+      - useRef auto-scroll to bottom on each new log
+
+    Footer bar (appears on terminal state):
+      - success: green "Documentation generated successfully" + "View Documentation" link → /p/:slug
+      - failure: red "Pipeline failed" + "Try Again" link → /import
+
+  DeployProgress page:
+    - Wraps GenerationTerminal in a full-page layout with header/logo
+    - Reads projectId from route params (/deploy/:projectId)
+    - Reads slug from sessionStorage (set by ConfigureProject before navigating)
+
+  Flow:
+    ConfigureProject → deploy button → POST /projects →
+    navigate(/deploy/:projectId) → DeployProgress renders GenerationTerminal →
+    SSE stream shows real-time cloning → analyzing → generating → ready →
+    user clicks "View Documentation" → /p/:slug
+
+
+────────────────────────────────────────────────────────────────────────
+  WHAT'S NEXT
+────────────────────────────────────────────────────────────────────────
+
+  1. Frontend: doc viewer page at /p/:slug (render README + API_REFERENCE)
+  2. Split generatedDocs on <!-- SPLIT --> and store/serve separately
+  3. Handle private repos (pass GitHub access token to simple-git clone)
+  4. Add OpenAI provider (gpt-4o-mini) to llm.js
+  5. Rate limiting / queue for concurrent pipeline runs
+  6. Streaming LLM output via SSE for real-time typing effect
+
+
+========================================================================

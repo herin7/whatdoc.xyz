@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { Rocket, Loader2, ArrowLeft, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Rocket, Loader2, ArrowLeft, AlertCircle, CheckCircle2, LayoutTemplate } from 'lucide-react';
 import Logo from '../components/Logo';
 import { project } from '../lib/api';
+import { DOC_TEMPLATES } from '../config/templates';
 
 export default function ConfigureProject() {
     const [searchParams] = useSearchParams();
@@ -21,6 +22,8 @@ export default function ConfigureProject() {
 
     const [slug, setSlug] = useState(defaultSlug);
     const [techstack, setTechstack] = useState('MERN');
+    const [selectedTemplateId, setSelectedTemplateId] = useState('twilio');
+    const [llmProvider, setLlmProvider] = useState('gemini');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -44,8 +47,10 @@ export default function ConfigureProject() {
 
         setLoading(true);
         try {
-            await project.create({ repoName, slug: slug.trim(), techstack });
-            navigate('/dashboard?project=created');
+            const res = await project.create({ repoName, slug: slug.trim(), techstack, template: selectedTemplateId, llmProvider });
+            // Stash slug so the deploy page can link to /p/:slug
+            sessionStorage.setItem('deploy_slug', slug.trim());
+            navigate(`/deploy/${res.project._id}`);
         } catch (err) {
             setError(err.error || err.message || 'Failed to create project.');
         } finally {
@@ -83,7 +88,7 @@ export default function ConfigureProject() {
 
             {/* Centered card */}
             <main className="flex-1 flex items-center justify-center px-4 pt-14">
-                <div className="w-full max-w-lg">
+                <div className="w-full max-w-3xl">
                     {/* Heading */}
                     <div className="text-center mb-8">
                         <div className="mx-auto mb-4 h-12 w-12 rounded-xl bg-emerald-400/10 border border-emerald-400/20 flex items-center justify-center">
@@ -153,6 +158,89 @@ export default function ConfigureProject() {
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                                     </svg>
                                 </div>
+                            </div>
+                        </div>
+
+                        {/* ── Choose your Design ─────────────────── */}
+                        <div>
+                            <label className="block text-sm font-medium text-zinc-300 mb-3">
+                                <span className="flex items-center gap-1.5">
+                                    <LayoutTemplate className="size-4" />
+                                    Choose your Design
+                                </span>
+                            </label>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {DOC_TEMPLATES.map((t) => {
+                                    const isActive = selectedTemplateId === t.id;
+                                    return (
+                                        <button
+                                            key={t.id}
+                                            type="button"
+                                            onClick={() => setSelectedTemplateId(t.id)}
+                                            className={`group relative rounded-xl border text-left transition-all duration-200 overflow-hidden ${
+                                                isActive
+                                                    ? 'border-blue-500 ring-2 ring-blue-500 scale-105 shadow-[0_0_24px_rgba(59,130,246,0.25)]'
+                                                    : 'border-zinc-700/40 bg-zinc-900/60 hover:border-zinc-500 hover:scale-[1.02]'
+                                            }`}
+                                        >
+                                            {/* Preview image */}
+                                            <img
+                                                src={t.previewUrl}
+                                                alt={`${t.name} preview`}
+                                                className="w-full h-32 object-cover"
+                                            />
+
+                                            {/* Info */}
+                                            <div className="p-3">
+                                                <span className="block text-sm font-semibold text-white">
+                                                    {t.name}
+                                                </span>
+                                                <span className="block text-xs text-zinc-500 mt-0.5 line-clamp-2">
+                                                    {t.description}
+                                                </span>
+                                            </div>
+
+                                            {/* Active badge */}
+                                            {isActive && (
+                                                <div className="absolute top-2 right-2 bg-blue-500 rounded-full p-0.5">
+                                                    <CheckCircle2 className="size-4 text-white" />
+                                                </div>
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* LLM Provider */}
+                        <div>
+                            <label className="block text-sm font-medium text-zinc-300 mb-2">
+                                AI Model
+                            </label>
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setLlmProvider('gemini')}
+                                    className={`relative h-20 rounded-xl border text-left px-4 py-3 transition-all ${
+                                        llmProvider === 'gemini'
+                                            ? 'border-emerald-400/60 bg-emerald-400/5 ring-1 ring-emerald-400/30'
+                                            : 'border-zinc-700/40 bg-zinc-900/60 hover:border-zinc-600'
+                                    }`}
+                                >
+                                    <span className="block text-sm font-medium text-white">Google Gemini</span>
+                                    <span className="block text-xs text-zinc-500 mt-0.5">gemini-2.5-flash</span>
+                                    {llmProvider === 'gemini' && (
+                                        <div className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-emerald-400" />
+                                    )}
+                                </button>
+                                <button
+                                    type="button"
+                                    disabled
+                                    className="relative h-20 rounded-xl border border-zinc-700/40 bg-zinc-900/30 text-left px-4 py-3 opacity-50 cursor-not-allowed"
+                                >
+                                    <span className="block text-sm font-medium text-zinc-400">OpenAI</span>
+                                    <span className="block text-xs text-zinc-600 mt-0.5">Coming soon</span>
+                                </button>
                             </div>
                         </div>
 

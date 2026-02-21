@@ -5,8 +5,32 @@ import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import ImportRepo from './pages/ImportRepo';
 import ConfigureProject from './pages/ConfigureProject';
+import DeployProgress from './pages/DeployProgress';
+import DocViewer from './pages/DocViewer';
+import ProjectEditor from './pages/ProjectEditor';
+import SubdomainApp from './pages/SubdomainApp';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
+
+/** Extract subdomain from current hostname, ignoring "www". */
+function getSubdomain() {
+  const host = window.location.hostname; // e.g. "acme.whatdoc.xyz" or "acme.localhost"
+  const parts = host.split('.');
+
+  // localhost / whatdoc.xyz  → no subdomain
+  // acme.localhost / acme.whatdoc.xyz / acme.app.whatdoc.xyz → "acme"
+  if (parts.length <= 1) return null;
+
+  // "foo.localhost" → 2 parts, "foo.whatdoc.xyz" → 3 parts
+  const isLocalhost = parts[parts.length - 1] === 'localhost';
+  const minParts = isLocalhost ? 2 : 3; // 2 for *.localhost, 3 for *.whatdoc.xyz
+
+  if (parts.length < minParts) return null;
+
+  const sub = parts[0].toLowerCase();
+  if (sub === 'www') return null;
+  return sub;
+}
 
 function GuestRoute({ children }) {
   const { user, loading } = useAuth();
@@ -16,6 +40,10 @@ function GuestRoute({ children }) {
 }
 
 function App() {
+  // If accessed via a subdomain (e.g. acme.whatdoc.xyz), render standalone doc site
+  const subdomain = getSubdomain();
+  if (subdomain) return <SubdomainApp subdomain={subdomain} />;
+
   return (
     <Routes>
       <Route path="/" element={<Home />} />
@@ -24,6 +52,9 @@ function App() {
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/import" element={<ProtectedRoute><ImportRepo /></ProtectedRoute>} />
       <Route path="/configure" element={<ProtectedRoute><ConfigureProject /></ProtectedRoute>} />
+      <Route path="/deploy/:projectId" element={<ProtectedRoute><DeployProgress /></ProtectedRoute>} />
+      <Route path="/editor/:projectId" element={<ProtectedRoute><ProjectEditor /></ProtectedRoute>} />
+      <Route path="/p/:slug" element={<DocViewer />} />
     </Routes>
   );
 }

@@ -7,7 +7,12 @@ const authRoutes = require("./routes/auth");
 const projectRoutes = require("./routes/project");
 const app = express();
 app.use(cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: [
+        /\.whatdoc\.xyz$/,
+        /\.localhost:5173$/,
+        'http://localhost:5173',
+        process.env.CLIENT_URL,
+    ].filter(Boolean),
     credentials: true
 }));
 app.use(express.json());

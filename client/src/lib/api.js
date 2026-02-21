@@ -32,16 +32,32 @@ export const auth = {
     me: () => apiRequest('/auth/me'),
 };
 
-export const project = {
+export const project = {    
     create: (body) =>
         apiRequest('/projects', { method: 'POST', body: JSON.stringify(body) }),
+
+    getProviders: () => apiRequest('/projects/providers'),
+
+    getBySlug: (slug) => apiRequest(`/projects/slug/${slug}`),
+
+    listMine: () => apiRequest('/projects/mine'),
+
+    cancel: (projectId) =>
+        apiRequest(`/projects/${projectId}/cancel`, { method: 'POST' }),
+
+    delete: (projectId) =>
+        apiRequest(`/projects/${projectId}`, { method: 'DELETE' }),
+
+    getById: (projectId) =>
+        apiRequest(`/projects/${projectId}`),
+
+    update: (projectId, body) =>
+        apiRequest(`/projects/${projectId}`, { method: 'PUT', body: JSON.stringify(body) }),
 };
 
 export const github = {
     // Get the GitHub OAuth URL — pass includePrivate to control scope
     getAuthUrl: (includePrivate = false) =>
         apiRequest(`/auth/github?includePrivate=${includePrivate}`),
-
-    // Fetch all repos for the connected GitHub account
     getRepos: () => apiRequest('/auth/github/repos'),
 };
