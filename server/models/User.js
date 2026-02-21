@@ -9,7 +9,9 @@ const userSchema = new Schema({
     lastName: String,
     githubId: { type: String, sparse: true },
     githubUsername: String,
-    githubAccessToken: String
+    githubAccessToken: String,
+    isPro: { type: Boolean, default: false },
+    avatarUrl: { type: String, default: '' }
 })
 
 const UserModel = model('users', userSchema);

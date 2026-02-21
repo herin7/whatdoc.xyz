@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Loader2, AlertCircle, ArrowLeft, Zap } from 'lucide-react';
 
 import ModernTemplate from '../templates/ModernTemplate';
 import MinimalTemplate from '../templates/MinimalTemplate';
@@ -81,5 +81,19 @@ export default function DocViewer() {
     // ── Dynamic template rendering ──────────────────────────────────
     const SelectedTemplate = TemplateMap[project.template] || TemplateMap.modern;
 
-    return <SelectedTemplate project={project} />;
+    return (
+        <>
+            <SelectedTemplate project={project} />
+            {/* Engineered-by badge */}
+            <div className="fixed bottom-4 right-4 z-50">
+                <Link
+                    to="/creator"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-[11px] text-zinc-500 hover:text-white hover:border-white/20 transition-all shadow-lg"
+                >
+                    <Zap size={10} className="text-amber-400" />
+                    Engineered by <span className="font-semibold text-zinc-300">Herin Soni</span>
+                </Link>
+            </div>
+        </>
+    );
 }

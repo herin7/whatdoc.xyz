@@ -257,4 +257,52 @@ async function getRepos(req, res) {
     }
 }
 
-module.exports = { signup, signin, getMe, githubAuth, githubCallback, getRepos };
+async function redeemProCode(req, res) {
+    try {
+        const { code } = req.body;
+        const PRO_CODE = process.env.PRO_CODE;
+
+        if (!code || code !== PRO_CODE) {
+            return res.status(400).json({ message: 'Invalid pro code.' });
+        }
+
+        const user = await UserModel.findById(req.userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        if (user.isPro) {
+            return res.json({ message: 'You already have Pro access!' });
+        }
+
+        user.isPro = true;
+        await user.save();
+
+        return res.json({ message: 'Pro access activated! You now have unlimited doc generation.' });
+    } catch (e) {
+        console.error('redeemProCode error:', e);
+        return res.status(500).json({ message: 'Server error.' });
+    }
+}
+
+async function updateProfile(req, res) {
+    try {
+        const { firstName, lastName, avatarUrl } = req.body;
+        const user = await UserModel.findByIdAndUpdate(
+            req.userId,
+            { firstName, lastName, avatarUrl },
+            { new: true }
+        ).select('-password -githubAccessToken');
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        return res.json({ user });
+    } catch (e) {
+        console.error('updateProfile error:', e);
+        return res.status(500).json({ message: 'Server error.' });
+    }
+}
+
+module.exports = { signup, signin, getMe, githubAuth, githubCallback, getRepos, redeemProCode, updateProfile };

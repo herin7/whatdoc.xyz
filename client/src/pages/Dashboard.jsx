@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { project as projectApi } from '../lib/api';
 import Navbar from '../components/layout/Navbar';
 import CommandPalette from '../components/CommandPalette';
+import botAvatar from '../assets/bot-avatar.png';
 
 export default function Dashboard() {
     const { fetchUser } = useAuth();
@@ -12,22 +13,19 @@ export default function Dashboard() {
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [toast, setToast] = useState(null);
+    const [feedbackGiven, setFeedbackGiven] = useState(false);
 
-    // Fetch projects
     useEffect(() => {
         (async () => {
             try {
                 const data = await projectApi.listMine();
                 setProjects(data.projects || []);
             } catch {
-                // silent
             } finally {
                 setLoading(false);
             }
         })();
     }, []);
-
-    // GitHub callback toast
     useEffect(() => {
         const ghStatus = searchParams.get('github');
         if (ghStatus === 'success') {
@@ -45,8 +43,6 @@ export default function Dashboard() {
         const t = setTimeout(() => setToast(null), 4000);
         return () => clearTimeout(t);
     }, [toast]);
-
-    // This makes the "Linear-style" radial glow actually follow your mouse
     const handleMouseMove = (e) => {
         const rect = e.currentTarget.getBoundingClientRect();
         const x = e.clientX - rect.left;
@@ -203,6 +199,51 @@ export default function Dashboard() {
                         })}
                     </div>
                 )}
+
+                {/* Vibe Check Feedback Banner */}
+                <div className="bg-gradient-to-r from-[#111] to-[#0a0a0a] border border-zinc-800 rounded-xl p-6 mt-12 flex flex-col md:flex-row items-center justify-between gap-6">
+                    {/* Left: Bot avatar + Text */}
+                    <div className="flex items-center gap-4">
+                        {/* Bot icon placeholder — replace src with your bot avatar */}
+                        <div className="w-12 h-12 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center shrink-0 overflow-hidden">
+                             <img src={botAvatar} alt="bot" className="w-full h-full object-cover" />
+                            {/* <span className="text-xl">🤖</span>  */}
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-semibold text-white">Vibe Check 🚀</h3>
+                            <p className="text-sm text-zinc-400">How's whatdoc working for you? We read every single review.</p>
+                        </div>
+                    </div>
+
+                    {/* Right: Reactions or Thank-you */}
+                    {feedbackGiven ? (
+                        <p className="text-sm font-medium text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-500 animate-pulse whitespace-nowrap">
+                            Thanks for the feedback! You're a legend. 👑
+                        </p>
+                    ) : (
+                        <div className="flex items-center gap-3 shrink-0">
+                            <a
+                                href="mailto:feedback@whatdoc.xyz?subject=Bug Report"
+                                onClick={() => setFeedbackGiven(true)}
+                                className="px-4 py-2 rounded-full bg-zinc-900 border border-zinc-700 hover:bg-zinc-800 hover:scale-105 transition-all text-sm flex items-center gap-2 cursor-pointer"
+                            >
+                                🐛 Found a bug
+                            </a>
+                            <button
+                                onClick={() => setFeedbackGiven(true)}
+                                className="px-4 py-2 rounded-full bg-zinc-900 border border-zinc-700 hover:bg-zinc-800 hover:scale-105 transition-all text-sm flex items-center gap-2 cursor-pointer"
+                            >
+                                🤔 Needs a feature
+                            </button>
+                            <button
+                                onClick={() => setFeedbackGiven(true)}
+                                className="px-4 py-2 rounded-full bg-zinc-900 border border-zinc-700 hover:bg-zinc-800 hover:scale-105 transition-all text-sm flex items-center gap-2 cursor-pointer"
+                            >
+                                🤩 Loving it!
+                            </button>
+                        </div>
+                    )}
+                </div>
             </main>
 
             <CommandPalette projects={projects} />

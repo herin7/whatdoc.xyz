@@ -1,1 +1,38 @@
-node_modules
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+.env.*
+client/.env
+server/.env
+
+# Build outputs
+client/dist/
+client/build/
+
+# Server tmp (cloned repos, generated files)
+server/tmp/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Coverage & testing
+coverage/
+
+# Misc
+*.tgz
+.cache/

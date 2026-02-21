@@ -1,8 +1,24 @@
 const Project = require('../models/Project');
+const { UserModel } = require('../models/User');
 const { runGenerationPipeline } = require('../services/engine');
 
 const createProject = async (req, res) => {
   try {
+    const user = await UserModel.findById(req.userId);
+
+    if (!user.isPro) {
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const todayCount = await Project.countDocuments({ userId: req.userId, createdAt: { $gte: startOfDay } });
+
+      if (todayCount >= 2) {
+        return res.status(429).json({
+          error: 'Daily limit reached. You can generate up to 2 docs per day. Redeem a Pro code for unlimited access.',
+          code: 'DAILY_LIMIT'
+        });
+      }
+    }
+
     const { repoName, slug, techstack, llmProvider, template } = req.body;
 
     const existingProject = await Project.findOne({ slug });
