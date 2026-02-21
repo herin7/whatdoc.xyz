@@ -1,4 +1,5 @@
 import { GitBranch, Cpu, FileCode2, Brain, ArrowRight, ArrowLeft } from 'lucide-react';
+import Reveal from '../Reveal';
 
 const features = [
   {
@@ -80,7 +81,7 @@ const visuals = { ingestion: IngestionVisual, graph: GraphVisual, extractor: Ext
 export default function Features() {
   return (
     <section id="how-it-works" className="border-t border-zinc-800 bg-zinc-950">
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-7xl border-x border-zinc-800">
         {/* Ribbon Header — Caret style */}
         <div className="flex h-16 items-center justify-between border-b border-zinc-800 px-6 md:px-8 text-sm font-mono text-emerald-400/60 tracking-wider">
           <span>[01] AST ENGINE</span>
@@ -88,41 +89,45 @@ export default function Features() {
         </div>
 
         {/* Section Title */}
-        <div className="border-b border-zinc-800 px-6 py-16 md:py-24 text-center">
-          <h3 className="mx-auto max-w-3xl text-3xl md:text-4xl leading-tight font-medium text-white">
-            whatdoc.xyz strips away the noise and extracts the{' '}
-            <span className="italic text-emerald-400">pure DNA</span>{' '}
-            of your codebase.
-          </h3>
-        </div>
+        <Reveal>
+          <div className="border-b border-zinc-800 px-6 py-16 md:py-24 text-center">
+            <h3 className="mx-auto max-w-3xl text-3xl md:text-4xl leading-tight font-medium text-white">
+                        <span className="logo tracking-tight text-3xl md:text-4xl font-medium"> <span className='font-bold'>W</span>HATDOC.XYZ    </span>
+     strips away the noise and extracts the{' '}
+              <span className="italic text-emerald-400">pure DNA</span>{' '}
+              of your codebase.
+            </h3>
+          </div>
+        </Reveal>
 
         {/* 2×2 Features Grid — Caret-style cards */}
         <div className="grid grid-cols-1 md:grid-cols-2">
           {features.map((feat, i) => {
             const Visual = visuals[feat.visual];
             return (
-              <div
-                key={feat.title}
-                className={`flex flex-col border-b border-zinc-800 ${
-                  i % 2 === 0 ? 'md:border-r' : ''
-                }`}
-              >
-                {/* Text */}
-                <div className="p-8 md:p-10 grow">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="flex items-center justify-center h-9 w-9 rounded-lg bg-emerald-400/10 border border-emerald-400/20">
-                      <feat.icon className="size-4 text-emerald-400" />
+              <Reveal key={feat.title} delay={i * 120}>
+                <div
+                  className={`flex flex-col border-b border-zinc-800 h-full ${
+                    i % 2 === 0 ? 'md:border-r' : ''
+                  }`}
+                >
+                  {/* Text */}
+                  <div className="p-8 md:p-10 grow">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="flex items-center justify-center h-9 w-9 rounded-lg bg-emerald-400/10 border border-emerald-400/20">
+                        <feat.icon className="size-4 text-emerald-400" />
+                      </div>
+                      <h5 className="text-xl font-medium text-white">{feat.title}</h5>
                     </div>
-                    <h5 className="text-xl font-medium text-white">{feat.title}</h5>
+                    <p className="text-zinc-400 text-[15px] leading-relaxed">{feat.description}</p>
                   </div>
-                  <p className="text-zinc-400 text-[15px] leading-relaxed">{feat.description}</p>
-                </div>
 
-                {/* Visual Mockup */}
-                <div className="relative h-48 border-t border-zinc-800/60 bg-gradient-to-b from-black to-zinc-950 flex items-center justify-center px-8">
-                  <Visual />
+                  {/* Visual Mockup */}
+                  <div className="relative h-48 border-t border-zinc-800/60 bg-gradient-to-b from-black to-zinc-950 flex items-center justify-center px-8">
+                    <Visual />
+                  </div>
                 </div>
-              </div>
+              </Reveal>
             );
           })}
         </div>

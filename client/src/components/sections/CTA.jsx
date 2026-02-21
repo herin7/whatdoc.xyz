@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
+import Reveal from '../Reveal';
 
 export default function CTA() {
   return (
@@ -10,12 +11,17 @@ export default function CTA() {
       </div>
 
       <div className="relative mx-auto max-w-7xl px-6 py-24 md:py-32 text-center z-10">
-        <h3 className="mx-auto max-w-2xl text-3xl md:text-5xl font-medium leading-tight text-white mb-6">
-          Try whatdoc today
-        </h3>
-        <p className="mx-auto max-w-lg text-lg text-zinc-400 mb-10 leading-relaxed">
-          No more boring README files. Generate beautiful, hosted documentation in seconds.
-        </p>
+        <Reveal>
+          <h3 className="mx-auto max-w-2xl text-3xl md:text-5xl font-medium leading-tight text-white mb-6">
+            Try whatdoc today
+          </h3>
+        </Reveal>
+        <Reveal delay={100}>
+          <p className="mx-auto max-w-lg text-lg text-zinc-400 mb-10 leading-relaxed">
+            No more boring README files. Generate beautiful, hosted documentation in seconds.
+          </p>
+        </Reveal>
+        <Reveal delay={200} distance={12}>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link
             to="/signup"
@@ -33,6 +39,7 @@ export default function CTA() {
             Book a demo
           </a>
         </div>
+        </Reveal>
       </div>
     </section>
   );
