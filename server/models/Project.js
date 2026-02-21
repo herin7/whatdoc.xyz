@@ -7,7 +7,7 @@ const projectSchema = new mongoose.Schema({
   techstack: { type: String, enum: ['MERN', 'Next.js', 'Other'], default: 'Other' },
   generatedDocs: { type: String, default: '' },
   isPublic: { type: Boolean, default: true },
-  status: { type: String, enum: ['idle', 'scanning', 'generating', 'ready', 'failed'], default: 'idle' }
+  status: { type: String, enum: ['idle', 'scanning', 'analyzing', 'generating', 'ready', 'failed'], default: 'idle' }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Project', projectSchema);
