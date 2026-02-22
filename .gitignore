@@ -4,8 +4,10 @@ node_modules/
 # Environment variables
 .env
 .env.*
+!.env.example
 client/.env
 server/.env
+!**/.env.example
 
 # Build outputs
 client/dist/
