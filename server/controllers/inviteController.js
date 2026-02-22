@@ -7,7 +7,20 @@ function generateCode() {
 }
 
 function getMailTransport() {
-    if (!process.env.SMTP_HOST || !process.env.SMTP_USER) return null;
+    console.log('[invite] SMTP config check:', {
+        host: process.env.SMTP_HOST || '(not set)',
+        port: process.env.SMTP_PORT || '(not set)',
+        user: process.env.SMTP_USER || '(not set)',
+        pass: process.env.SMTP_PASS ? '****' + process.env.SMTP_PASS.slice(-4) : '(not set)',
+        from: process.env.SMTP_FROM || '(not set)',
+    });
+
+    if (!process.env.SMTP_HOST || !process.env.SMTP_USER) {
+        console.log('[invite] ❌ SMTP not configured — missing SMTP_HOST or SMTP_USER');
+        return null;
+    }
+
+    console.log('[invite] ✓ Creating SMTP transporter...');
     return nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: parseInt(process.env.SMTP_PORT || '587'),
@@ -20,37 +33,49 @@ function getMailTransport() {
 }
 
 async function sendInviteEmail(email, inviteCode) {
+    console.log(`[invite] Attempting to send email to ${email}...`);
+
     const transporter = getMailTransport();
     if (!transporter) {
-        console.log(`[invite] SMTP not configured. Code for ${email}: ${inviteCode}`);
+        console.log(`[invite] ⚠ No transporter. Logging code instead: ${inviteCode}`);
         return;
     }
 
-    await transporter.sendMail({
-        from: process.env.SMTP_FROM || process.env.SMTP_USER,
-        to: email,
-        subject: "You're in — WhatDoc Invite Code",
-        html: `
-            <div style="font-family: monospace; background: #0a0a0a; color: #d4d4d8; padding: 40px; max-width: 500px;">
-                <p style="color: #71717a; font-size: 11px; letter-spacing: 2px;">// WHATDOC ACCESS_GRANTED</p>
-                <h1 style="color: #fff; font-size: 24px; margin: 16px 0;">You're in.</h1>
-                <p style="color: #a1a1aa; font-size: 14px; line-height: 1.6;">
-                    Your request has been approved. Use the invite code below to create your account.
-                </p>
-                <div style="background: #111; border: 1px solid #27272a; padding: 16px; margin: 24px 0; text-align: center;">
-                    <p style="color: #71717a; font-size: 10px; letter-spacing: 2px; margin: 0 0 8px 0;">INVITE CODE</p>
-                    <p style="color: #34d399; font-size: 28px; font-weight: bold; margin: 0; letter-spacing: 3px;">${inviteCode}</p>
+    try {
+        console.log('[invite] Calling transporter.sendMail()...');
+        const info = await transporter.sendMail({
+            from: process.env.SMTP_FROM || process.env.SMTP_USER,
+            to: email,
+            subject: "You're in — WhatDoc Invite Code",
+            html: `
+                <div style="font-family: monospace; background: #0a0a0a; color: #d4d4d8; padding: 40px; max-width: 500px;">
+                    <p style="color: #71717a; font-size: 11px; letter-spacing: 2px;">// WHATDOC ACCESS_GRANTED</p>
+                    <h1 style="color: #fff; font-size: 24px; margin: 16px 0;">You're in.</h1>
+                    <p style="color: #a1a1aa; font-size: 14px; line-height: 1.6;">
+                        Your request has been approved. Use the invite code below to create your account.
+                    </p>
+                    <div style="background: #111; border: 1px solid #27272a; padding: 16px; margin: 24px 0; text-align: center;">
+                        <p style="color: #71717a; font-size: 10px; letter-spacing: 2px; margin: 0 0 8px 0;">INVITE CODE</p>
+                        <p style="color: #34d399; font-size: 28px; font-weight: bold; margin: 0; letter-spacing: 3px;">${inviteCode}</p>
+                    </div>
+                    <a href="https://whatdoc.xyz/signup" style="display: inline-block; background: #fff; color: #000; padding: 10px 24px; font-size: 13px; font-weight: bold; text-decoration: none; letter-spacing: 1px;">
+                        CREATE ACCOUNT →
+                    </a>
+                    <p style="color: #52525b; font-size: 11px; margin-top: 32px;">
+                        This code is single-use. Once you sign up, it's consumed.
+                    </p>
                 </div>
-                <a href="https://whatdoc.xyz/signup" style="display: inline-block; background: #fff; color: #000; padding: 10px 24px; font-size: 13px; font-weight: bold; text-decoration: none; letter-spacing: 1px;">
-                    CREATE ACCOUNT →
-                </a>
-                <p style="color: #52525b; font-size: 11px; margin-top: 32px;">
-                    This code is single-use. Once you sign up, it's consumed.
-                </p>
-            </div>
-        `,
-    });
-    console.log(`[invite] Email sent to ${email}`);
+            `,
+        });
+        console.log(`[invite] ✓ Email sent to ${email} — messageId: ${info.messageId}`);
+    } catch (err) {
+        console.error(`[invite] ❌ Email FAILED for ${email}`);
+        console.error(`[invite] Error name: ${err.name}`);
+        console.error(`[invite] Error message: ${err.message}`);
+        console.error(`[invite] Error code: ${err.code || 'none'}`);
+        console.error(`[invite] Full stack:`, err.stack);
+        throw err;
+    }
 }
 
 async function requestInvite(req, res) {
