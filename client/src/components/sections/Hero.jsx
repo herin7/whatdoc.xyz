@@ -62,7 +62,7 @@ export default function Hero() {
         <Reveal delay={0} distance={16}>
           <div className="inline-flex items-center gap-2 mb-8 px-4 py-1.5 rounded-full border border-zinc-800 bg-zinc-900/60 text-sm text-zinc-400">
             <Github className="size-4 text-emerald-400" />
-            <span>Paste a repo. Get instant docs.</span>
+            <span>Import a repo. Get instant docs.</span>
           </div>
         </Reveal>
 
@@ -79,7 +79,7 @@ export default function Hero() {
         {/* Sub-heading */}
         <Reveal delay={200} distance={16}>
           <p className="mx-auto mb-10 max-w-xl text-lg md:text-xl text-zinc-400 leading-relaxed">
-            Paste a GitHub link. We analyze your codebase, extract the pure logic, and generate beautiful documentation instantly.
+            Connect your GitHub. We analyze your codebase, extract the pure logic, and generate beautiful documentation instantly.
           </p>
         </Reveal>
 
@@ -105,7 +105,7 @@ export default function Hero() {
         {/* Product Mockup Window */}
         <Reveal delay={500} distance={30} duration={800}>
           <div className="relative h-[400px] md:h-[520px] w-full max-w-5xl mx-auto mt-16 rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800 shadow-2xl shadow-emerald-500/5 group">
-            
+
             {/* Mac Menubar */}
             <div className="absolute top-0 left-0 flex h-10 w-full items-center px-4 bg-black/50 backdrop-blur-md border-b border-white/5 z-20 text-xs font-medium text-zinc-400">
               <div className="flex gap-1.5 mr-4 shrink-0">
@@ -128,7 +128,7 @@ export default function Hero() {
             </div>
 
             <div className="absolute inset-0 pt-10 bg-[#0a0a0a] flex flex-col md:flex-row">
-              
+
               {/* LEFT PANE: The Raw Code (Static) */}
               <div className="w-full md:w-1/2 h-1/2 md:h-full border-b md:border-b-0 md:border-r border-white/10 flex flex-col relative overflow-hidden">
                 <div className="h-8 bg-[#111] flex items-center px-4 border-b border-white/5 shrink-0">
@@ -154,7 +154,7 @@ export default function Hero() {
 
               {/* RIGHT PANE: Dynamic Template Showcase */}
               <div className={`w-full md:w-1/2 h-1/2 md:h-full flex flex-col relative transition-colors duration-700 ${t.bg}`}>
-                
+
                 {/* Dynamic Header Tab */}
                 <div className={`h-8 flex items-center px-4 border-b justify-between shrink-0 transition-colors duration-700 ${t.headerBg} ${t.border}`}>
                   <span className={`text-[10px] font-mono flex items-center gap-2 ${t.text}`}>
@@ -165,7 +165,7 @@ export default function Hero() {
                     Auto-Generated
                   </span>
                 </div>
-                
+
                 {/* Dynamic Markdown Content */}
                 <div className="p-4 md:p-6 space-y-3 md:space-y-4 overflow-hidden relative z-10">
                   <h1 className={`text-base md:text-xl tracking-tight border-b pb-2 transition-colors duration-700 ${t.heading} ${t.border}`}>
@@ -174,7 +174,7 @@ export default function Hero() {
                   <p className={`text-[11px] md:text-xs leading-relaxed transition-colors duration-700 ${t.text}`}>
                     Retrieves the profile and active subscriptions for the authenticated user.
                   </p>
-                  
+
                   <div className="space-y-1.5 md:space-y-2">
                     <h3 className={`text-[10px] md:text-[11px] font-mono uppercase tracking-widest transition-colors duration-700 ${t.text} opacity-70`}>HTTP Request</h3>
                     <div className={`border rounded-md p-2 flex items-center gap-3 transition-colors duration-700 ${t.codeBg}`}>
@@ -198,7 +198,7 @@ export default function Hero() {
               {/* Center Magic Icon */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2 z-30">
                 <div className="h-10 w-10 rounded-xl bg-white text-black shadow-[0_0_30px_rgba(255,255,255,0.3)] flex items-center justify-center border border-zinc-200">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" /></svg>
                 </div>
               </div>
 

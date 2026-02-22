@@ -5,7 +5,7 @@
 <h1 align="center">WhatDoc</h1>
 
 <p align="center">
-  <strong>Paste a GitHub repo. Get beautiful, AI-generated documentation instantly.</strong>
+  <strong>Connect your GitHub. Get beautiful, AI-generated documentation instantly.</strong>
   <br />
   <em>Docs that don't look boring.</em>
 </p>
@@ -34,7 +34,7 @@
 
 Every developer knows the pain: you build something great, but writing the docs feels like a second full-time job. So you don't. Your README stays a one-liner, your API has no reference, and your users bounce.
 
-**WhatDoc fixes this.** Paste a GitHub URL, pick a template, and get production-ready documentation in under 60 seconds.
+**WhatDoc fixes this.** Connect your GitHub, import a repo, pick a template, and get production-ready documentation in under 60 seconds.
 
 ---
 

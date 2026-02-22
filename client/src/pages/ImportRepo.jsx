@@ -5,9 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { github } from '../lib/api';
 import Logo from '../components/Logo';
 
-// ──────────────────────────────────────────────
-// Helper: relative time string like "14h ago", "Jan 30" etc.
-// ──────────────────────────────────────────────
+
 function timeAgo(dateString) {
     const now = new Date();
     const date = new Date(dateString);
