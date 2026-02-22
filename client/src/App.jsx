@@ -16,6 +16,7 @@ import SubdomainApp from './pages/SubdomainApp';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
 import Templates from './pages/Templates';
+import PublicProjectView from './pages/PublicProjectView';
 
 /** Extract subdomain from current hostname, ignoring "www". */
 function getSubdomain() {
@@ -55,6 +56,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/p/:slug" element={<PublicProjectView />} />
       <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
       <Route path="/signup" element={<GuestRoute><Signup /></GuestRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
