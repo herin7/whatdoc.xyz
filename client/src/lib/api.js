@@ -1,5 +1,42 @@
 import { API_URL } from './config';
 
+/* ── Warm-up helper for Render cold starts ──────────────────────────── */
+
+/**
+ * Pings the backend until it responds (or we give up).
+ * Returns { ok: boolean, attempts: number }.
+ */
+export async function warmUpBackend(onStatus) {
+    const MAX_ATTEMPTS = 8;
+    const TIMEOUT_MS = 8_000;
+
+    for (let i = 1; i <= MAX_ATTEMPTS; i++) {
+        try {
+            if (onStatus) onStatus(i <= 2 ? 'Connecting to server…' : i <= 5 ? 'Server is waking up…' : 'Almost there…');
+
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+            // Use a lightweight GET — any 2xx/4xx means server is alive
+            const res = await fetch(`${API_URL}/auth/me`, {
+                signal: controller.signal,
+                headers: { 'Content-Type': 'application/json' },
+            });
+            clearTimeout(timer);
+
+            // Any response (even 401) means the server is up
+            if (res.status > 0) return { ok: true, attempts: i };
+        } catch {
+            // Network error or timeout — server still cold
+            const backoff = Math.min(2000, 500 * i);
+            await new Promise((r) => setTimeout(r, backoff));
+        }
+    }
+    return { ok: false, attempts: MAX_ATTEMPTS };
+}
+
+/* ── Core API request ───────────────────────────────────────────────── */
+
 export async function apiRequest(endpoint, options = {}) {
     const token = localStorage.getItem('token');
     const { headers: optHeaders, ...restOptions } = options;

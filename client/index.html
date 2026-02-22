@@ -30,7 +30,166 @@
 </head>
 
 <body>
-  <div id="root"></div>
+  <div id="root">
+    <!-- Pre-React splash — replaced when React mounts -->
+    <div id="splash"
+      style="position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#030303;color:#fff;font-family:'Space Grotesk',system-ui,sans-serif;overflow:hidden;">
+      <!-- Orbiting ring -->
+      <div
+        style="position:absolute;top:50%;left:50%;width:320px;height:320px;transform:translate(-50%,-50%);animation:_spRing 18s linear infinite;">
+        <div style="position:absolute;inset:0;border-radius:50%;border:1px solid rgba(52,211,153,.08);"></div>
+        <div
+          style="position:absolute;top:-3px;left:50%;width:6px;height:6px;border-radius:50%;background:#34d399;box-shadow:0 0 12px 3px rgba(52,211,153,.5);transform:translateX(-50%);">
+        </div>
+      </div>
+      <!-- Aura -->
+      <div
+        style="position:absolute;top:50%;left:50%;width:400px;height:400px;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(16,185,129,.1)0%,transparent 65%);animation:_spAura 4s ease-in-out infinite;">
+      </div>
+      <!-- Logo -->
+      <div
+        style="position:relative;width:72px;height:72px;border-radius:16px;background:linear-gradient(135deg,#065f46,#059669,#34d399);display:flex;align-items:center;justify-content:center;box-shadow:0 0 60px rgba(52,211,153,.35),0 0 120px rgba(52,211,153,.12);animation:_spFloat 5s ease-in-out infinite;z-index:1;">
+        <span
+          style="font-size:42px;font-weight:900;color:#fff;line-height:1;text-shadow:0 2px 10px rgba(0,0,0,.3);">W</span>
+      </div>
+      <!-- Text -->
+      <p style="margin-top:28px;font-size:14px;color:#71717a;letter-spacing:.5px;z-index:1;">Starting up<span
+          class="_dots" style="display:inline-block;width:20px;text-align:left;"></span></p>
+      <!-- Progress bar -->
+      <div
+        style="margin-top:16px;width:180px;height:5px;border-radius:8px;background:rgba(255,255,255,.03);overflow:hidden;border:1px solid rgba(255,255,255,.03);z-index:1;">
+        <div
+          style="width:35%;height:100%;border-radius:8px;background:linear-gradient(90deg,#059669,#34d399,#6ee7b7);animation:_spBar 2.5s ease-in-out infinite;position:relative;overflow:hidden;">
+          <div
+            style="position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);animation:_spShimmer 2s ease-in-out infinite;">
+          </div>
+        </div>
+      </div>
+      <!-- Particles -->
+      <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none;">
+        <div class="_particle" style="left:15%;animation-delay:0s;"></div>
+        <div class="_particle" style="left:35%;animation-delay:1.5s;"></div>
+        <div class="_particle" style="left:55%;animation-delay:3s;"></div>
+        <div class="_particle" style="left:75%;animation-delay:0.8s;"></div>
+        <div class="_particle" style="left:90%;animation-delay:2.2s;"></div>
+        <div class="_particle" style="left:8%;animation-delay:4s;"></div>
+        <div class="_particle" style="left:60%;animation-delay:5s;"></div>
+      </div>
+      <style>
+        @keyframes _spRing {
+          from {
+            transform: translate(-50%, -50%) rotate(0)
+          }
+
+          to {
+            transform: translate(-50%, -50%) rotate(360deg)
+          }
+        }
+
+        @keyframes _spAura {
+
+          0%,
+          100% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1
+          }
+
+          50% {
+            transform: translate(-50%, -50%) scale(1.15);
+            opacity: .5
+          }
+        }
+
+        @keyframes _spFloat {
+
+          0%,
+          100% {
+            transform: translateY(0)
+          }
+
+          50% {
+            transform: translateY(-8px)
+          }
+        }
+
+        @keyframes _spBar {
+          0% {
+            width: 8%;
+            margin-left: 0
+          }
+
+          50% {
+            width: 55%;
+            margin-left: 22%
+          }
+
+          100% {
+            width: 8%;
+            margin-left: 90%
+          }
+        }
+
+        @keyframes _spShimmer {
+          0% {
+            transform: translateX(-200%)
+          }
+
+          100% {
+            transform: translateX(200%)
+          }
+        }
+
+        @keyframes _spUp {
+          0% {
+            transform: translateY(0) scale(1);
+            opacity: 0
+          }
+
+          10% {
+            opacity: .7
+          }
+
+          90% {
+            opacity: .2
+          }
+
+          100% {
+            transform: translateY(-110vh) scale(.3);
+            opacity: 0
+          }
+        }
+
+        @keyframes _dots {
+          0% {
+            content: '.'
+          }
+
+          33% {
+            content: '..'
+          }
+
+          66% {
+            content: '...'
+          }
+        }
+
+        ._dots::after {
+          content: '.';
+          animation: _dots 1.5s steps(1) infinite
+        }
+
+        ._particle {
+          position: absolute;
+          bottom: -5%;
+          width: 4px;
+          height: 4px;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(52, 211, 153, .5), transparent);
+          animation: _spUp 8s ease-out infinite;
+        }
+      </style>
+    </div>
+  </div>
   <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
   <script type="module" src="/src/main.jsx"></script>
 </body>

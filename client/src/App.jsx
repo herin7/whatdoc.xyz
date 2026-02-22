@@ -14,6 +14,7 @@ import Engine from './pages/Engine';
 import Creator from './pages/Creator';
 import SubdomainApp from './pages/SubdomainApp';
 import ProtectedRoute from './components/ProtectedRoute';
+import ServerWarmup from './components/ServerWarmup';
 import { useAuth } from './context/AuthContext';
 import Templates from './pages/Templates';
 import PublicProjectView from './pages/PublicProjectView';
@@ -49,9 +50,16 @@ function GuestRoute({ children }) {
 }
 
 function App() {
+  const { serverReady, warmUpStatus } = useAuth();
+
   // If accessed via a subdomain (e.g. acme.whatdoc.xyz), render standalone doc site
   const subdomain = getSubdomain();
   if (subdomain) return <SubdomainApp subdomain={subdomain} />;
+
+  // Show warm-up screen while backend is cold-starting
+  if (!serverReady) {
+    return <ServerWarmup status={warmUpStatus} />;
+  }
 
   return (
     <Routes>
@@ -75,3 +83,4 @@ function App() {
 }
 
 export default App;
+

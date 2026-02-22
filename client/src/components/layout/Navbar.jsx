@@ -1,4 +1,4 @@
-import { Globe, ChevronDown, Menu, X, LogOut, Users } from 'lucide-react';
+import { Globe, ChevronDown, Menu, X, LogOut, Users, Star } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
@@ -85,6 +85,21 @@ export default function Navbar({ variant }) {
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center justify-end gap-3 relative z-10">
+          {/* ★ Star on GitHub */}
+          <a
+            href="https://github.com/herin7/whatdoc.xyz"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group/star relative flex items-center gap-1.5 h-8 px-3.5 rounded-full border border-yellow-500/20 bg-yellow-500/[0.06] text-xs font-semibold text-yellow-300 hover:border-yellow-400/40 hover:bg-yellow-500/[0.12] hover:text-yellow-200 hover:shadow-[0_0_20px_rgba(234,179,8,0.15)] transition-all duration-300 overflow-hidden"
+          >
+            {/* Shimmer sweep on hover */}
+            <span className="absolute inset-0 -translate-x-full group-hover/star:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-yellow-400/20 to-transparent" />
+            <Star className="size-3.5 fill-yellow-400 text-yellow-400 group-hover/star:scale-125 group-hover/star:rotate-[20deg] transition-transform duration-300" />
+            <span className="relative">Star</span>
+            {/* Sparkle particles on hover */}
+            <span className="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full bg-yellow-300 opacity-0 group-hover/star:opacity-100 group-hover/star:animate-ping" />
+            <span className="absolute -bottom-0.5 left-2 w-1 h-1 rounded-full bg-yellow-400 opacity-0 group-hover/star:opacity-100 group-hover/star:animate-ping" style={{ animationDelay: '0.3s' }} />
+          </a>
           {user ? (
             <>
               <Link to="/dashboard" className="flex items-center gap-2 h-8 px-4 rounded-full border border-white/10 bg-[#111] text-xs font-medium hover:bg-white hover:text-black hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all duration-300">
@@ -143,6 +158,18 @@ export default function Navbar({ variant }) {
           <Link to="/templates" onClick={() => setMobileOpen(false)} className="text-sm font-medium text-white hover:text-emerald-400 transition-colors">Templates</Link>
           <Link to="/engine" onClick={() => setMobileOpen(false)} className="text-sm font-medium text-white hover:text-emerald-400 transition-colors">The Engine</Link>
           <Link to="/creator" onClick={() => setMobileOpen(false)} className="text-sm font-medium text-white hover:text-emerald-400 transition-colors">Hire Me</Link>
+
+          {/* ★ Star on GitHub — Mobile */}
+          <a
+            href="https://github.com/herin7/whatdoc.xyz"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => setMobileOpen(false)}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-yellow-500/[0.06] border border-yellow-500/15 w-fit"
+          >
+            <Star className="size-3.5 fill-yellow-400 text-yellow-400" />
+            <span className="text-sm font-medium text-yellow-300">Star on GitHub</span>
+          </a>
 
           <div className="h-px bg-white/5 my-2" />
 
