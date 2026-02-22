@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { project as projectApi } from '../lib/api';
 import Navbar from '../components/layout/Navbar';
 import CommandPalette from '../components/CommandPalette';
+import SettingsModal from '../components/SettingsModal';
 import botAvatar from '../assets/bot-avatar.png';
 
 export default function Dashboard() {
@@ -16,6 +17,7 @@ export default function Dashboard() {
     const [feedbackGiven, setFeedbackGiven] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [deleting, setDeleting] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     const handleDelete = async () => {
         if (!deleteTarget) return;
@@ -72,6 +74,8 @@ export default function Dashboard() {
         <div className="min-h-screen bg-[#050505] text-white">
             <Navbar variant="dashboard" />
 
+            <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+
             {/* Toast */}
             {toast && (
                 <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50">
@@ -97,13 +101,22 @@ export default function Dashboard() {
                             Manage your documentation deployments. Press <kbd className="px-1.5 py-0.5 rounded-md bg-zinc-800 border border-zinc-700 font-mono text-xs text-zinc-300 mx-1 shadow-sm">Ctrl + Space</kbd> to search.
                         </p>
                     </div>
-                    <Link
-                        to="/import"
-                        className="inline-flex items-center gap-2 h-10 px-5 rounded-lg bg-white text-black text-sm font-medium hover:bg-zinc-200 transition-colors shrink-0 shadow-sm"
-                    >
-                        <Plus size={16} />
-                        Deploy New
-                    </Link>
+                    <div className="flex items-center gap-2 shrink-0">
+                        <button
+                            onClick={() => setIsSettingsOpen(true)}
+                            className="inline-flex items-center justify-center h-10 w-10 rounded-lg border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 transition-colors shadow-sm"
+                            title="Engine Settings"
+                        >
+                            <Settings size={16} className="text-zinc-400" />
+                        </button>
+                        <Link
+                            to="/import"
+                            className="inline-flex items-center gap-2 h-10 px-5 rounded-lg bg-white text-black text-sm font-medium hover:bg-zinc-200 transition-colors shadow-sm"
+                        >
+                            <Plus size={16} />
+                            Deploy New
+                        </Link>
+                    </div>
                 </div>
 
                 {/* Grid */}

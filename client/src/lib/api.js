@@ -2,14 +2,15 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export async function apiRequest(endpoint, options = {}) {
     const token = localStorage.getItem('token');
+    const { headers: optHeaders, ...restOptions } = options;
 
     const config = {
         headers: {
             'Content-Type': 'application/json',
             ...(token && { Authorization: `Bearer ${token}` }),
-            ...options.headers,
+            ...optHeaders,
         },
-        ...options,
+        ...restOptions,
     };
 
     const res = await fetch(`${API_URL}${endpoint}`, config);
@@ -33,8 +34,18 @@ export const auth = {
 };
 
 export const project = {    
-    create: (body) =>
-        apiRequest('/projects', { method: 'POST', body: JSON.stringify(body) }),
+    create: (body) => {
+        const customKey = localStorage.getItem('wtd_gemini_key') || '';
+        const customModel = localStorage.getItem('wtd_gemini_model') || 'gemini-2.5-flash-lite';
+        return apiRequest('/projects', {
+            method: 'POST',
+            body: JSON.stringify(body),
+            headers: {
+                'x-custom-gemini-key': customKey,
+                'x-target-model': customModel,
+            },
+        });
+    },
 
     getProviders: () => apiRequest('/projects/providers'),
 

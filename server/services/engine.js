@@ -285,7 +285,7 @@ function extractExportedSignatures(sourceFile, relPath, exports_) {
 }
 
 // ── Generation pipeline ─────────────────────────────────────────────
-async function runGenerationPipeline(projectId, repoUrl, llmProvider = 'gemini') {
+async function runGenerationPipeline(projectId, repoUrl, llmProvider = 'gemini', byokOptions = {}) {
     const tempPath = path.join(TMP_ROOT, projectId);
 
     try {
@@ -336,7 +336,7 @@ async function runGenerationPipeline(projectId, repoUrl, llmProvider = 'gemini')
             message: `Sending batch prompt — ${contextMapJSON.length} chars (${budgeted.routes.length} routes, ${budgeted.models.length} models, ${budgeted.exports.length} exports)`,
         });
 
-        const markdown = await provider.generate(contextMapJSON);
+        const markdown = await provider.generate(contextMapJSON, byokOptions);
 
         // Save generated docs to MongoDB
         await Project.findByIdAndUpdate(projectId, { generatedDocs: markdown });

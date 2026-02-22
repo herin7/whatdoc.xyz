@@ -1,4 +1,5 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { getNextApiKey } = require('../utils/keyManager');
 
 // ── Supported providers ─────────────────────────────────────────────
 // Add new providers here. Each must expose  generate(contextMapJSON) → string
@@ -88,13 +89,6 @@ function trimContextMap(contextMap) {
 
 // ── Gemini provider ─────────────────────────────────────────────────
 function createGeminiProvider() {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) throw new Error('GEMINI_API_KEY is not set in environment variables');
-
-    const genAI = new GoogleGenerativeAI(apiKey);
-    // gemini-2.5-flash — free tier: 30 RPM, 1M context, 65k output tokens
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-
     return {
         name: 'gemini',
         label: PROVIDER_LABELS.gemini,
@@ -106,7 +100,14 @@ function createGeminiProvider() {
          * @param {string} contextMapJSON  Stringified (already trimmed) Context Map
          * @returns {Promise<string>}      Combined Markdown (README + SPLIT + API_REFERENCE)
          */
-        async generate(contextMapJSON) {
+        async generate(contextMapJSON, { customKey, targetModel } = {}) {
+            // BYOK: use custom key if provided, otherwise round-robin
+            const apiKeyToUse = customKey || getNextApiKey();
+            const modelName = targetModel || 'gemini-2.5-flash';
+            const genAI = new GoogleGenerativeAI(apiKeyToUse);
+            console.log(`⚡️ Engine starting... Model: ${modelName} | Custom Key Used: ${!!customKey}`);
+            const model = genAI.getGenerativeModel({ model: modelName });
+
             const contents = [
                 {
                     role: 'user',

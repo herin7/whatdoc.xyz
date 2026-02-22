@@ -37,7 +37,11 @@ const createProject = async (req, res) => {
 
     // Fire the generation pipeline in the background (don't await)
     const repoUrl = `https://github.com/${repoName}`;
-    runGenerationPipeline(project._id.toString(), repoUrl, project.llmProvider).catch((err) =>
+    const byokOptions = {
+      customKey: req.headers['x-custom-gemini-key'] || '',
+      targetModel: req.headers['x-target-model'] || 'gemini-2.5-flash-lite',
+    };
+    runGenerationPipeline(project._id.toString(), repoUrl, project.llmProvider, byokOptions).catch((err) =>
       console.error('Pipeline failed for', project._id, err)
     );
 

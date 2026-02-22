@@ -30,7 +30,10 @@ export default function CommandPalette({ projects = [] }) {
             onOpenChange={setOpen}
             label="Command Palette"
             className="fixed inset-0 z-50"
+            aria-describedby={undefined}
         >
+            {/* Accessible title (visually hidden) */}
+            <div className="sr-only">Command Palette</div>
             {/* Backdrop */}
             <div
                 className="fixed inset-0 bg-black/50 backdrop-blur-sm"

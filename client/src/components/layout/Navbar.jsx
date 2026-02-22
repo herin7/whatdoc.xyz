@@ -37,8 +37,7 @@ export default function Navbar() {
         <div className="hidden md:flex items-center justify-end gap-2">
           {user ? (
             <>
-              <Link to="/dashboard" className="flex items-center gap-2 h-9 px-4 rounded-full border border-zinc-700 bg-zinc-900 text-sm font-medium hover:bg-zinc-800 transition-all">
-                <Link to="/profile" className="shrink-0">
+              <Link to="/profile" className="shrink-0">
                   {user.avatarUrl ? (
                     <img src={user.avatarUrl} alt="" className="h-6 w-6 rounded-full object-cover" />
                   ) : (
@@ -47,6 +46,7 @@ export default function Navbar() {
                     </div>
                   )}
                 </Link>
+              <Link to="/dashboard" className="flex items-center gap-2 h-9 px-4 rounded-full border border-zinc-700 bg-zinc-900 text-sm font-medium hover:bg-zinc-800 transition-all">
                 <span className="text-zinc-300">Dashboard</span>
               </Link>
               <button
@@ -86,8 +86,7 @@ export default function Navbar() {
           <hr className="border-zinc-800" />
           {user ? (
             <>
-              <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-                <Link to="/profile" onClick={() => setMobileOpen(false)} className="shrink-0">
+              <Link to="/profile" onClick={() => setMobileOpen(false)} className="shrink-0">
                   {user.avatarUrl ? (
                     <img src={user.avatarUrl} alt="" className="h-6 w-6 rounded-full object-cover" />
                   ) : (
@@ -96,6 +95,7 @@ export default function Navbar() {
                     </div>
                   )}
                 </Link>
+              <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="text-sm font-medium text-zinc-300">
                 Dashboard
               </Link>
               <button onClick={handleLogout} className="text-sm font-medium text-red-400 text-left">Sign out</button>

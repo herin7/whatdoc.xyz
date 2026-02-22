@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { Rocket, Loader2, ArrowLeft, AlertCircle, CheckCircle2, LayoutTemplate } from 'lucide-react';
+import { Rocket, Loader2, ArrowLeft, AlertCircle, CheckCircle2, LayoutTemplate, ShieldCheck } from 'lucide-react';
 import Logo from '../components/Logo';
 import { project } from '../lib/api';
 import { DOC_TEMPLATES } from '../config/templates';
@@ -24,6 +24,8 @@ export default function ConfigureProject() {
     const [techstack, setTechstack] = useState('MERN');
     const [selectedTemplateId, setSelectedTemplateId] = useState('twilio');
     const [llmProvider, setLlmProvider] = useState('gemini');
+    const [customModel, setCustomModel] = useState(() => localStorage.getItem('wtd_gemini_model') || 'gemini-2.5-flash-lite');
+    const [customKey, setCustomKey] = useState(() => localStorage.getItem('wtd_gemini_key') || '');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -47,6 +49,10 @@ export default function ConfigureProject() {
 
         setLoading(true);
         try {
+            // Persist BYOK settings to localStorage so api.js sends them as headers
+            localStorage.setItem('wtd_gemini_model', customModel);
+            localStorage.setItem('wtd_gemini_key', customKey);
+
             const res = await project.create({ repoName, slug: slug.trim(), techstack, template: selectedTemplateId, llmProvider });
             // Stash slug so the deploy page can link to /p/:slug
             sessionStorage.setItem('deploy_slug', slug.trim());
@@ -241,6 +247,56 @@ export default function ConfigureProject() {
                                     <span className="block text-sm font-medium text-zinc-400">OpenAI</span>
                                     <span className="block text-xs text-zinc-600 mt-0.5">Coming soon</span>
                                 </button>
+                            </div>
+                        </div>
+
+                        {/* ── BYOK: Model & API Key ──────────────── */}
+                        <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-4">
+                            <label className="block text-sm font-medium text-zinc-300">
+                                Model &amp; API Key <span className="text-zinc-600 font-normal">(optional — Bring Your Own Key)</span>
+                            </label>
+
+                            {/* Model select */}
+                            <div className="relative">
+                                <select
+                                    value={customModel}
+                                    onChange={(e) => setCustomModel(e.target.value)}
+                                    className="appearance-none w-full h-11 px-4 rounded-lg bg-[#111] border border-zinc-800 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-transparent transition-all cursor-pointer"
+                                >
+                                    <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite (Fast, Default)</option>
+                                    <option value="gemini-2.5-flash">Gemini 2.5 Flash (Balanced)</option>
+                                    <option value="gemini-2.5-pro">Gemini 2.5 Pro (High Quality, BYOK)</option>
+                                </select>
+                                <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500">
+                                    <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                            {/* API Key input */}
+                            <div>
+                                <input
+                                    type="password"
+                                    value={customKey}
+                                    onChange={(e) => setCustomKey(e.target.value)}
+                                    placeholder="AIzaSy... (leave blank to use free tier)"
+                                    className="w-full h-11 px-4 rounded-lg bg-[#111] border border-zinc-800 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-transparent transition-all placeholder:text-zinc-600"
+                                />
+                                <a
+                                    href="https://aistudio.google.com/app/apikey"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-block mt-1.5 text-xs text-zinc-500 hover:text-emerald-400 transition-colors"
+                                >
+                                    Get a free key from Google AI Studio ↗
+                                </a>
+                            </div>
+
+                            {/* Trust badge */}
+                            <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-3 rounded-lg flex items-start gap-2 text-xs">
+                                <ShieldCheck className="size-4 mt-0.5 shrink-0" />
+                                <span>Your key stays in your browser. It's sent directly to Google and never stored in our database.</span>
                             </div>
                         </div>
 

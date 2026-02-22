@@ -10,8 +10,8 @@ function authmware(req, res, next) {
       : req.query?.token;
 
    if (!token) {
-      return res.status(403).json({
-         message: "Invalid token format"
+      return res.status(401).json({
+         message: "Not authenticated. Please log in."
       });
    }
    try {
@@ -20,9 +20,8 @@ function authmware(req, res, next) {
       next();
    }
    catch (e) {
-      return res.status(403).json({
-         e,
-         message: "Invalid Token"
+      return res.status(401).json({
+         message: "Session expired. Please log in again."
       });
    }
 }
