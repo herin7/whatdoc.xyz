@@ -70,8 +70,11 @@ async function signup(req, res) {
     } catch (e) {
         // Handle duplicate key error (e.g. race condition on email)
         if (e.code === 11000) {
+            const field = Object.keys(e.keyPattern || {})[0] || 'email';
             return res.status(409).json({
-                message: "An account with this email already exists"
+                message: field === 'email'
+                    ? "An account with this email already exists"
+                    : `Duplicate value for field: ${field}`
             });
         }
         console.error('Signup error:', e);
@@ -121,8 +124,9 @@ async function signin(req, res) {
         }
     }
     catch (e) {
-        return res.send({
-            message: "Error in signin controller"
+        console.error('Signin error:', e);
+        return res.status(500).json({
+            message: "Server error"
         })
     }
 
