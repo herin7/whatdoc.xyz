@@ -22,23 +22,23 @@ export default function CTA() {
           </p>
         </Reveal>
         <Reveal delay={200} distance={12}>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Link
-            to="/signup"
-            className="group flex items-center gap-2 h-12 px-8 rounded-full bg-emerald-400 text-black text-sm font-semibold hover:bg-emerald-500 transition-all shadow-[0_0_30px_rgba(52,211,153,0.25)]"
-          >
-            Generate Docs Now
-            <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-          </Link>
-          <a
-            href="https://cal.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 h-12 px-8 rounded-full border border-zinc-700 bg-zinc-900/80 text-sm font-medium text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all"
-          >
-            Book a demo
-          </a>
-        </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link
+              to="/signup"
+              className="group flex items-center gap-2 h-12 px-8 rounded-full bg-emerald-400 text-black text-sm font-semibold hover:bg-emerald-500 transition-all shadow-[0_0_30px_rgba(52,211,153,0.25)]"
+            >
+              Generate Docs Now
+              <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+            <a
+              href="https://cal.com/herin-soni-scb9tt/let-s-talk"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 h-12 px-8 rounded-full border border-zinc-700 bg-zinc-900/80 text-sm font-medium text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all"
+            >
+              Book a demo
+            </a>
+          </div>
         </Reveal>
       </div>
     </section>
