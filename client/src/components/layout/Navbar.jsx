@@ -24,7 +24,7 @@ export default function Navbar({ variant }) {
       }
     }
     fetchUserCount();
-    const interval = setInterval(fetchUserCount, 15000); // Refresh every 15s
+    const interval = setInterval(fetchUserCount, 15000);
     return () => {
       isMounted = false;
       clearInterval(interval);
@@ -45,17 +45,13 @@ export default function Navbar({ variant }) {
     <div className="fixed top-0 left-0 z-50 w-full border-b border-white/5 bg-[#050505]/80 backdrop-blur-xl px-6">
       <nav className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-2 relative">
 
-        {/* Logo */}
         <Link to="/" className="flex items-center gap-2 relative z-10">
           <span className="font-logo text-lg tracking-tight text-white hover:text-emerald-400 transition-colors">
             <span className='font-bold'>W</span>HATDOC.XYZ
           </span>
         </Link>
 
-        {/* Center Section: Desktop Links + Telemetry Pill */}
         <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-6">
-
-          {/* The Links */}
           <div className="flex items-center gap-1">
             <Link to="/" className="h-8 px-3 py-1.5 text-xs font-medium text-zinc-400 rounded-full transition-all hover:bg-white/5 hover:text-white">Home</Link>
             <Link to="/templates" className="h-8 px-3 py-1.5 text-xs font-medium text-zinc-400 rounded-full transition-all hover:bg-white/5 hover:text-white">Templates</Link>
@@ -63,19 +59,16 @@ export default function Navbar({ variant }) {
             <Link to="/creator" className="h-8 px-3 py-1.5 text-xs font-medium text-zinc-400 rounded-full transition-all hover:bg-white/5 hover:text-white">Hire Me</Link>
           </div>
 
-          {/* THE TELEMETRY PILL (The Flex) */}
           <div className="group flex items-center gap-2 h-7 px-3 rounded-full bg-[#111] border border-white/5 shadow-inner cursor-default overflow-hidden transition-all duration-500 hover:border-emerald-500/30 hover:bg-emerald-500/5">
             <div className="relative flex items-center justify-center">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 absolute animate-ping opacity-75" />
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 relative z-10" />
             </div>
 
-            {/* Number */}
             <div className="flex flex-col relative h-4 overflow-hidden">
               <span className="text-[10px] font-mono text-zinc-300 tracking-wider font-bold leading-4 group-hover:-translate-y-4 transition-transform duration-300">
                 {userCount.toLocaleString()}
               </span>
-              {/* Hover State Text */}
               <span className="text-[10px] font-mono text-emerald-400 tracking-wider font-bold leading-4 group-hover:-translate-y-4 transition-transform duration-300">
                 USERS
               </span>
@@ -83,20 +76,16 @@ export default function Navbar({ variant }) {
           </div>
         </div>
 
-        {/* Desktop Actions */}
         <div className="hidden md:flex items-center justify-end gap-3 relative z-10">
-          {/* ★ Star on GitHub */}
           <a
             href="https://github.com/herin7/whatdoc.xyz"
             target="_blank"
             rel="noopener noreferrer"
             className="group/star relative flex items-center gap-1.5 h-8 px-3.5 rounded-full border border-yellow-500/20 bg-yellow-500/[0.06] text-xs font-semibold text-yellow-300 hover:border-yellow-400/40 hover:bg-yellow-500/[0.12] hover:text-yellow-200 hover:shadow-[0_0_20px_rgba(234,179,8,0.15)] transition-all duration-300 overflow-hidden"
           >
-            {/* Shimmer sweep on hover */}
             <span className="absolute inset-0 -translate-x-full group-hover/star:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-yellow-400/20 to-transparent" />
             <Star className="size-3.5 fill-yellow-400 text-yellow-400 group-hover/star:scale-125 group-hover/star:rotate-[20deg] transition-transform duration-300" />
             <span className="relative">Star</span>
-            {/* Sparkle particles on hover */}
             <span className="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full bg-yellow-300 opacity-0 group-hover/star:opacity-100 group-hover/star:animate-ping" />
             <span className="absolute -bottom-0.5 left-2 w-1 h-1 rounded-full bg-yellow-400 opacity-0 group-hover/star:opacity-100 group-hover/star:animate-ping" style={{ animationDelay: '0.3s' }} />
           </a>
@@ -137,16 +126,13 @@ export default function Navbar({ variant }) {
           )}
         </div>
 
-        {/* Mobile Hamburger */}
         <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden flex items-center justify-center h-9 w-9 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 transition-all">
           {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
       </nav>
 
-      {/* Mobile Dropdown */}
       {mobileOpen && (
         <div className="md:hidden border-t border-white/5 bg-[#0a0a0a] px-6 py-6 flex flex-col gap-4 animate-[fadeIn_0.2s_ease-out]">
-          {/* Mobile Telemetry */}
           <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#111] border border-white/5 mb-2 w-fit">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[10px] font-mono text-emerald-400 tracking-wider font-bold">
@@ -159,7 +145,6 @@ export default function Navbar({ variant }) {
           <Link to="/engine" onClick={() => setMobileOpen(false)} className="text-sm font-medium text-white hover:text-emerald-400 transition-colors">The Engine</Link>
           <Link to="/creator" onClick={() => setMobileOpen(false)} className="text-sm font-medium text-white hover:text-emerald-400 transition-colors">Hire Me</Link>
 
-          {/* ★ Star on GitHub — Mobile */}
           <a
             href="https://github.com/herin7/whatdoc.xyz"
             target="_blank"

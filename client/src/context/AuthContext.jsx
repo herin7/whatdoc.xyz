@@ -27,7 +27,6 @@ export function AuthProvider({ children }) {
         }
     }, []);
 
-    // On mount: warm up the backend first, then fetch user
     useEffect(() => {
         let cancelled = false;
 

@@ -7,7 +7,6 @@ const STATUS_MESSAGES = [
     { threshold: 55, text: 'Taking longer than usual…', sub: 'Hang tight, connecting now' },
 ];
 
-/* ── Floating particle ──────────────────────────────────────────────── */
 function Particle({ delay, duration, x, size, blur }) {
     return (
         <div
@@ -30,26 +29,22 @@ export default function ServerWarmup({ status }) {
     const [visible, setVisible] = useState(false);
     const [typedText, setTypedText] = useState('');
 
-    // Fade in
     useEffect(() => {
         const t = setTimeout(() => setVisible(true), 200);
         return () => clearTimeout(t);
     }, []);
 
-    // Timer
     useEffect(() => {
         const iv = setInterval(() => setElapsed((e) => e + 1), 1000);
         return () => clearInterval(iv);
     }, []);
 
-    // Pick status message
     const msg =
         [...STATUS_MESSAGES].reverse().find((m) => elapsed >= m.threshold) ||
         STATUS_MESSAGES[0];
 
     const displayText = status || msg.text;
 
-    // Typewriter effect for status text
     useEffect(() => {
         setTypedText('');
         let i = 0;
@@ -63,7 +58,6 @@ export default function ServerWarmup({ status }) {
 
     const progress = Math.min(92, (elapsed / 60) * 100);
 
-    // Generate particles once
     const particles = useMemo(
         () =>
             Array.from({ length: 18 }, (_, i) => ({
@@ -82,22 +76,17 @@ export default function ServerWarmup({ status }) {
             className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#030303] overflow-hidden select-none"
             style={{ opacity: visible ? 1 : 0, transition: 'opacity 0.6s ease' }}
         >
-            {/* ── Animated background layers ── */}
-            {/* Grid */}
             <div className="absolute inset-0 pointer-events-none opacity-[0.03]">
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] bg-[size:40px_40px]" />
             </div>
 
-            {/* Orbiting glow rings */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px]" style={{ animation: 'spinSlow 20s linear infinite' }}>
                 <div className="absolute inset-0 rounded-full border border-emerald-500/10" />
                 <div className="absolute inset-[40px] rounded-full border border-emerald-400/[0.07]" style={{ animation: 'spinSlow 15s linear infinite reverse' }} />
                 <div className="absolute inset-[80px] rounded-full border border-emerald-300/[0.05]" style={{ animation: 'spinSlow 25s linear infinite' }} />
-                {/* Orbiting dot */}
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_12px_4px_rgba(52,211,153,0.6)]" />
             </div>
 
-            {/* Large pulsing aura */}
             <div
                 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full"
                 style={{
@@ -106,28 +95,22 @@ export default function ServerWarmup({ status }) {
                 }}
             />
 
-            {/* Floating particles */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
                 {particles.map((p) => (
                     <Particle key={p.id} {...p} />
                 ))}
             </div>
 
-            {/* ── Main content ── */}
             <div className="relative z-10 flex flex-col items-center text-center px-6">
-                {/* Logo container with rings */}
                 <div className="relative mb-10">
-                    {/* Outer breathing ring */}
                     <div
                         className="absolute -inset-6 rounded-3xl border border-emerald-500/20"
                         style={{ animation: 'breathe 3s ease-in-out infinite' }}
                     />
-                    {/* Middle ring */}
                     <div
                         className="absolute -inset-3 rounded-2xl border border-emerald-400/10"
                         style={{ animation: 'breathe 3s ease-in-out infinite 0.5s' }}
                     />
-                    {/* Logo */}
                     <div
                         className="relative w-[72px] h-[72px] rounded-2xl flex items-center justify-center"
                         style={{
@@ -143,7 +126,6 @@ export default function ServerWarmup({ status }) {
                     </div>
                 </div>
 
-                {/* Status text with typewriter */}
                 <h2 className="text-xl font-semibold text-white mb-2 h-7 flex items-center">
                     <span>{typedText}</span>
                     <span
@@ -155,7 +137,6 @@ export default function ServerWarmup({ status }) {
                     {msg.sub}
                 </p>
 
-                {/* Progress bar — glassmorphic */}
                 <div className="w-56 h-1.5 rounded-full bg-white/[0.04] overflow-hidden mb-5 backdrop-blur-sm border border-white/[0.03]">
                     <div
                         className="h-full rounded-full relative overflow-hidden"
@@ -165,7 +146,6 @@ export default function ServerWarmup({ status }) {
                             background: 'linear-gradient(90deg, #059669, #34d399, #6ee7b7)',
                         }}
                     >
-                        {/* Shimmer sweep */}
                         <div
                             className="absolute inset-0"
                             style={{
@@ -176,7 +156,6 @@ export default function ServerWarmup({ status }) {
                     </div>
                 </div>
 
-                {/* Elapsed timer — pill style */}
                 <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.05]">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" style={{ animation: 'dotPulse 2s ease-in-out infinite' }} />
                     <span className="text-xs text-zinc-500 tabular-nums tracking-wider">
@@ -185,7 +164,6 @@ export default function ServerWarmup({ status }) {
                 </div>
             </div>
 
-            {/* ── Keyframes ── */}
             <style>{`
         @keyframes spinSlow {
           from { transform: translate(-50%, -50%) rotate(0deg); }

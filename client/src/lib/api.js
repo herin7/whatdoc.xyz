@@ -1,11 +1,5 @@
 import { API_URL } from './config';
 
-/* ── Warm-up helper for Render cold starts ──────────────────────────── */
-
-/**
- * Pings the backend until it responds (or we give up).
- * Returns { ok: boolean, attempts: number }.
- */
 export async function warmUpBackend(onStatus) {
     const MAX_ATTEMPTS = 8;
     const TIMEOUT_MS = 8_000;
@@ -17,25 +11,20 @@ export async function warmUpBackend(onStatus) {
             const controller = new AbortController();
             const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-            // Use a lightweight GET — any 2xx/4xx means server is alive
             const res = await fetch(`${API_URL}/auth/me`, {
                 signal: controller.signal,
                 headers: { 'Content-Type': 'application/json' },
             });
             clearTimeout(timer);
 
-            // Any response (even 401) means the server is up
             if (res.status > 0) return { ok: true, attempts: i };
         } catch {
-            // Network error or timeout — server still cold
             const backoff = Math.min(2000, 500 * i);
             await new Promise((r) => setTimeout(r, backoff));
         }
     }
     return { ok: false, attempts: MAX_ATTEMPTS };
 }
-
-/* ── Core API request ───────────────────────────────────────────────── */
 
 export async function apiRequest(endpoint, options = {}) {
     const token = localStorage.getItem('token');
@@ -78,7 +67,6 @@ export const project = {
         const rawKey = (localStorage.getItem('wtd_gemini_key') || '').trim();
         const customModel = localStorage.getItem('wtd_gemini_model') || 'gemini-2.5-flash-lite';
 
-        // Only send the header if it looks like a real Gemini key
         const isKeyValid = rawKey.length > 30 && rawKey !== 'null';
 
         const extraHeaders = { 'x-target-model': customModel };
@@ -111,7 +99,6 @@ export const project = {
 };
 
 export const github = {
-    // Get the GitHub OAuth URL — pass includePrivate to control scope
     getAuthUrl: (includePrivate = false) =>
         apiRequest(`/auth/github?includePrivate=${includePrivate}`),
     getRepos: () => apiRequest('/auth/github/repos'),

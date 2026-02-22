@@ -19,21 +19,15 @@ import { useAuth } from './context/AuthContext';
 import Templates from './pages/Templates';
 import PublicProjectView from './pages/PublicProjectView';
 
-/** Extract subdomain from current hostname, ignoring "www". */
 function getSubdomain() {
-  const host = window.location.hostname; // e.g. "acme.whatdoc.xyz" or "acme.localhost"
+  const host = window.location.hostname;
   const parts = host.split('.');
 
-  // Vercel preview: whatdoc-xyz.vercel.app — no subdomain support there
   if (host.endsWith('.vercel.app')) return null;
-
-  // localhost / whatdoc.xyz  → no subdomain
-  // acme.localhost / acme.whatdoc.xyz → "acme"
   if (parts.length <= 1) return null;
 
-  // "foo.localhost" → 2 parts, "foo.whatdoc.xyz" → 3 parts
   const isLocalhost = parts[parts.length - 1] === 'localhost';
-  const minParts = isLocalhost ? 2 : 3; // 2 for *.localhost, 3 for *.whatdoc.xyz
+  const minParts = isLocalhost ? 2 : 3;
 
   if (parts.length < minParts) return null;
 
@@ -52,11 +46,9 @@ function GuestRoute({ children }) {
 function App() {
   const { serverReady, warmUpStatus } = useAuth();
 
-  // If accessed via a subdomain (e.g. acme.whatdoc.xyz), render standalone doc site
   const subdomain = getSubdomain();
   if (subdomain) return <SubdomainApp subdomain={subdomain} />;
 
-  // Show warm-up screen while backend is cold-starting
   if (!serverReady) {
     return <ServerWarmup status={warmUpStatus} />;
   }
@@ -76,11 +68,9 @@ function App() {
       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
       <Route path="/engine" element={<Engine />} />
       <Route path="/creator" element={<Creator />} />
-
       <Route path="/templates" element={<Templates />} />
     </Routes>
   );
 }
 
 export default App;
-
