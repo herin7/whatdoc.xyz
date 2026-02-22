@@ -1,8 +1,7 @@
 <p align="center">
-  <img src="client/public/logo.png" alt="WhatDoc Logo" width="80" height="80" />
+  <img src="client/public/logo.png" alt="WhatDoc Logo" width="300" height="300" />
 </p>
 
-<h1 align="center">WhatDoc</h1>
 
 <p align="center">
   <strong>Connect your GitHub. Get beautiful, AI-generated documentation instantly.</strong>
