@@ -53,7 +53,7 @@ export default function Login() {
                         Welcome back
                     </h1>
                     <p className="text-zinc-400 text-sm">
-                        Authenticate to access the engine.
+                        Docs that don't look boring.
                     </p>
                 </div>
 
