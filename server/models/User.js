@@ -7,9 +7,9 @@ const userSchema = new Schema({
     password: String,
     firstName: String,
     lastName: String,
-    githubId: { type: String, sparse: true },
-    githubUsername: String,
-    githubAccessToken: String,
+    githubId: { type: String, default: null, unique: true, sparse: true },
+    githubUsername: { type: String, default: null },
+    githubAccessToken: { type: String, default: null },
     isPro: { type: Boolean, default: false },
     avatarUrl: { type: String, default: '' }
 })

@@ -2,7 +2,15 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-mongoose.connect(process.env.MONGO_URI);
+
+mongoose.connect(process.env.MONGO_URI).then(async () => {
+    console.log('MongoDB connected');
+    // Sync indexes: drops stale unique indexes that no longer match the schema
+    const { UserModel } = require('./models/User');
+    await UserModel.syncIndexes();
+    console.log('User indexes synced');
+}).catch(err => console.error('MongoDB connection error:', err));
+
 const authRoutes = require("./routes/auth");
 const projectRoutes = require("./routes/project");
 const app = express();

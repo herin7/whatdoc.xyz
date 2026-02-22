@@ -33,6 +33,14 @@ async function signup(req, res) {
 
         const { fname, lname, email, password } = parsed.data;
 
+        // Check if email already exists
+        const existingUser = await UserModel.findOne({ email });
+        if (existingUser) {
+            return res.status(409).json({
+                message: "An account with this email already exists"
+            });
+        }
+
         const hashed = await bcrypt.hash(password, 10);
 
         const user = await UserModel.create({
@@ -60,8 +68,14 @@ async function signup(req, res) {
         });
 
     } catch (e) {
+        // Handle duplicate key error (e.g. race condition on email)
+        if (e.code === 11000) {
+            return res.status(409).json({
+                message: "An account with this email already exists"
+            });
+        }
+        console.error('Signup error:', e);
         return res.status(500).json({
-            error : e,
             message: "Server error"
         });
     }
