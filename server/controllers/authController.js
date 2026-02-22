@@ -1,9 +1,11 @@
 const { z } = require("zod");
 const bcrypt = require("bcrypt");
 const { UserModel } = require("../models/User");
+const Invite = require("../models/Invite");
 const jwt = require("jsonwebtoken");
 
 const JWT_SECRET = process.env.JWT_SECRET;
+const WAITLIST_ENABLED = process.env.WAITLIST_ENABLED === 'true';
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID;
 const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
 const GITHUB_CALLBACK_URL = process.env.GITHUB_CALLBACK_URL;
@@ -13,7 +15,8 @@ const signupSchema = z.object({
     fname: z.string(),
     lname: z.string(),
     email: z.string().email(),
-    password: z.string().min(6)
+    password: z.string().min(6),
+    inviteCode: z.string().optional(),
 });
 const signinSchema = z.object({
     email: z.string().email(),
@@ -31,9 +34,28 @@ async function signup(req, res) {
             });
         }
 
-        const { fname, lname, email, password } = parsed.data;
+        const { fname, lname, email, password, inviteCode } = parsed.data;
 
-        // Check if email already exists
+        let invite = null;
+        if (WAITLIST_ENABLED) {
+            if (!inviteCode) {
+                return res.status(403).json({
+                    message: "Invite code required. Join the waitlist to get one."
+                });
+            }
+
+            invite = await Invite.findOne({
+                email: email.toLowerCase(),
+                inviteCode: inviteCode.toUpperCase(),
+                status: 'approved',
+            });
+            if (!invite) {
+                return res.status(403).json({
+                    message: "Invalid or unapproved invite code."
+                });
+            }
+        }
+
         const existingUser = await UserModel.findOne({ email });
         if (existingUser) {
             return res.status(409).json({
@@ -49,6 +71,11 @@ async function signup(req, res) {
             email,
             password: hashed
         });
+
+        if (invite) {
+            invite.status = 'used';
+            await invite.save();
+        }
 
         const token = jwt.sign(
             { id: user._id.toString() },

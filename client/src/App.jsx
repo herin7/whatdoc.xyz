@@ -17,6 +17,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ServerWarmup from './components/ServerWarmup';
 import { useAuth } from './context/AuthContext';
 import Templates from './pages/Templates';
+import Waitlist from './pages/Waitlist';
+import Admin from './pages/Admin';
 import PublicProjectView from './pages/PublicProjectView';
 
 function getSubdomain() {
@@ -69,6 +71,8 @@ function App() {
       <Route path="/engine" element={<Engine />} />
       <Route path="/creator" element={<Creator />} />
       <Route path="/templates" element={<Templates />} />
+      <Route path="/waitlist" element={<Waitlist />} />
+      <Route path="/admin" element={<Admin />} />
     </Routes>
   );
 }

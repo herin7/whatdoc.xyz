@@ -58,9 +58,11 @@ app.get('/api/usercount', async (req, res) => {
 
 const authRoutes = require("./routes/auth");
 const projectRoutes = require("./routes/project");
+const inviteRoutes = require("./routes/invites");
 
 app.use("/auth", authRoutes);
 app.use("/projects", projectRoutes);
+app.use("/api/invites", inviteRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

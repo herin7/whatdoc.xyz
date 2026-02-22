@@ -1,17 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, ArrowRight, Loader2, Mail, Lock, User } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, Loader2, Mail, Lock, User, Ticket } from 'lucide-react';
 import Logo from '../components/Logo';
 import { auth } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../lib/config';
 
 export default function Signup() {
     const navigate = useNavigate();
     const { login } = useAuth();
-    const [form, setForm] = useState({ fname: '', lname: '', email: '', password: '' });
+    const [form, setForm] = useState({ fname: '', lname: '', email: '', password: '', inviteCode: '' });
     const [showPw, setShowPw] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [waitlistActive, setWaitlistActive] = useState(false);
+
+    useEffect(() => {
+        fetch(`${API_URL}/api/invites/status`)
+            .then((r) => r.json())
+            .then((d) => setWaitlistActive(d.waitlistEnabled))
+            .catch(() => { });
+    }, []);
 
     const handleChange = (e) =>
         setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -162,6 +171,32 @@ export default function Signup() {
                                 </button>
                             </div>
                         </div>
+
+                        {waitlistActive && (
+                            <div className="flex flex-col gap-1.5 group">
+                                <div className="flex items-center justify-between">
+                                    <label htmlFor="inviteCode" className="text-[13px] font-medium text-zinc-400 group-focus-within:text-emerald-400 transition-colors">
+                                        Invite code
+                                    </label>
+                                    <Link to="/waitlist" className="text-[11px] text-zinc-600 hover:text-emerald-400 transition-colors">
+                                        Need a code?
+                                    </Link>
+                                </div>
+                                <div className="relative">
+                                    <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-zinc-500 group-focus-within:text-emerald-400 transition-colors" />
+                                    <input
+                                        id="inviteCode"
+                                        name="inviteCode"
+                                        type="text"
+                                        required
+                                        placeholder="WD-XXXXXX"
+                                        value={form.inviteCode}
+                                        onChange={handleChange}
+                                        className="h-10 w-full rounded-xl border border-white/10 bg-[#111] pl-9 pr-4 text-sm text-white placeholder:text-zinc-600 outline-none transition-all focus:bg-[#151515] focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30 font-mono uppercase tracking-wider"
+                                    />
+                                </div>
+                            </div>
+                        )}
 
                         {/* Submit */}
                         <button
