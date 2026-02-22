@@ -68,7 +68,7 @@ function App() {
       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
       <Route path="/engine" element={<Engine />} />
       <Route path="/creator" element={<Creator />} />
-      <Route path="/p/:slug" element={<DocViewer />} />
+
       <Route path="/templates" element={<Templates />} />
     </Routes>
   );

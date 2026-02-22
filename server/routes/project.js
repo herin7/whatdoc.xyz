@@ -34,7 +34,7 @@ router.get('/subdomain/:subdomain', async (req, res) => {
             'repoName techstack generatedDocs updatedAt isPublic userId template subdomain customization'
         );
 
-        if (!project || project.isPublic === false) {
+        if (!project) {
             return res.status(404).json({ error: 'Project not found.' });
         }
 
@@ -63,16 +63,17 @@ router.get('/subdomain/:subdomain', async (req, res) => {
     }
 });
 
-// ── Public doc viewer (legacy slug): GET /projects/slug/:slug ───────
-// Kept for backward compatibility.
+// ── Public doc viewer (slug): GET /projects/slug/:slug ──────────────
 router.get('/slug/:slug', async (req, res) => {
     try {
+        const targetSlug = req.params.slug.toLowerCase();
+
         const project = await Project.findOne(
-            { slug: req.params.slug },
-            'repoName techstack generatedDocs updatedAt isPublic userId template subdomain customization'
+            { slug: targetSlug },
+            'repoName techstack generatedDocs updatedAt isPublic userId template subdomain slug customization'
         );
 
-        if (!project || project.isPublic === false) {
+        if (!project) {
             return res.status(404).json({ error: 'Project not found.' });
         }
 
@@ -86,14 +87,17 @@ router.get('/slug/:slug', async (req, res) => {
         }
 
         res.json({
-            repoName: project.repoName,
-            techstack: project.techstack,
-            generatedDocs: project.generatedDocs,
-            updatedAt: project.updatedAt,
-            creatorName,
-            template: project.template || 'modern',
-            subdomain: project.subdomain,
-            customization: project.customization || {},
+            project: {
+                repoName: project.repoName,
+                techstack: project.techstack,
+                generatedDocs: project.generatedDocs,
+                updatedAt: project.updatedAt,
+                creatorName,
+                template: project.template || 'modern',
+                subdomain: project.subdomain,
+                slug: project.slug,
+                customization: project.customization || {},
+            },
         });
     } catch (err) {
         console.error('Slug lookup error:', err);
