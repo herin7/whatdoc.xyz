@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Play, Copy, Check, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { API_URL } from '../lib/config';
 
 const METHOD_COLORS = {
     GET: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
@@ -12,7 +13,7 @@ const METHOD_COLORS = {
 export default function ApiPlayground({ config }) {
     const { method = 'GET', endpoint = '/', headers = {}, body = {} } = config || {};
 
-    const [baseUrl, setBaseUrl] = useState('http://localhost:3000');
+    const [baseUrl, setBaseUrl] = useState(API_URL);
     const [headersText, setHeadersText] = useState(JSON.stringify(headers, null, 2));
     const [bodyText, setBodyText] = useState(
         Object.keys(body).length ? JSON.stringify(body, null, 2) : ''
@@ -114,7 +115,7 @@ export default function ApiPlayground({ config }) {
                             value={baseUrl}
                             onChange={(e) => setBaseUrl(e.target.value)}
                             className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-sm font-mono text-zinc-200 focus:outline-none focus:border-zinc-500 transition-colors"
-                            placeholder="http://localhost:3000"
+                            placeholder="API base URL"
                         />
                     </div>
 
@@ -178,13 +179,12 @@ export default function ApiPlayground({ config }) {
                                         Response
                                     </span>
                                     {statusCode && (
-                                        <span className={`px-2 py-0.5 rounded text-[11px] font-mono font-bold ${
-                                            statusCode < 300
-                                                ? 'bg-emerald-500/15 text-emerald-400'
-                                                : statusCode < 500
-                                                    ? 'bg-amber-500/15 text-amber-400'
-                                                    : 'bg-red-500/15 text-red-400'
-                                        }`}>
+                                        <span className={`px-2 py-0.5 rounded text-[11px] font-mono font-bold ${statusCode < 300
+                                            ? 'bg-emerald-500/15 text-emerald-400'
+                                            : statusCode < 500
+                                                ? 'bg-amber-500/15 text-amber-400'
+                                                : 'bg-red-500/15 text-red-400'
+                                            }`}>
                                             {statusCode}
                                         </span>
                                     )}

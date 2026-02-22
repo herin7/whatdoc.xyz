@@ -9,7 +9,7 @@ import DjangoTemplate from '../templates/DjangoTemplate';
 import MDNTemplate from '../templates/MDNTemplate';
 import AeroLatexTemplate from '../templates/AeroLatexTemplate';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { API_URL } from '../lib/config';
 
 // ── Template map — drop new templates here ──────────────────────────
 const TemplateMap = {
@@ -19,7 +19,7 @@ const TemplateMap = {
     django: DjangoTemplate,
     mdn: MDNTemplate,
     aerolatex: AeroLatexTemplate,
-    stylish : MDNTemplate
+    stylish: MDNTemplate
 };
 
 export default function DocViewer() {

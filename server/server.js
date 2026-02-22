@@ -14,24 +14,25 @@ mongoose.connect(process.env.MONGO_URI).then(async () => {
 }).catch(err => console.error('MongoDB connection error:', err));
 
 // 2. CORS CONFIGURATION (Must come BEFORE routes)
-const ALLOWED_ORIGINS = [
-    'https://whatdoc.xyz',
-    'https://www.whatdoc.xyz',
-    'https://whatdoc-xyz.vercel.app',
-    'http://localhost:5173',
-    'http://localhost:4173',
-    process.env.CLIENT_URL,
-].filter(Boolean);
+const APP_DOMAIN = process.env.APP_DOMAIN || 'localhost';
+const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS || 'http://localhost:5173,http://localhost:4173')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+
+if (process.env.CLIENT_URL && !ALLOWED_ORIGINS.includes(process.env.CLIENT_URL)) {
+    ALLOWED_ORIGINS.push(process.env.CLIENT_URL);
+}
 
 app.use(cors({
     origin: (origin, callback) => {
         if (!origin) return callback(null, true);
-        
+
         const isWhitelisted = ALLOWED_ORIGINS.includes(origin);
-        const isSubdomain = 
-            /^https?:\/\/[a-z0-9-]+\.whatdoc\.xyz$/.test(origin) || 
-            /^http:\/\/localhost:(5173|4173)$/.test(origin) ||
-            /^http:\/\/[a-z0-9-]+\.localhost:(5173|4173)$/.test(origin);
+        const isSubdomain =
+            new RegExp(`^https?://[a-z0-9-]+\\.${APP_DOMAIN.replace('.', '\\.')}$`).test(origin) ||
+            /^http:\/\/localhost:\d+$/.test(origin) ||
+            /^http:\/\/[a-z0-9-]+\.localhost:\d+$/.test(origin);
 
         if (isWhitelisted || isSubdomain) {
             callback(null, true);

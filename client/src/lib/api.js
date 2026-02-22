@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { API_URL } from './config';
 
 export async function apiRequest(endpoint, options = {}) {
     const token = localStorage.getItem('token');
@@ -33,7 +33,7 @@ export const auth = {
     me: () => apiRequest('/auth/me'),
 };
 
-export const project = {    
+export const project = {
     create: (body) => {
         const rawKey = (localStorage.getItem('wtd_gemini_key') || '').trim();
         const customModel = localStorage.getItem('wtd_gemini_model') || 'gemini-2.5-flash-lite';

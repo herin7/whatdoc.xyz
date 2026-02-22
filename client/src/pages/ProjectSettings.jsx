@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { project as projectApi } from '../lib/api';
+import { APP_DOMAIN } from '../lib/config';
 import Navbar from '../components/layout/Navbar';
 
 /* ── Sidebar tab definitions ─────────────────────────────────────── */
@@ -136,8 +137,8 @@ export default function ProjectSettings() {
     const hasSubdomainChanged = subdomain !== (project.subdomain || '');
 
     const liveUrl = project.subdomain
-        ? `https://${project.subdomain}.whatdoc.xyz`
-        : `https://whatdoc.xyz/p/${project.slug}`;
+        ? `https://${project.subdomain}.${APP_DOMAIN}`
+        : `https://${APP_DOMAIN}/p/${project.slug}`;
 
     return (
         <div className="min-h-screen bg-[#050505] text-white">
@@ -146,11 +147,10 @@ export default function ProjectSettings() {
             {/* Toast */}
             {toast && (
                 <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-[slideIn_0.2s_ease]">
-                    <div className={`px-4 py-2.5 rounded-lg text-sm font-medium shadow-xl backdrop-blur-sm ${
-                        toast.type === 'success'
-                            ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
-                            : 'bg-red-500/10 border border-red-500/20 text-red-400'
-                    }`}>
+                    <div className={`px-4 py-2.5 rounded-lg text-sm font-medium shadow-xl backdrop-blur-sm ${toast.type === 'success'
+                        ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                        : 'bg-red-500/10 border border-red-500/20 text-red-400'
+                        }`}>
                         {toast.message}
                     </div>
                 </div>
@@ -195,11 +195,10 @@ export default function ProjectSettings() {
                                     <button
                                         key={tab.id}
                                         onClick={() => setActiveTab(tab.id)}
-                                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors w-full text-left ${
-                                            active
-                                                ? 'bg-zinc-800/80 text-white'
-                                                : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/40'
-                                        }`}
+                                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors w-full text-left ${active
+                                            ? 'bg-zinc-800/80 text-white'
+                                            : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/40'
+                                            }`}
                                     >
                                         <Icon size={16} className={active ? 'text-white' : 'text-zinc-600'} />
                                         {tab.label}
@@ -251,8 +250,8 @@ function GeneralTab({ project, user, slug, setSlug, hasChanged, saving, onSave }
     const [copied, setCopied] = useState(false);
 
     const liveUrl = project.subdomain
-        ? `https://${project.subdomain}.whatdoc.xyz`
-        : `https://whatdoc.xyz/p/${project.slug}`;
+        ? `https://${project.subdomain}.${APP_DOMAIN}`
+        : `https://${APP_DOMAIN}/p/${project.slug}`;
 
     const handleCopy = () => {
         navigator.clipboard.writeText(liveUrl);
@@ -334,7 +333,7 @@ function GeneralTab({ project, user, slug, setSlug, hasChanged, saving, onSave }
                 </div>
                 <div className="p-6">
                     <div className="flex items-center gap-2 mb-4">
-                        <span className="text-sm text-zinc-600 whitespace-nowrap">whatdoc.xyz/p/</span>
+                        <span className="text-sm text-zinc-600 whitespace-nowrap">{APP_DOMAIN}/p/</span>
                         <input
                             type="text"
                             value={slug}
@@ -398,7 +397,7 @@ function DomainsTab({ project, isPro, subdomain, setSubdomain, hasChanged, savin
                 <div className="px-6 py-5 border-b border-zinc-800">
                     <h2 className="text-base font-semibold">Custom Subdomain</h2>
                     <p className="text-sm text-zinc-500 mt-0.5">
-                        Host your docs at <span className="text-zinc-400">your-name.whatdoc.xyz</span>
+                        Host your docs at <span className="text-zinc-400">your-name.{APP_DOMAIN}</span>
                     </p>
                 </div>
                 <div className="p-6">
@@ -421,19 +420,19 @@ function DomainsTab({ project, isPro, subdomain, setSubdomain, hasChanged, savin
                             className="flex-1 h-10 px-3 rounded-lg bg-zinc-900 border border-zinc-800 focus:border-zinc-600 focus:ring-1 focus:ring-zinc-700 text-sm text-white outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             placeholder="my-project"
                         />
-                        <span className="text-sm text-zinc-600 whitespace-nowrap">.whatdoc.xyz</span>
+                        <span className="text-sm text-zinc-600 whitespace-nowrap">.{APP_DOMAIN}</span>
                     </div>
 
                     {project.subdomain && (
                         <p className="text-xs text-zinc-500 mb-4">
                             Currently live at{' '}
                             <a
-                                href={`https://${project.subdomain}.whatdoc.xyz`}
+                                href={`https://${project.subdomain}.${APP_DOMAIN}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-zinc-400 hover:text-white transition-colors underline underline-offset-2"
                             >
-                                {project.subdomain}.whatdoc.xyz
+                                {project.subdomain}.{APP_DOMAIN}
                             </a>
                         </p>
                     )}
@@ -471,7 +470,7 @@ function DomainsTab({ project, isPro, subdomain, setSubdomain, hasChanged, savin
                     <h2 className="text-base font-semibold">How Subdomains Work</h2>
                 </div>
                 <div className="p-6 space-y-3 text-sm text-zinc-400">
-                    <p>When you set a subdomain, your documentation becomes instantly accessible at <span className="text-zinc-300">your-name.whatdoc.xyz</span>.</p>
+                    <p>When you set a subdomain, your documentation becomes instantly accessible at <span className="text-zinc-300">your-name.{APP_DOMAIN}</span>.</p>
                     <p>Subdomains must be unique across all WHATDOC projects. Only lowercase letters, numbers, and hyphens are allowed.</p>
                     <p className="text-zinc-600">Custom domain support (e.g., docs.yourdomain.com) is coming soon.</p>
                 </div>
@@ -513,14 +512,12 @@ function HistoryTab({ project }) {
                                 return (
                                     <div key={entry.id} className="relative flex items-start gap-4">
                                         {/* Timeline dot */}
-                                        <div className={`absolute -left-8 top-1 w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center z-10 ${
-                                            isSuccess
-                                                ? 'border-emerald-500/50 bg-emerald-500/10'
-                                                : 'border-red-500/50 bg-red-500/10'
-                                        }`}>
-                                            <div className={`w-2 h-2 rounded-full ${
-                                                isSuccess ? 'bg-emerald-500' : 'bg-red-500'
-                                            }`} />
+                                        <div className={`absolute -left-8 top-1 w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center z-10 ${isSuccess
+                                            ? 'border-emerald-500/50 bg-emerald-500/10'
+                                            : 'border-red-500/50 bg-red-500/10'
+                                            }`}>
+                                            <div className={`w-2 h-2 rounded-full ${isSuccess ? 'bg-emerald-500' : 'bg-red-500'
+                                                }`} />
                                         </div>
 
                                         {/* Content */}

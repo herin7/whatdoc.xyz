@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, ArrowRight, Loader2, Github, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, Loader2, Mail, Lock } from 'lucide-react';
 import Logo from '../components/Logo';
 import { auth } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
@@ -32,14 +32,11 @@ export default function Login() {
         }
     };
 
-    const handleGithubLogin = () => {
-        // Redirect to your Express backend GitHub route
-        window.location.href = 'https://whatdoc-xyz.onrender.com/api/auth/github';
-    };
+
 
     return (
         <div className="min-h-screen bg-[#050505] text-white flex flex-col items-center justify-center px-4 relative overflow-hidden selection:bg-emerald-500/30">
-            
+
             {/* Ambient Background */}
             <div className="absolute inset-0 pointer-events-none flex justify-center">
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
@@ -62,22 +59,8 @@ export default function Login() {
 
                 {/* Card */}
                 <div className="rounded-[1.5rem] border border-white/10 bg-[#0a0a0a]/80 backdrop-blur-xl p-8 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-                    
-                    {/* Primary Developer Action: GitHub */}
-                    <button 
-                        onClick={handleGithubLogin}
-                        className="w-full h-11 flex items-center justify-center gap-2 rounded-xl bg-[#111] border border-white/10 text-white font-medium hover:bg-white hover:text-black hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all duration-300"
-                    >
-                        <Github className="size-4" />
-                        Continue with GitHub
-                    </button>
 
-                    {/* Divider */}
-                    <div className="flex items-center gap-3 my-6 text-zinc-600">
-                        <div className="h-px flex-1 bg-white/5" />
-                        <span className="text-xs font-mono uppercase tracking-widest">Or email</span>
-                        <div className="h-px flex-1 bg-white/5" />
-                    </div>
+
 
                     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
                         {/* Error */}

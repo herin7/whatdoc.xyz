@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { Settings, ExternalLink, Loader2, FolderGit2, Sparkles, Plus, Trash2, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { project as projectApi } from '../lib/api';
+import { APP_DOMAIN } from '../lib/config';
 import Navbar from '../components/layout/Navbar';
 import CommandPalette from '../components/CommandPalette';
 import SettingsModal from '../components/SettingsModal';
@@ -81,11 +82,10 @@ export default function Dashboard() {
             {/* Toast */}
             {toast && (
                 <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50">
-                    <div className={`px-4 py-2.5 rounded-lg text-sm font-medium shadow-xl backdrop-blur-md ${
-                        toast.type === 'success'
+                    <div className={`px-4 py-2.5 rounded-lg text-sm font-medium shadow-xl backdrop-blur-md ${toast.type === 'success'
                             ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
                             : 'bg-red-500/10 border border-red-500/20 text-red-400'
-                    }`}>
+                        }`}>
                         {toast.message}
                     </div>
                 </div>
@@ -152,10 +152,10 @@ export default function Dashboard() {
                         {projects.map((p) => {
                             const isReady = p.status === 'ready';
                             const url = p.subdomain
-                                ? `${p.subdomain}.whatdoc.xyz`
-                                : `whatdoc.xyz/p/${p.slug}`;
+                                ? `${p.subdomain}.${APP_DOMAIN}`
+                                : `${APP_DOMAIN}/p/${p.slug}`;
                             const liveUrl = p.subdomain
-                                ? `https://${p.subdomain}.whatdoc.xyz`
+                                ? `https://${p.subdomain}.${APP_DOMAIN}`
                                 : `/p/${p.slug}`;
 
                             return (
@@ -243,11 +243,11 @@ export default function Dashboard() {
                 <div className="bg-gradient-to-r from-[#111] to-[#0a0a0a] border border-zinc-800 rounded-xl p-6 mt-12 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl relative overflow-hidden">
                     {/* Subtle glow behind the banner */}
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-emerald-500/5 blur-[50px] pointer-events-none" />
-                    
+
                     {/* Left: Bot avatar + Text */}
                     <div className="flex items-center gap-4 relative z-10">
                         <div className="w-12 h-12 rounded-full bg-zinc-900 border border-zinc-700 flex items-center justify-center shrink-0 overflow-hidden shadow-lg">
-                             <img src={botAvatar} alt="Herin Soni" className="w-full h-full object-cover" />
+                            <img src={botAvatar} alt="Herin Soni" className="w-full h-full object-cover" />
                         </div>
                         <div>
                             <h3 className="text-lg font-semibold text-white">Dev to Dev ⚡️</h3>

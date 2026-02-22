@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CheckCircle2, ExternalLink, AlertCircle, Terminal, Square } from 'lucide-react';
 import { project as projectApi } from '../lib/api';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { API_URL } from '../lib/config';
 
 // ── Status badge colours ────────────────────────────────────────────
 const STATUS_COLORS = {
@@ -165,13 +164,12 @@ export default function GenerationTerminal({ projectId, slug }) {
                         </button>
                     )}
                     {/* Traffic-light dots */}
-                    <div className={`h-2.5 w-2.5 rounded-full ${
-                        status === 'ready'
+                    <div className={`h-2.5 w-2.5 rounded-full ${status === 'ready'
                             ? 'bg-emerald-400'
                             : status === 'failed'
                                 ? 'bg-red-400'
                                 : 'bg-yellow-400 animate-pulse'
-                    }`} />
+                        }`} />
                     <span className={`text-xs font-mono ${STATUS_COLORS[status] || 'text-zinc-500'}`}>
                         {STATUS_LABELS[status] || status}
                     </span>

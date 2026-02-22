@@ -1,5 +1,6 @@
 import { Link2, Rocket, Terminal, FileText } from 'lucide-react';
 import Reveal from '../Reveal';
+import { APP_DOMAIN } from '../../lib/config';
 
 const steps = [
   {
@@ -24,7 +25,7 @@ const steps = [
     num: '04',
     icon: Rocket,
     title: 'Live Instantly',
-    description: 'Deployed to whatdoc.xyz/p/your-slug. Share it, embed it, flex it.',
+    description: `Deployed to ${APP_DOMAIN}/p/your-slug. Share it, embed it, flex it.`,
   },
 ];
 
@@ -53,9 +54,8 @@ export default function Workflow() {
           {steps.map((step, i) => (
             <Reveal key={step.num} delay={i * 100}>
               <div
-                className={`relative flex flex-col p-8 md:p-10 border-b border-zinc-800 h-full hover:bg-zinc-900/20 transition-colors ${
-                  i < 3 ? 'lg:border-r' : ''
-                } ${i < 2 ? 'sm:border-r' : ''} ${i === 2 ? 'sm:border-r-0 lg:border-r' : ''}`}
+                className={`relative flex flex-col p-8 md:p-10 border-b border-zinc-800 h-full hover:bg-zinc-900/20 transition-colors ${i < 3 ? 'lg:border-r' : ''
+                  } ${i < 2 ? 'sm:border-r' : ''} ${i === 2 ? 'sm:border-r-0 lg:border-r' : ''}`}
               >
                 {/* Step number */}
                 <span className="text-xs font-mono text-emerald-500/40 mb-6 tracking-[0.3em] font-bold">{step.num}</span>
