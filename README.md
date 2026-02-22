@@ -19,9 +19,9 @@
 </p>
 
 <p align="center">
-    <a href="https://github.com/herin7/whatdoc.xyz/releases"><img src="https://img.shields.io/github/v/release/herin7/gitforme?style=flat-square" alt="GitHub release"></a>
-    <a href="https://github.com/herin7/whatdoc.xyz/issues"><img src="https://img.shields.io/github/issues/herin7/gitforme?style=flat-square" alt="Issues"></a>
-    <a href="https://github.com/herin7/whatdoc.xyz/stargazers"><img src="https://img.shields.io/github/stars/herin7/gitforme?style=flat-square" alt="Stars"></a>
+    <a href="https://github.com/herin7/whatdoc.xyz/releases"><img src="https://img.shields.io/github/v/release/herin7/whatdoc.xyz?style=flat-square" alt="GitHub release"></a>
+    <a href="https://github.com/herin7/whatdoc.xyz/issues"><img src="https://img.shields.io/github/issues/herin7/whatdoc.xyz?style=flat-square" alt="Issues"></a>
+    <a href="https://github.com/herin7/whatdoc.xyz/stargazers"><img src="https://img.shields.io/github/stars/herin7/whatdoc.xyz?style=flat-square" alt="Stars"></a>
 </p>
 
 <br />
