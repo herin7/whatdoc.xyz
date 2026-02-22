@@ -2,50 +2,62 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const { UserModel } = require('./models/User');
 
-mongoose.connect(process.env.MONGO_URI).then(async () => {
-    console.log('MongoDB connected');
-    // Sync indexes: drops stale unique indexes that no longer match the schema
-    const { UserModel } = require('./models/User');
-    await UserModel.syncIndexes();
-    console.log('User indexes synced');
-}).catch(err => console.error('MongoDB connection error:', err));
-
-const authRoutes = require("./routes/auth");
-const projectRoutes = require("./routes/project");
 const app = express();
 
+// 1. DATABASE CONNECTION
+mongoose.connect(process.env.MONGO_URI).then(async () => {
+    console.log('MongoDB connected');
+    const { UserModel } = require('./models/User');
+    await UserModel.syncIndexes();
+}).catch(err => console.error('MongoDB connection error:', err));
+
+// 2. CORS CONFIGURATION (Must come BEFORE routes)
 const ALLOWED_ORIGINS = [
-    // Production
     'https://whatdoc.xyz',
     'https://www.whatdoc.xyz',
     'https://whatdoc-xyz.vercel.app',
-    // Localhost
     'http://localhost:5173',
     'http://localhost:4173',
-    // From env (optional override)
     process.env.CLIENT_URL,
 ].filter(Boolean);
 
 app.use(cors({
     origin: (origin, callback) => {
-        // Allow requests with no origin (mobile apps, curl, Postman)
         if (!origin) return callback(null, true);
+        
+        const isWhitelisted = ALLOWED_ORIGINS.includes(origin);
+        const isSubdomain = 
+            /^https?:\/\/[a-z0-9-]+\.whatdoc\.xyz$/.test(origin) || 
+            /^http:\/\/localhost:(5173|4173)$/.test(origin) ||
+            /^http:\/\/[a-z0-9-]+\.localhost:(5173|4173)$/.test(origin);
 
-        // Check exact match
-        if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
-
-        // Allow any *.whatdoc.xyz subdomain (for hosted docs)
-        if (/^https?:\/\/[a-z0-9-]+\.whatdoc\.xyz$/.test(origin)) return callback(null, true);
-
-        // Allow *.localhost:5173 subdomains (for local dev)
-        if (/^http:\/\/[a-z0-9-]+\.localhost:(5173|4173)$/.test(origin)) return callback(null, true);
-
-        callback(new Error('Not allowed by CORS'));
+        if (isWhitelisted || isSubdomain) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
     },
     credentials: true
 }));
-app.use(express.json());
+
+// 3. OTHER MIDDLEWARE
+app.use(express.json({ limit: '10mb' }));
+
+// 4. ROUTES (All routes must be below CORS)
+app.get('/api/usercount', async (req, res) => {
+    try {
+        const count = await UserModel.countDocuments({});
+        res.json({ count });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed' });
+    }
+});
+
+const authRoutes = require("./routes/auth");
+const projectRoutes = require("./routes/project");
+
 app.use("/auth", authRoutes);
 app.use("/projects", projectRoutes);
 

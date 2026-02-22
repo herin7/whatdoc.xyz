@@ -2,7 +2,7 @@ const { EventEmitter } = require('events');
 const path = require('path');
 const fs = require('fs/promises');
 const simpleGit = require('simple-git');
-const { Project: TsMorphProject, SyntaxKind } = require('ts-morph');
+const ignore = require('ignore');
 const Project = require('../models/Project');
 const { getLLMProvider } = require('./llm');
 
@@ -50,238 +50,157 @@ function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// ── Token budgeting ─────────────────────────────────────────────────
-// Hard character cap → safely approximates ~25 000 tokens for Gemini.
-const MAX_CHARS = 100_000;
+// ── Allowed file extensions / names for universal ingestion ──────────
+const ALLOWED_EXTENSIONS = new Set([
+    '.js', '.jsx', '.ts', '.tsx',
+    '.py', '.java', '.kt', '.scala',
+    '.cpp', '.c', '.h', '.hpp',
+    '.go', '.rs', '.rb', '.php', '.cs', '.swift',
+    '.md', '.json', '.yml', '.yaml',
+]);
+const ALLOWED_EXACT_NAMES = new Set(['Dockerfile', 'Makefile']);
+
+// ── Fat-Trimmer Blacklist ───────────────────────────────────────────
+// Files & directories that waste tokens but provide zero documentation value.
+const BLOCKED_FILENAMES = new Set([
+    'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml',
+    'Cargo.lock', 'Gemfile.lock', 'composer.lock', 'poetry.lock',
+    '.DS_Store', 'Thumbs.db',
+    // Block existing docs — we generate our own from source code, not from READMEs
+    'README.md', 'README.rst', 'README.txt', 'README',
+    'CHANGELOG.md', 'CHANGELOG.txt', 'CHANGES.md',
+    'CONTRIBUTING.md', 'CONTRIBUTORS.md',
+    'LICENSE', 'LICENSE.md', 'LICENSE.txt',
+    'CODE_OF_CONDUCT.md',
+]);
+
+const BLOCKED_DIRS = new Set([
+    'dist', 'build', 'out', '.next', '.nuxt', '.output',
+    '__pycache__', '.pytest_cache', 'coverage',
+    '__tests__', '__test__', '__mocks__',
+    'vendor', '.gradle', '.idea', '.vscode',
+]);
+
+/** Returns true if the filename matches a minified / bundle / test pattern */
+function isBlockedPattern(filename) {
+    const lower = filename.toLowerCase();
+    if (lower.endsWith('.min.js') || lower.endsWith('.min.css')) return true;
+    if (lower.endsWith('.bundle.js') || lower.endsWith('.chunk.js')) return true;
+    if (lower.endsWith('.map'))  return true;   // source maps
+    // Test files — strip before checking (e.g. auth.test.js → test)
+    if (/\.(test|spec)\.(js|jsx|ts|tsx|py|java)$/i.test(filename)) return true;
+    return false;
+}
+
+// ── Regex Guillotine — lightweight per-file content compressor ──────
+/**
+ * Fast, regex-based minification that strips noise the LLM doesn't need.
+ *   1. Block comments (/* … * /) — copyright headers, JSDoc novels
+ *   2. Consecutive single-line comment blocks (3+ lines of //)
+ *   3. Base64 / data-URI blobs (data:image/…;base64,…)
+ *   4. Hardcoded long arrays / objects (>500 chars on one line)
+ *   5. Collapse 3+ blank lines → 1
+ */
+function minifyFileContent(raw) {
+    let s = raw;
+
+    // 1. Strip block comments  /* ... */  (non-greedy)
+    s = s.replace(/\/\*[\s\S]*?\*\//g, '');
+
+    // 2. Collapse runs of 3+ consecutive single-line comments into one note
+    s = s.replace(/(?:^[ \t]*\/\/.*\n){3,}/gm, '// [comments collapsed]\n');
+
+    // 3. Truncate base64 / data-URI blobs
+    s = s.replace(/data:[\w+/.-]+;base64,[A-Za-z0-9+/=]{100,}/g, '[BASE64 DATA TRUNCATED]');
+
+    // 4. Truncate long string literals (>500 chars) — catches hardcoded SVGs, mock data
+    s = s.replace(/(["`'])(?:[^\\]|\\.){500,}?\1/g, '$1[LONG STRING TRUNCATED]$1');
+
+    // 5. Truncate long single-line arrays/objects (>600 chars on one line)
+    s = s.replace(/^(.{0,20})(\[.{600,}\]|\{.{600,}\})(.*)$/gm, '$1[DATA TRUNCATED]$3');
+
+    // 6. Collapse 3+ consecutive blank lines → 1
+    s = s.replace(/(\n\s*){3,}/g, '\n\n');
+
+    return s;
+}
+
+// ── Hard character cap for the raw code payload ─────────────────────
+const MAX_CHARS = 900_000; // ~225k tokens — fits comfortably in Gemini's 1M context
 
 /**
- * Build a token-budgeted payload from raw AST data.
- * Priority order: Models → Routes → Exports.
- * Returns a plain object ready to be JSON.stringified for the LLM prompt.
+ * Walk the cloned repo recursively, respecting .gitignore + Fat-Trimmer
+ * blacklist, minify each file with the Regex Guillotine, and concatenate
+ * all source files into a single string.
+ *
+ * Returns { rawCode, fileCount }.
  */
-function buildTokenBudgetedPayload(astData) {
-    const payload = { models: [], routes: [], exports: [], fileCount: astData.fileCount };
-    let currentChars = 0;
+async function extractArchitectureUniversal(repoPath) {
+    let combinedCode = '';
+    let fileCount = 0;
 
-    const totals = {
-        models: astData.models.length,
-        routes: astData.routes.length,
-        exports: astData.exports.length,
-    };
+    // ── Set up .gitignore filtering + blocked dirs ──────────────────
+    const ig = ignore();
+    ig.add('.git');
+    ig.add('node_modules');
+    // Inject Fat-Trimmer blocked directories into the ignore filter
+    for (const dir of BLOCKED_DIRS) ig.add(dir);
 
-    // ── Priority 1 — Models (most important for schema inference) ────
-    for (const model of astData.models) {
-        const str = JSON.stringify(model);
-        if (currentChars + str.length >= MAX_CHARS) break;
-        payload.models.push(model);
-        currentChars += str.length;
+    try {
+        const gitignorePath = path.join(repoPath, '.gitignore');
+        const gitignoreContent = await fs.readFile(gitignorePath, 'utf8');
+        ig.add(gitignoreContent);
+    } catch {
+        // No .gitignore — that's fine
     }
 
-    // ── Priority 2 — Routes (shortest paths first = core routes) ────
-    const sortedRoutes = [...astData.routes].sort(
-        (a, b) => (a.path?.length || 0) - (b.path?.length || 0)
-    );
+    // ── Recursive directory walker ──────────────────────────────────
+    async function walkDir(currentPath, relativePath = '') {
+        const entries = await fs.readdir(currentPath, { withFileTypes: true });
 
-    for (const route of sortedRoutes) {
-        const str = JSON.stringify(route);
-        if (currentChars + str.length >= MAX_CHARS) break;
-        payload.routes.push(route);
-        currentChars += str.length;
-    }
+        for (const entry of entries) {
+            const entryRelativePath = relativePath
+                ? `${relativePath}/${entry.name}`
+                : entry.name;
 
-    // ── Priority 3 — Exports (only if budget remains) ───────────────
-    for (const exp of astData.exports) {
-        const str = JSON.stringify(exp);
-        if (currentChars + str.length >= MAX_CHARS) break;
-        payload.exports.push(exp);
-        currentChars += str.length;
-    }
+            if (ig.ignores(entryRelativePath)) continue;
 
-    // ── Truncation report ───────────────────────────────────────────
-    const dropped = {
-        models: totals.models - payload.models.length,
-        routes: totals.routes - payload.routes.length,
-        exports: totals.exports - payload.exports.length,
-    };
+            const fullPath = path.join(currentPath, entry.name);
 
-    if (dropped.models > 0) console.log(`[budget] Dropped ${dropped.models} models to stay under token budget`);
-    if (dropped.routes > 0) console.log(`[budget] Dropped ${dropped.routes} routes to stay under token budget`);
-    if (dropped.exports > 0) console.log(`[budget] Dropped ${dropped.exports} exports to stay under token budget`);
+            if (entry.isDirectory()) {
+                await walkDir(fullPath, entryRelativePath);
+            } else if (entry.isFile()) {
+                // ── Fat-Trimmer: skip blacklisted filenames & patterns ──
+                if (BLOCKED_FILENAMES.has(entry.name)) continue;
+                if (isBlockedPattern(entry.name)) continue;
 
-    console.log(`[budget] Final payload: ${currentChars} chars — ${payload.models.length} models, ${payload.routes.length} routes, ${payload.exports.length} exports`);
+                const ext = path.extname(entry.name).toLowerCase();
+                const isAllowed = ALLOWED_EXTENSIONS.has(ext) || ALLOWED_EXACT_NAMES.has(entry.name);
 
-    return payload;
-}
-
-// ── AST extraction ──────────────────────────────────────────────────
-
-const HTTP_METHODS = new Set(['get', 'post', 'put', 'delete', 'patch', 'use']);
-const NEXT_METHODS = new Set(['GET', 'POST', 'PUT', 'DELETE', 'PATCH']);
-
-/**
- * Initialise a ts-morph project over the cloned repo and return
- * a "Context Map" with routes, models, and exported signatures.
- */
-function extractArchitecture(repoPath) {
-    const tsProject = new TsMorphProject({
-        skipAddingFilesFromTsConfig: true,
-        compilerOptions: {
-            allowJs: true,
-            jsx: 2, // React
-            esModuleInterop: true,
-            noEmit: true,
-        },
-    });
-
-    // Add every JS/TS source file (node_modules & .git excluded below)
-    tsProject.addSourceFilesAtPaths(
-        path.join(repoPath, '**/*.{js,jsx,ts,tsx}').replace(/\\/g, '/')
-    );
-
-    const sourceFiles = tsProject.getSourceFiles().filter((sf) => {
-        const fp = sf.getFilePath();
-        return !fp.includes('node_modules') && !fp.includes('.git');
-    });
-
-    const routes = [];
-    const models = [];
-    const exports_ = [];
-
-    for (const sf of sourceFiles) {
-        const relPath = path.relative(repoPath, sf.getFilePath()).replace(/\\/g, '/');
-        extractExpressRoutes(sf, relPath, routes);
-        extractNextRoutes(sf, relPath, routes);
-        extractMongooseModels(sf, relPath, models);
-        extractExportedSignatures(sf, relPath, exports_);
-    }
-
-    return { routes, models, exports: exports_, fileCount: sourceFiles.length };
-}
-
-// ── Express routes: router.get('/path', ...) / app.post(...) ────────
-function extractExpressRoutes(sourceFile, relPath, routes) {
-    const calls = sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression);
-    for (const call of calls) {
-        const expr = call.getExpression();
-        if (expr.getKind() !== SyntaxKind.PropertyAccessExpression) continue;
-        const methodName = expr.getName?.();
-        if (!methodName || !HTTP_METHODS.has(methodName)) continue;
-        const args = call.getArguments();
-        if (args.length === 0) continue;
-        const firstArg = args[0];
-        if (firstArg.getKind() !== SyntaxKind.StringLiteral) continue;
-        routes.push({
-            file: relPath,
-            method: methodName.toUpperCase(),
-            path: firstArg.getLiteralText(),
-            type: 'express',
-        });
-    }
-}
-
-// ── Next.js App Router handlers: export async function GET(req) ────
-function extractNextRoutes(sourceFile, relPath, routes) {
-    const base = path.basename(relPath);
-    if (!['route.ts', 'route.js', 'route.tsx', 'route.jsx'].includes(base)) return;
-
-    // Derive URL from file path: app/api/users/route.ts → /api/users
-    const segments = relPath.replace(/\\/g, '/').split('/');
-    const appIdx = segments.indexOf('app');
-    let urlPath = '/';
-    if (appIdx !== -1) {
-        urlPath = '/' + segments.slice(appIdx + 1, -1).join('/');
-    }
-
-    for (const [name] of sourceFile.getExportedDeclarations()) {
-        if (NEXT_METHODS.has(name)) {
-            routes.push({ file: relPath, method: name, path: urlPath, type: 'nextjs' });
-        }
-    }
-}
-
-// ── Mongoose models: new Schema({ ... }) ───────────────────────────
-function extractMongooseModels(sourceFile, relPath, models) {
-    const text = sourceFile.getFullText();
-    if (!text.includes('mongoose')) return;
-
-    // Find  new Schema({...})  or  Schema({...})  call expressions
-    const newExprs = sourceFile.getDescendantsOfKind(SyntaxKind.NewExpression);
-    const callExprs = sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression);
-
-    const candidates = [];
-
-    for (const ne of newExprs) {
-        const exprText = ne.getExpression().getText();
-        if (exprText === 'Schema' || exprText === 'mongoose.Schema') {
-            candidates.push(ne);
-        }
-    }
-    for (const ce of callExprs) {
-        const exprText = ce.getExpression().getText();
-        if (exprText === 'Schema' || exprText === 'mongoose.Schema') {
-            candidates.push(ce);
-        }
-    }
-
-    for (const node of candidates) {
-        const args = node.getArguments();
-        if (args.length === 0) continue;
-        const schemaArg = args[0];
-        if (schemaArg.getKind() !== SyntaxKind.ObjectLiteralExpression) continue;
-
-        const keys = schemaArg.getProperties()
-            .map((p) => {
-                if (p.getKind() === SyntaxKind.PropertyAssignment) return p.getName();
-                if (p.getKind() === SyntaxKind.ShorthandPropertyAssignment) return p.getName();
-                return null;
-            })
-            .filter(Boolean);
-
-        const modelName = guessModelName(sourceFile, relPath);
-        models.push({ file: relPath, modelName, schemaKeys: keys });
-    }
-}
-
-function guessModelName(sourceFile, relPath) {
-    const calls = sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression);
-    for (const call of calls) {
-        const txt = call.getExpression().getText();
-        if (txt !== 'mongoose.model' && txt !== 'model') continue;
-        const args = call.getArguments();
-        if (args.length > 0 && args[0].getKind() === SyntaxKind.StringLiteral) {
-            return args[0].getLiteralText();
-        }
-    }
-    return path.basename(relPath, path.extname(relPath));
-}
-
-// ── Exported functions & signatures ─────────────────────────────────
-function extractExportedSignatures(sourceFile, relPath, exports_) {
-    for (const [name, declarations] of sourceFile.getExportedDeclarations()) {
-        for (const decl of declarations) {
-            const kind = decl.getKindName();
-            let params = null;
-            let returnType = null;
-
-            if (decl.getParameters) {
-                params = decl.getParameters().map((p) => ({
-                    name: p.getName(),
-                    type: p.getType()?.getText() || undefined,
-                }));
+                if (isAllowed && combinedCode.length < MAX_CHARS) {
+                    try {
+                        const raw = await fs.readFile(fullPath, 'utf8');
+                        // ── Regex Guillotine: compress content before appending ──
+                        const content = minifyFileContent(raw);
+                        combinedCode += `\n\n--- FILE: ${entryRelativePath} ---\n\n${content}`;
+                        fileCount++;
+                    } catch {
+                        // Skip unreadable files (binary masquerading as text, etc.)
+                    }
+                }
             }
-            if (decl.getReturnType) {
-                try { returnType = decl.getReturnType().getText(); } catch { /* JS files may fail */ }
-            }
-
-            exports_.push({
-                file: relPath,
-                name,
-                kind,
-                ...(params && { params }),
-                ...(returnType && { returnType }),
-            });
         }
     }
+
+    await walkDir(repoPath);
+
+    // Trim to hard cap if somehow exceeded
+    if (combinedCode.length > MAX_CHARS) {
+        combinedCode = combinedCode.slice(0, MAX_CHARS);
+        console.log(`[ingest] Trimmed raw code to ${MAX_CHARS} chars`);
+    }
+
+    return { rawCode: combinedCode, fileCount };
 }
 
 // ── Generation pipeline ─────────────────────────────────────────────
@@ -306,16 +225,16 @@ async function runGenerationPipeline(projectId, repoUrl, llmProvider = 'gemini',
         const fileCount = files.length;
         emit(projectId, 'log', { step: 'cloning', message: `Repository cloned — ${fileCount} entries found` });
 
-        // ── Step 2 — AST Analysis ───────────────────────────────────
+        // ── Step 2 — Universal Code Ingestion ────────────────────────
         checkCancelled(projectId);
-        await setStatus(projectId, 'analyzing', 'Extracting AST metadata…');
-        emit(projectId, 'log', { step: 'analyzing', message: 'Extracting AST metadata...' });
+        await setStatus(projectId, 'analyzing', 'Aggregating multi-language codebase…');
+        emit(projectId, 'log', { step: 'analyzing', message: 'Scanning directory and concatenating whitelisted files...' });
 
-        const contextMap = extractArchitecture(tempPath);
+        const contextMap = await extractArchitectureUniversal(tempPath);
 
         emit(projectId, 'log', {
             step: 'analyzing',
-            message: `Analysis complete — ${contextMap.routes.length} routes, ${contextMap.models.length} models, ${contextMap.exports.length} exports across ${contextMap.fileCount} files`,
+            message: `Aggregation complete — concatenated ${contextMap.fileCount} files into context window.`,
         });
 
         // ── Step 3 — LLM Documentation Generation (single batch call) ─
@@ -326,17 +245,12 @@ async function runGenerationPipeline(projectId, repoUrl, llmProvider = 'gemini',
         const provider = getLLMProvider(llmProvider);
         emit(projectId, 'log', { step: 'generating', message: `Using ${provider.label}` });
 
-        // Token-budgeted payload: models → routes → exports, hard-capped
-        // at MAX_CHARS (~25 k tokens).  Exactly ONE stringify for the LLM.
-        const budgeted = buildTokenBudgetedPayload(contextMap);
-        const contextMapJSON = JSON.stringify(budgeted, null, 2);
-
         emit(projectId, 'log', {
             step: 'generating',
-            message: `Sending batch prompt — ${contextMapJSON.length} chars (${budgeted.routes.length} routes, ${budgeted.models.length} models, ${budgeted.exports.length} exports)`,
+            message: `Sending full codebase — ${contextMap.rawCode.length} chars (${contextMap.fileCount} files)`,
         });
 
-        const markdown = await provider.generate(contextMapJSON, byokOptions);
+        const markdown = await provider.generate(contextMap.rawCode, byokOptions);
 
         // Save generated docs to MongoDB
         await Project.findByIdAndUpdate(projectId, { generatedDocs: markdown });
@@ -349,7 +263,7 @@ async function runGenerationPipeline(projectId, repoUrl, llmProvider = 'gemini',
         // Done
         await setStatus(projectId, 'ready', 'Documentation is live!');
 
-        return contextMap;
+        return { fileCount: contextMap.fileCount };
     } catch (err) {
         const wasCancelled = isCancelled(projectId);
         console.error('Pipeline error:', err);
@@ -371,4 +285,4 @@ async function runGenerationPipeline(projectId, repoUrl, llmProvider = 'gemini',
     }
 }
 
-module.exports = { engineEmitter, runGenerationPipeline, extractArchitecture, requestCancel };
+module.exports = { engineEmitter, runGenerationPipeline, extractArchitectureUniversal, requestCancel };

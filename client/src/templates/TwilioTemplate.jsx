@@ -4,6 +4,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import ApiPlayground from '../components/ApiPlayground';
+import { makeBlockquote, makeOl } from '../components/MarkdownExtras';
 import {
     ExternalLink, FileText, Menu, X, ChevronRight, Search,
     Terminal, Zap, BookOpen, Copy, Check,
@@ -61,6 +63,10 @@ const mdComponents = {
         const match = /language-(\w+)/.exec(className || '');
         const raw = String(children).replace(/\n$/, '');
         if (!inline && match) {
+            if (match[1] === 'json-api-playground') {
+                try { return <ApiPlayground config={JSON.parse(raw)} />; }
+                catch { return null; }
+            }
             return (
                 <div className="relative group">
                     <CopyBtn text={raw} />
@@ -83,6 +89,8 @@ const mdComponents = {
         }
         return <code className={`${className ?? ''} bg-slate-800/80 px-1.5 py-0.5 rounded text-blue-300 text-[0.85em]`} {...props}>{children}</code>;
     },
+    blockquote: makeBlockquote('dark', 'border-l-[3px] border-slate-600 pl-5 my-6 italic text-slate-400'),
+    ol: makeOl('dark'),
 };
 
 /* ═══════════════════════════════════════════════════════════════════ */

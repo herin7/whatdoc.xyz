@@ -4,23 +4,23 @@ import Reveal from '../Reveal';
 const cards = [
   {
     icon: EyeOff,
-    title: 'No raw code to the LLM',
-    description: 'We extract a structured JSON map. Your actual source code never leaves the container.',
+    title: 'No Code Leaks',
+    description: 'We never dump your proprietary secrets into an LLM. We extract structure, not secrets.',
   },
   {
     icon: ServerOff,
-    title: 'Temp files auto-deleted',
-    description: 'Cloned repos live in /tmp and are wiped the moment docs are generated.',
+    title: 'Ephemeral Clones',
+    description: 'Repos are cloned to /tmp memory. The exact second docs generate, the container is nuked.',
   },
   {
     icon: Lock,
-    title: 'Encrypted at rest',
-    description: 'Generated docs and OAuth tokens are encrypted with AES-256 before storage.',
+    title: 'AES-256 Encrypted',
+    description: 'Your generated documentation and OAuth tokens are locked down with banking-grade encryption.',
   },
   {
     icon: ShieldCheck,
-    title: 'Never used to train AI',
-    description: 'Your code architecture stays yours. We don\'t train models on your data.',
+    title: 'Zero AI Training',
+    description: 'Your architecture stays yours. We strictly opt out of data-sharing API endpoints.',
   },
 ];
 
@@ -30,29 +30,32 @@ export default function Privacy() {
       <div className="mx-auto max-w-7xl border-x border-zinc-800">
         {/* Section Title */}
         <Reveal>
-          <div className="px-6 py-16 md:py-24 text-center border-b border-zinc-800">
-            <h3 className="mx-auto max-w-2xl text-3xl md:text-4xl leading-tight font-medium text-white">
-              Private by design.
+          <div className="px-6 py-16 md:py-24 text-center border-b border-zinc-800 relative overflow-hidden">
+            {/* Subtle security glow */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-full bg-emerald-500/5 blur-[100px] pointer-events-none" />
+            
+            <h3 className="relative z-10 mx-auto max-w-2xl text-3xl md:text-4xl leading-tight font-bold text-white tracking-tight">
+              Paranoid? Good. <br/>
+              <span className="text-zinc-500 font-medium">So are we.</span>
             </h3>
-            <p className="mx-auto mt-4 max-w-xl text-zinc-400 text-lg leading-relaxed">
-              Your source code never touches the LLM. Your data stays encrypted and never leaves your control.
-            </p>
+            <p className="relative z-10 mx-auto mt-5 max-w-xl text-zinc-400 text-lg leading-relaxed">
+              We use an LLM, but your secrets don't become part of its brain.            </p>
           </div>
         </Reveal>
 
-        {/* 4-Card Grid — Caret security section style */}
+        {/* 4-Card Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {cards.map((card, i) => (
             <Reveal key={card.title} delay={i * 100}>
               <div
-                className={`flex flex-col items-center text-center p-8 md:p-10 border-b border-zinc-800 h-full ${
+                className={`flex flex-col items-center text-center p-8 md:p-10 border-b border-zinc-800 h-full hover:bg-zinc-900/50 transition-colors ${
                   i < 3 ? 'lg:border-r' : ''
                 } ${i % 2 === 0 ? 'sm:border-r' : ''} ${i === 2 ? 'sm:border-r-0 lg:border-r' : ''}`}
               >
-                <div className="flex items-center justify-center h-14 w-14 rounded-2xl bg-white/5 border border-white/10 mb-5">
+                <div className="flex items-center justify-center h-14 w-14 rounded-2xl bg-[#111] border border-zinc-700 mb-5 shadow-lg">
                   <card.icon className="size-6 text-emerald-400" />
                 </div>
-                <h5 className="text-base font-medium text-white mb-2">{card.title}</h5>
+                <h5 className="text-base font-semibold text-white mb-2">{card.title}</h5>
                 <p className="text-sm text-zinc-500 leading-relaxed">{card.description}</p>
               </div>
             </Reveal>

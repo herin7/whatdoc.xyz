@@ -150,7 +150,18 @@ router.put('/:projectId', authmware, async (req, res) => {
         if (!project) return res.status(404).json({ error: 'Project not found.' });
         if (String(project.userId) !== req.userId) return res.status(403).json({ error: 'Forbidden.' });
 
-        const { generatedDocs, subdomain, customization } = req.body;
+        const { generatedDocs, subdomain, slug, template, customization } = req.body;
+
+        // Validate slug uniqueness when changing
+        if (slug !== undefined && slug !== project.slug) {
+            const sanitized = slug.toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '');
+            if (!sanitized || sanitized.length < 2) return res.status(400).json({ error: 'Slug must be at least 2 characters.' });
+
+            const taken = await Project.findOne({ slug: sanitized, _id: { $ne: project._id } });
+            if (taken) return res.status(409).json({ error: 'Slug is already taken.' });
+
+            project.slug = sanitized;
+        }
 
         // Validate subdomain uniqueness when changing
         if (subdomain !== undefined && subdomain !== project.subdomain) {
@@ -164,6 +175,11 @@ router.put('/:projectId', authmware, async (req, res) => {
         }
 
         if (generatedDocs !== undefined) project.generatedDocs = generatedDocs;
+
+        if (template !== undefined) {
+            const allowed = ['modern', 'minimal', 'twilio', 'django', 'mdn', 'aerolatex'];
+            if (allowed.includes(template)) project.template = template;
+        }
 
         if (customization && typeof customization === 'object') {
             const c = project.customization || {};

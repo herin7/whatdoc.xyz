@@ -35,15 +35,19 @@ export const auth = {
 
 export const project = {    
     create: (body) => {
-        const customKey = localStorage.getItem('wtd_gemini_key') || '';
+        const rawKey = (localStorage.getItem('wtd_gemini_key') || '').trim();
         const customModel = localStorage.getItem('wtd_gemini_model') || 'gemini-2.5-flash-lite';
+
+        // Only send the header if it looks like a real Gemini key
+        const isKeyValid = rawKey.length > 30 && rawKey !== 'null';
+
+        const extraHeaders = { 'x-target-model': customModel };
+        if (isKeyValid) extraHeaders['x-custom-gemini-key'] = rawKey;
+
         return apiRequest('/projects', {
             method: 'POST',
             body: JSON.stringify(body),
-            headers: {
-                'x-custom-gemini-key': customKey,
-                'x-target-model': customModel,
-            },
+            headers: extraHeaders,
         });
     },
 

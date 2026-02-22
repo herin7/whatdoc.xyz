@@ -37,8 +37,12 @@ const createProject = async (req, res) => {
 
     // Fire the generation pipeline in the background (don't await)
     const repoUrl = `https://github.com/${repoName}`;
+    // Bulletproof BYOK validation: only trust the key if it's real
+    const rawCustomKey = (req.headers['x-custom-gemini-key'] || '').trim();
+    const isCustomKeyValid = rawCustomKey && rawCustomKey !== 'null' && rawCustomKey.length > 30;
+
     const byokOptions = {
-      customKey: req.headers['x-custom-gemini-key'] || '',
+      customKey: isCustomKeyValid ? rawCustomKey : '',
       targetModel: req.headers['x-target-model'] || 'gemini-2.5-flash-lite',
     };
     runGenerationPipeline(project._id.toString(), repoUrl, project.llmProvider, byokOptions).catch((err) =>

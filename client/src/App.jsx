@@ -8,12 +8,14 @@ import ConfigureProject from './pages/ConfigureProject';
 import DeployProgress from './pages/DeployProgress';
 import DocViewer from './pages/DocViewer';
 import ProjectEditor from './pages/ProjectEditor';
+import ProjectSettings from './pages/ProjectSettings';
 import Profile from './pages/Profile';
 import Engine from './pages/Engine';
 import Creator from './pages/Creator';
 import SubdomainApp from './pages/SubdomainApp';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
+import Templates from './pages/Templates';
 
 /** Extract subdomain from current hostname, ignoring "www". */
 function getSubdomain() {
@@ -60,10 +62,12 @@ function App() {
       <Route path="/configure" element={<ProtectedRoute><ConfigureProject /></ProtectedRoute>} />
       <Route path="/deploy/:projectId" element={<ProtectedRoute><DeployProgress /></ProtectedRoute>} />
       <Route path="/editor/:projectId" element={<ProtectedRoute><ProjectEditor /></ProtectedRoute>} />
+      <Route path="/project/:id/settings" element={<ProtectedRoute><ProjectSettings /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
       <Route path="/engine" element={<Engine />} />
       <Route path="/creator" element={<Creator />} />
       <Route path="/p/:slug" element={<DocViewer />} />
+      <Route path="/templates" element={<Templates />} />
     </Routes>
   );
 }

@@ -2,7 +2,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { getNextApiKey } = require('../utils/keyManager');
 
 // ── Supported providers ─────────────────────────────────────────────
-// Add new providers here. Each must expose  generate(contextMapJSON) → string
+// Add new providers here. Each must expose  generate(rawCode, opts) → string
 const PROVIDERS = {
     gemini: createGeminiProvider,
     // openai: createOpenAIProvider,    ← future
@@ -17,74 +17,128 @@ const PROVIDER_LABELS = {
 const MAX_RETRIES = 3;
 const INITIAL_BACKOFF_MS = 15_000; // 15 s — generous for free-tier RPM
 
-// ── Context-map size caps (keeps prompt within token budget) ────────
-const MAX_ROUTES = 120;
-const MAX_MODELS = 50;
-const MAX_EXPORTS = 200;
-
+// ── Token Guillotine ────────────────────────────────────────────────
+// Free-tier cap: ~800k chars (~200k tokens). Pro users get full 900k.
+const FREE_TIER_CHAR_LIMIT = 800_000;
 // ── System prompt ───────────────────────────────────────────────────
-// The ENTIRE Context Map is sent in ONE prompt. No per-file or per-route
-// looping — exactly 1 call to generateContent per repository.
-const SYSTEM_PROMPT = `You are a senior technical writer employed at a world-class developer tools company.
+const SYSTEM_PROMPT = `You are an elite Technical Writer and Principal OSS Maintainer. I am providing you with the raw source code of a repository. Your objective is to write production-grade, highly accurate, and human-readable documentation.
 
-You will receive a SINGLE JSON "Context Map" that represents the ENTIRE codebase.
-It was extracted via static analysis (AST) and contains ALL routes, models, and exports
-from every file in the repository — already aggregated for you.
+CRITICAL TONE & STYLE GUIDELINES (HUMAN-LIKE):
+- Write developer-to-developer. Use a direct, objective, and concise tone.
+- AVOID AI buzzwords and robotic phrasing (e.g., "delve", "comprehensive", "robust", "tailored", "multifaceted", "seamless").
+- AVOID marketing fluff. Do not sell the project; objectively explain how it works.
+- NO conversational preambles (e.g., "Here is the documentation for the codebase"). Start immediately with the Markdown headers.
 
-The Context Map contains:
-  • routes   — HTTP method, URL path, source file, framework type (express / nextjs)
-  • models   — Mongoose model name, schema field names, source file
-  • exports  — exported function/variable names, parameter names & types, source file
-  • fileCount — total number of source files analysed
+MARKDOWN & FORMATTING RULES (ZERO ERRORS):
+- Syntax Highlighting: EVERY fenced code block MUST have a valid, lowercase language identifier (e.g., \`\`\`javascript, \`\`\`python, \`\`\`bash, \`\`\`json, \`\`\`typescript). Never leave a code block untagged.
+- Markdown Tables: Ensure all tables have proper headers and aligned separator rows (e.g., |---|---|). Do not use tables for deeply nested JSON objects; use code blocks instead.
+- Hierarchy: Use standard heading levels (# for H1, ## for H2, ### for H3). Do not skip levels.
+- Code blocks must be properly closed with three backticks.
+- Callouts / Alerts: Use GitHub-flavored blockquote alerts to highlight important information. The supported types are NOTE, TIP, and WARNING. Format them EXACTLY like this (the type tag MUST be on its own line immediately after the >):
+  > [!NOTE]
+  > This is a note callout for general information.
+  
+  > [!TIP]
+  > This is a tip callout for helpful advice.
+  
+  > [!WARNING]
+  > This is a warning callout for critical caveats.
+  
+  Use callouts strategically — at least 2-4 per document where relevant. Good use cases: prerequisite warnings, environment variable reminders, common pitfalls, version compatibility notes, performance tips.
+- Numbered Steps: When documenting setup instructions, deployment steps, or any sequential process, use ordered lists (1. 2. 3.) instead of bullet points. This enables a visual step-by-step UI in the documentation viewer.
 
-Your task — produce ALL documentation in this single response:
+ADAPTABILITY (HANDLE ANY REPO TYPE):
+First, analyze the codebase to determine its primary paradigm (e.g., REST API, Frontend Web App, CLI Tool, SDK/Library). Adapt your documentation to fit this paradigm:
+- If it's a Backend/API: Focus on endpoints, database models, and auth flows.
+- If it's a Frontend: Focus on component architecture, state management, routing, and UI structure.
+- If it's a Library/SDK: Focus on exported functions, class methods, and usage patterns.
 
-1. Generate a comprehensive **README.md** covering:
-   - Project overview (infer from the routes, models, tech stack)
-   - Tech stack list
-   - Getting started / installation steps
-   - Environment variables (infer from common patterns)
-   - Project structure (derive from the file paths in the Context Map)
-   - Available API endpoints (table with Method, Path, Description)
-   - Database models (table with Model, Fields)
+Your output MUST contain exactly TWO documents separated by a single delimiter line.
 
-2. Then generate an **API_REFERENCE.md** covering:
-   - Each route grouped by resource/file
-   - HTTP method, path, description, request body fields (infer from model schemas)
-   - Response format (reasonable inference)
-   - Authentication notes (if auth middleware is visible)
+=== DOCUMENT 1: README.md ===
+Write a world-class OSS README covering:
 
-Rules:
-- Output ONLY valid Markdown. No prose outside the Markdown.
-- Separate the two documents with a line containing exactly: <!-- SPLIT -->
-- Do NOT hallucinate endpoints, fields, or features that are not in the Context Map.
-- If data is insufficient to fill a section, simply omit that section entirely.
-- Be concise but thorough. Use tables, code blocks, and proper heading hierarchy.
-- Do NOT include the raw JSON in the output.
-- This is a BATCH request — cover every route, every model, every export in ONE pass.`;
+1. **Overview**: 2-3 clear sentences explaining exactly what the codebase does and what problem it solves.
+2. **Architecture & Tech Stack**: 
+   - List the primary languages, frameworks, and tools used.
+   - Explain the high-level system architecture.
+   - Generate a clear ASCII/Text diagram showing the core data flow or component tree.
+3. **Core Concepts**: Explain the main domain logic. How do the pieces fit together under the hood?
+4. **Real-World Usage Examples**: Provide *actual* code examples showing how to use the system. Do NOT use generic "foo/bar" placeholders. Extract real variable names, route names, and component names from the source code to create highly accurate, copy-pasteable snippets.
+5. **Local Setup & Installation**: Step-by-step commands (using \`\`\`bash) to install dependencies, set environment variables (list the specific keys required), and run the project locally.
 
+=== DELIMITER ===
+After the README content, output EXACTLY this line ONCE and only ONCE:
+Do NOT output this delimiter anywhere else in the entire response.
+
+=== DOCUMENT 2: TECHNICAL_REFERENCE.md ===
+Generate an exhaustive technical reference based on the detected repo type.
+
+FOR APIs / BACKENDS:
+- Document every major endpoint.
+- Include: HTTP Method, Path, and Authentication requirements.
+- Request Body/Parameters: Explain the required schemas and data types.
+- Example Request: Write a plausible \`cURL\` or \`fetch\` command using \`\`\`bash or \`\`\`javascript.
+- Example Response: Write a realistic JSON response payload using \`\`\`json based on the database models or controller return statements.
+- Internal Flow: Briefly explain what services or database tables this endpoint touches.
+
+FOR API/BACKEND REPOS ONLY — INTERACTIVE PLAYGROUND BLOCKS:
+After each endpoint's documentation, append a fenced code block with the language tag "json-api-playground" containing a JSON object with the endpoint's method, path, default headers, and a sample request body. This enables an interactive playground in the documentation viewer. Example:
+
+\`\`\`json-api-playground
+{
+  "method": "POST",
+  "endpoint": "/auth/signup",
+  "headers": { "Content-Type": "application/json" },
+  "body": { "email": "user@example.com", "password": "securepass123", "username": "newuser" }
+}
+\`\`\`
+
+Rules for playground blocks:
+- ONLY generate these for backend/API repos. If the repo is a frontend or library, skip playground blocks entirely.
+- The JSON must be valid and parseable. No trailing commas, no comments inside.
+- Use realistic sample values inferred from the code (model schemas, validation rules), not generic placeholders.
+- For GET/DELETE endpoints with no body, omit the "body" field or set it to {}.
+- Include auth headers (e.g., "Authorization": "Bearer YOUR_TOKEN") if the endpoint requires authentication.
+
+FOR FRONTENDS / LIBRARIES:
+- Document key Components, Hooks, Contexts, or Exported Functions.
+- Include Props/Arguments, Return values, and Side effects.
+- Provide a concrete implementation/import example for each.
+
+STRICT ENFORCEMENT:
+- Base EVERYTHING on the provided source code. 
+- If a section cannot be filled because the code does not exist, OMIT the section entirely rather than hallucinating fake data.
+- Maximize technical depth. If a file contains complex logic, explain that logic step-by-step.`;
 // ── Helpers ─────────────────────────────────────────────────────────
 
-/**
- * Sleep helper for exponential backoff.
- */
 function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
- * Trim a context map so the stringified payload stays within a reasonable
- * token budget.  Mutates nothing — returns a new object.
+ * Token Guillotine — truncates raw code for free-tier users to prevent
+ * abuse of the context window. Returns the (possibly truncated) code
+ * and a boolean indicating whether it was cut.
  */
-function trimContextMap(contextMap) {
-    return {
-        routes: contextMap.routes.slice(0, MAX_ROUTES),
-        models: contextMap.models.slice(0, MAX_MODELS),
-        exports: contextMap.exports.slice(0, MAX_EXPORTS),
-        fileCount: contextMap.fileCount,
-        ...(contextMap.routes.length > MAX_ROUTES && { _routesTruncated: true }),
-        ...(contextMap.exports.length > MAX_EXPORTS && { _exportsTruncated: true }),
-    };
+function applyTokenGuillotine(rawCode, isPro = false) {
+    if (isPro) return { code: rawCode, wasTruncated: false };
+
+    if (rawCode.length <= FREE_TIER_CHAR_LIMIT) {
+        return { code: rawCode, wasTruncated: false };
+    }
+
+    // Cut at the limit, but try to end at a file boundary to avoid mid-file garbage
+    let cutPoint = FREE_TIER_CHAR_LIMIT;
+    const lastFileBoundary = rawCode.lastIndexOf('\n\n--- FILE:', cutPoint);
+    if (lastFileBoundary > FREE_TIER_CHAR_LIMIT * 0.7) {
+        cutPoint = lastFileBoundary;
+    }
+
+    const truncated = rawCode.slice(0, cutPoint);
+    const note = `\n\n--- TRUNCATED ---\n⚠️ Free-tier limit reached (${FREE_TIER_CHAR_LIMIT} chars). Upgrade to Pro for full repository analysis.\n`;
+
+    return { code: truncated + note, wasTruncated: true };
 }
 
 // ── Gemini provider ─────────────────────────────────────────────────
@@ -94,18 +148,30 @@ function createGeminiProvider() {
         label: PROVIDER_LABELS.gemini,
 
         /**
-         * Batch-prompt: sends the ENTIRE context map in exactly ONE
-         * generateContent call.  Retries with exponential backoff on 429.
+         * Sends the raw concatenated source code to Gemini in ONE call.
+         * Retries with exponential backoff on 429.
          *
-         * @param {string} contextMapJSON  Stringified (already trimmed) Context Map
+         * @param {string} rawCode         Concatenated source code with --- FILE: --- headers
+         * @param {object} opts            BYOK options
+         * @param {string} opts.customKey  User-provided Gemini API key
+         * @param {string} opts.targetModel Target model name
+         * @param {boolean} opts.isPro     Whether the user has Pro access
          * @returns {Promise<string>}      Combined Markdown (README + SPLIT + API_REFERENCE)
          */
-        async generate(contextMapJSON, { customKey, targetModel } = {}) {
-            // BYOK: use custom key if provided, otherwise round-robin
-            const apiKeyToUse = customKey || getNextApiKey();
+        async generate(rawCode, { customKey, targetModel, isPro } = {}) {
+            // BULLETPROOF BYOK: only use the key if it exists, isn't "null", and is long enough
+            const isCustomKeyValid = customKey && customKey !== 'null' && customKey.trim().length > 30;
+            const apiKeyToUse = isCustomKeyValid ? customKey.trim() : getNextApiKey();
             const modelName = targetModel || 'gemini-2.5-flash';
             const genAI = new GoogleGenerativeAI(apiKeyToUse);
-            console.log(`⚡️ Engine starting... Model: ${modelName} | Custom Key Used: ${!!customKey}`);
+            console.log(`⚡️ Engine starting... Model: ${modelName} | BYOK Active: ${isCustomKeyValid}`);
+
+            // Token Guillotine — cap free-tier users (BYOK users bypass)
+            const { code, wasTruncated } = applyTokenGuillotine(rawCode, isPro || isCustomKeyValid);
+            if (wasTruncated) {
+                console.log(`[guillotine] Truncated from ${rawCode.length} → ${code.length} chars (free tier)`);
+            }
+
             const model = genAI.getGenerativeModel({ model: modelName });
 
             const contents = [
@@ -113,7 +179,7 @@ function createGeminiProvider() {
                     role: 'user',
                     parts: [
                         { text: SYSTEM_PROMPT },
-                        { text: `Here is the full Context Map JSON for the entire repository (one object, all data):\n\n${contextMapJSON}` },
+                        { text: `Here is the raw source code for the entire repository:\n\n${code}` },
                     ],
                 },
             ];
@@ -127,7 +193,6 @@ function createGeminiProvider() {
 
             for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
                 try {
-                    // ── Exactly 1 API call per attempt ──────────────
                     const result = await model.generateContent({ contents, generationConfig });
                     const text = result.response.text();
 
@@ -161,10 +226,6 @@ function createGeminiProvider() {
 
 // ── Factory ─────────────────────────────────────────────────────────
 
-/**
- * Get a provider instance by name.
- * @param {'gemini'|'openai'} providerName
- */
 function getLLMProvider(providerName = 'gemini') {
     const factory = PROVIDERS[providerName];
     if (!factory) {
@@ -177,4 +238,4 @@ function listProviders() {
     return Object.entries(PROVIDER_LABELS).map(([key, label]) => ({ key, label }));
 }
 
-module.exports = { getLLMProvider, listProviders, trimContextMap, SYSTEM_PROMPT };
+module.exports = { getLLMProvider, listProviders, SYSTEM_PROMPT };

@@ -4,6 +4,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import ApiPlayground from '../components/ApiPlayground';
+import { makeBlockquote, makeOl } from '../components/MarkdownExtras';
 import {
     ExternalLink, BookOpen, Menu, X, ChevronDown, ChevronRight,
     Search, ArrowUp, FileText,
@@ -42,6 +44,10 @@ const mdComponents = {
         const match = /language-(\w+)/.exec(className || '');
         const raw = String(children).replace(/\n$/, '');
         if (!inline && match) {
+            if (match[1] === 'json-api-playground') {
+                try { return <ApiPlayground config={JSON.parse(raw)} />; }
+                catch { return null; }
+            }
             return (
                 <div className="relative rounded-lg overflow-hidden border border-gray-200 my-4">
                     <div className="flex items-center justify-between px-4 py-1.5 bg-gray-100 border-b border-gray-200">
@@ -61,6 +67,8 @@ const mdComponents = {
         }
         return <code className={`${className ?? ''} bg-emerald-50 text-[#0c4b33] px-1.5 py-0.5 rounded text-[0.85em] font-semibold`} {...props}>{children}</code>;
     },
+    blockquote: makeBlockquote('light', 'border-l-[3px] border-emerald-300 pl-5 my-6 italic text-gray-500'),
+    ol: makeOl('light'),
 };
 
 /* ═══════════════════════════════════════════════════════════════════ */

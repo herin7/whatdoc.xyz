@@ -4,6 +4,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import ApiPlayground from '../components/ApiPlayground';
+import { makeBlockquote, makeOl } from '../components/MarkdownExtras';
 import { ExternalLink, FileText, Menu, X, Paintbrush, BookOpen, User, Calendar, Code2, ArrowRight } from 'lucide-react';
 import Logo from '../components/Logo';
 
@@ -95,6 +97,10 @@ const markdownComponents = {
         const match = /language-(\w+)/.exec(className || '');
 
         if (!inline && match) {
+            if (match[1] === 'json-api-playground') {
+                try { return <ApiPlayground config={JSON.parse(String(children).replace(/\n$/, ''))} />; }
+                catch { return null; }
+            }
             return (
                 <SyntaxHighlighter
                     style={vscDarkPlus}
@@ -118,6 +124,8 @@ const markdownComponents = {
             </code>
         );
     },
+    blockquote: makeBlockquote('dark'),
+    ol: makeOl('dark'),
 };
 
 export default function ModernTemplate({ project }) {

@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { prism } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import ApiPlayground from '../components/ApiPlayground';
+import { makeBlockquote, makeOl } from '../components/MarkdownExtras';
 import {
     ExternalLink, Menu, X, ArrowUp, BookOpen, Clock, Copy, Check,
 } from 'lucide-react';
@@ -46,7 +48,7 @@ function CopyBtn({ text }) {
     return (
         <button
             onClick={copy}
-            className="absolute top-3 right-3 p-1.5 rounded-md bg-zinc-800/70 text-zinc-500 hover:text-white hover:bg-zinc-700 backdrop-blur transition-all opacity-0 group-hover:opacity-100"
+            className="absolute top-3 right-3 p-1.5 rounded-md bg-zinc-200/70 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-300 backdrop-blur transition-all opacity-0 group-hover:opacity-100"
             title="Copy"
         >
             {ok ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
@@ -62,25 +64,29 @@ const mdComponents = {
         const match = /language-(\w+)/.exec(className || '');
         const raw = String(children).replace(/\n$/, '');
         if (!inline && match) {
+            if (match[1] === 'json-api-playground') {
+                try { return <ApiPlayground config={JSON.parse(raw)} />; }
+                catch { return null; }
+            }
             return (
-                <div className="relative group my-6 rounded-xl overflow-hidden shadow-xl border border-zinc-800">
-                    {/* Language tag */}
-                    <div className="flex items-center justify-between px-5 py-2 bg-[#1a1a1a] border-b border-zinc-800/60">
-                        <span className="text-[10px] font-mono font-medium text-zinc-500 uppercase tracking-widest">{match[1]}</span>
+                <div className="relative group my-6 rounded-lg overflow-hidden border border-zinc-200 bg-[#F8F9FA] shadow-sm">
+                    {/* Language tag header */}
+                    <div className="flex items-center justify-between px-4 py-1.5 bg-zinc-100 border-b border-zinc-200">
+                        <span className="text-[10px] font-mono font-semibold text-zinc-500 uppercase tracking-widest">{match[1]}</span>
                     </div>
                     <CopyBtn text={raw} />
                     <SyntaxHighlighter
-                        style={vscDarkPlus}
+                        style={prism}
                         language={match[1]}
                         PreTag="div"
                         customStyle={{
                             margin: 0,
                             padding: '1.25rem 1.5rem',
-                            borderRadius: 0,
-                            fontSize: '0.84rem',
-                            lineHeight: 1.7,
-                            background: '#111',
+                            background: 'transparent',
+                            fontSize: '0.85rem',
+                            lineHeight: 1.6,
                         }}
+                        className="not-prose text-sm"
                         {...props}
                     >
                         {raw}
@@ -90,20 +96,15 @@ const mdComponents = {
         }
         return (
             <code
-                className={`${className ?? ''} font-mono text-[0.85em] bg-zinc-100/80 text-zinc-700 px-1.5 py-0.5 rounded-md`}
+                className={`${className ?? ''} font-mono text-[0.85em] bg-zinc-100 text-pink-600 px-1.5 py-0.5 rounded-md border border-zinc-200`}
                 {...props}
             >
                 {children}
             </code>
         );
     },
-    blockquote({ children }) {
-        return (
-            <blockquote className="border-l-[3px] border-zinc-300 pl-5 my-6 italic text-zinc-500">
-                {children}
-            </blockquote>
-        );
-    },
+    blockquote: makeBlockquote('light', 'border-l-[3px] border-zinc-300 pl-5 my-6 italic text-zinc-500'),
+    ol: makeOl('light'),
     hr() {
         return <div className="my-12 mx-auto w-16 h-px bg-zinc-300" />;
     },

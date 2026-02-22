@@ -1,10 +1,10 @@
 ========================================================================
   WHATDOC.XYZ — ENGINE PROGRESS LOG
-  Last updated: Feb 21, 2026 (v2 — LLM integration complete)
+  Last updated: Feb 22, 2026 (v3 — Universal aggregator + raw-code LLM)
 ========================================================================
 
   File: server/services/engine.js
-  Dependencies: simple-git, ts-morph, @google/generative-ai,
+  Dependencies: simple-git, ignore, @google/generative-ai,
                 fs/promises, events (Node native)
 
 
@@ -12,12 +12,12 @@
   PIPELINE OVERVIEW
 ────────────────────────────────────────────────────────────────────────
 
-  runGenerationPipeline(projectId, repoUrl, llmProvider) runs 3 steps
-  sequentially. Each step updates MongoDB Project.status and emits SSE
-  events via a global EventEmitter (engineEmitter).
+  runGenerationPipeline(projectId, repoUrl, llmProvider, byokOptions) runs
+  3 steps sequentially. Each step updates MongoDB Project.status and emits
+  SSE events via a global EventEmitter (engineEmitter).
 
-  The third parameter `llmProvider` defaults to 'gemini'. The frontend
-  sends the user's choice via the ConfigureProject page.
+  The third parameter `llmProvider` defaults to 'gemini'. The fourth
+  `byokOptions` carries { customKey, targetModel } from BYOK headers.
 
   Status flow:  idle → scanning → analyzing → generating → ready
                                                          ↘ failed
@@ -49,69 +49,65 @@
 
 
 ────────────────────────────────────────────────────────────────────────
-  STEP 2 — AST ANALYSIS (ts-morph)                         ✅ DONE
+  STEP 2 — UNIVERSAL CODE INGESTION                        ✅ DONE
 ────────────────────────────────────────────────────────────────────────
 
   Status: 'analyzing'
   SSE events emitted:
-    status → { status: 'analyzing', message: 'Extracting AST metadata…' }
-    log    → { step: 'analyzing', message: 'Extracting AST metadata...' }
-    log    → { step: 'analyzing', message: 'Analysis complete — X routes, Y models, Z exports across N files' }
+    status → { status: 'analyzing', message: 'Aggregating multi-language codebase…' }
+    log    → { step: 'analyzing', message: 'Scanning directory and concatenating whitelisted files...' }
+    log    → { step: 'analyzing', message: 'Aggregation complete — concatenated N files into context window.' }
 
-  Core function: extractArchitecture(repoPath) → returns Context Map JSON
+  Core function: extractArchitectureUniversal(repoPath) → returns { rawCode, fileCount }
 
   How it works:
-    1. Creates a ts-morph Project with { allowJs: true, jsx: React, noEmit: true }
-    2. Adds all **/*.{js,jsx,ts,tsx} files from the cloned repo
-    3. Filters out node_modules and .git paths
-    4. For each source file runs 4 extractors:
+    1. Sets up `ignore` instance with .gitignore + hardcoded blocked dirs
+    2. Recursively walks the repo directory tree
+    3. Each file passes through three gates before being ingested:
+       a) .gitignore filter (via `ignore` npm package)
+       b) Fat-Trimmer Blacklist (see below)
+       c) ALLOWED_EXTENSIONS / ALLOWED_EXACT_NAMES whitelist
+    4. Accepted files are read as UTF-8, run through the Regex Guillotine
+       (see below), then concatenated with `--- FILE: path ---` headers
+    5. Hard character cap: 900,000 chars (~225k tokens)
 
-  ── extractExpressRoutes(sourceFile, relPath, routes) ──
-    What: Finds Express route registrations
-    How:  Walks all CallExpression AST nodes → checks for PropertyAccessExpression
-          matching HTTP methods (get, post, put, delete, patch, use) →
-          reads first StringLiteral argument as URL path
-    Match patterns:
-      router.get('/users', handler)
-      app.post('/api/auth', middleware, handler)
-    Output per match:
-      { file, method: 'GET', path: '/users', type: 'express' }
+  Supports 20+ languages: JS, JSX, TS, TSX, Python, Java, Kotlin, Scala,
+  C, C++, Go, Rust, Ruby, PHP, C#, Swift, plus Dockerfile, Makefile,
+  Markdown, JSON, YAML.
 
-  ── extractNextRoutes(sourceFile, relPath, routes) ──
-    What: Finds Next.js App Router handler exports
-    How:  Only processes files named route.{ts,js,tsx,jsx} →
-          checks getExportedDeclarations() for names in [GET, POST, PUT, DELETE, PATCH] →
-          derives URL from file path (app/api/users/route.ts → /api/users)
-    Output per match:
-      { file, method: 'GET', path: '/api/users', type: 'nextjs' }
+  ── Fat-Trimmer Blacklist ──
+    Purpose: Block files/directories that waste tokens with zero
+             documentation value.
 
-  ── extractMongooseModels(sourceFile, relPath, models) ──
-    What: Finds Mongoose schema definitions and extracts field names
-    How:  Quick bail-out if file text doesn't contain "mongoose" →
-          finds NewExpression / CallExpression nodes matching Schema() or
-          mongoose.Schema() → reads ObjectLiteralExpression first argument →
-          extracts PropertyAssignment names as schema keys →
-          guessModelName() looks for mongoose.model('Name', ...) in same file,
-          falls back to filename
-    Output per match:
-      { file, modelName: 'users', schemaKeys: ['email', 'password', ...] }
+    BLOCKED_FILENAMES:
+      package-lock.json, yarn.lock, pnpm-lock.yaml, Cargo.lock,
+      Gemfile.lock, composer.lock, poetry.lock, .DS_Store, Thumbs.db
 
-  ── extractExportedSignatures(sourceFile, relPath, exports_) ──
-    What: Captures all exported declarations with their signatures
-    How:  Iterates getExportedDeclarations() → for each, reads kind
-          (FunctionDeclaration, VariableDeclaration, etc.) →
-          if it has getParameters(), extracts param name + type →
-          if it has getReturnType(), extracts return type string
-    Output per match:
-      { file, name: 'createProject', kind: 'FunctionDeclaration',
-        params: [{ name: 'req', type: '...' }], returnType: '...' }
+    BLOCKED_DIRS (injected into ignore filter):
+      dist, build, out, .next, .nuxt, .output, __pycache__,
+      .pytest_cache, coverage, __tests__, __test__, __mocks__,
+      vendor, .gradle, .idea, .vscode
 
-  Context Map shape returned:
+    isBlockedPattern(filename) → boolean:
+      *.min.js, *.min.css, *.bundle.js, *.chunk.js, *.map,
+      *.test.{js,jsx,ts,tsx,py,java}, *.spec.{js,jsx,ts,tsx,py,java}
+
+  ── Regex Guillotine (minifyFileContent) ──
+    Purpose: Lightweight per-file regex compression that strips noise
+             before the file enters the combined string.
+
+    Passes (in order):
+      1. Strip block comments    /* ... */  (non-greedy)
+      2. Collapse 3+ consecutive //… comment lines → single note
+      3. Truncate base64 / data-URI blobs  → [BASE64 DATA TRUNCATED]
+      4. Truncate long string literals (>500 chars) → [LONG STRING TRUNCATED]
+      5. Truncate long single-line arrays/objects (>600 chars) → [DATA TRUNCATED]
+      6. Collapse 3+ consecutive blank lines → 1
+
+  Output shape returned:
     {
-      routes:    [{ file, method, path, type }],
-      models:    [{ file, modelName, schemaKeys }],
-      exports:   [{ file, name, kind, params?, returnType? }],
-      fileCount: number
+      rawCode:   string,   // all files concatenated with --- FILE: --- headers
+      fileCount: number    // total files ingested
     }
 
 
@@ -128,32 +124,45 @@
 
   Service file: server/services/llm.js
   SDK:          @google/generative-ai (Google Gemini)
-  Model:        gemini-2.0-flash
-  Env var:      GEMINI_API_KEY (required in server/.env)
+  Default model: gemini-2.5-flash  (BYOK users may choose any model)
+  Env var:      GEMINI_API_KEYS (comma-separated, round-robin via keyManager)
 
   Provider factory pattern (server/services/llm.js):
     - PROVIDERS map holds factory functions per provider name
-    - getLLMProvider(name) → returns { name, label, generate(contextMapJSON) }
+    - getLLMProvider(name) → returns { name, label, generate(rawCode, opts) }
     - listProviders() → returns array of { key, label } for the frontend
     - Easy to add OpenAI / Anthropic later — implement a factory, register
       it in PROVIDERS, done. No changes needed in engine.js.
 
+  BYOK (Bring Your Own Key):
+    - generate() accepts { customKey, targetModel, isPro }
+    - If customKey provided → uses it; otherwise → round-robin getNextApiKey()
+    - Round-robin rotator: server/utils/keyManager.js
+
+  Token Guillotine (llm.js):
+    - Free-tier cap: 800,000 chars (~200k tokens)
+    - Truncates at nearest --- FILE: --- boundary to avoid mid-file garbage
+    - Appends premium upgrade notice
+    - BYOK users and Pro users bypass the cap
+
   System prompt instructs the LLM to:
-    1. Generate a comprehensive README.md
+    1. Receive raw concatenated source code (not JSON AST)
+    2. Deduce framework from imports, file types, code patterns
+    3. Generate a comprehensive README.md
        (overview, tech stack, getting started, env vars, project structure,
         API endpoints table, database models table)
-    2. Generate an API_REFERENCE.md
+    4. Generate an API_REFERENCE.md
        (routes grouped by resource, method, path, description, request body,
         response format, auth notes)
-    3. Separate the two documents with: <!-- SPLIT -->
-    4. Never hallucinate endpoints/fields not in the Context Map
-    5. Use tables, code blocks, proper heading hierarchy
-    Temperature: 0.3 (deterministic), maxOutputTokens: 8192
+    5. Separate the two documents with: <!-- SPLIT -->
+    6. Never hallucinate files/routes not in the provided code
+    7. Use tables, code blocks, proper heading hierarchy
+    Temperature: 0.3 (deterministic), maxOutputTokens: 65536
 
   How it works:
     1. engine.js Step 3 calls getLLMProvider(llmProvider) to get provider
-    2. Stringifies the Context Map with JSON.stringify(contextMap, null, 2)
-    3. Calls provider.generate(contextMapJSON) → returns combined Markdown
+    2. Passes contextMap.rawCode directly (already minified by Regex Guillotine)
+    3. Calls provider.generate(rawCode, byokOptions) → returns combined Markdown
     4. Saves the full Markdown string to Project.generatedDocs in MongoDB
     5. Emits final log with character count
 

@@ -13,12 +13,12 @@ export default function CTA() {
       <div className="relative mx-auto max-w-7xl px-6 py-24 md:py-32 text-center z-10">
         <Reveal>
           <h3 className="mx-auto max-w-2xl text-3xl md:text-5xl font-medium leading-tight text-white mb-6">
-            Try <span className="font-logo"><span className="font-bold">W</span>HATDOC</span> today
+            Ready to make your repo look expensive?
           </h3>
         </Reveal>
         <Reveal delay={100}>
           <p className="mx-auto max-w-lg text-lg text-zinc-400 mb-10 leading-relaxed">
-            No more boring README files. Generate beautiful, hosted documentation in seconds.
+            Drop a link. See the magic. If you don't like it, you can always go back to manually typing out HTML tables in Markdown.
           </p>
         </Reveal>
         <Reveal delay={200} distance={12}>
@@ -27,7 +27,7 @@ export default function CTA() {
             to="/signup"
             className="group flex items-center gap-2 h-12 px-8 rounded-full bg-emerald-400 text-black text-sm font-semibold hover:bg-emerald-500 transition-all shadow-[0_0_30px_rgba(52,211,153,0.25)]"
           >
-            Get Started Free
+            Generate Docs Now
             <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
           <a
