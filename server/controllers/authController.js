@@ -322,5 +322,54 @@ async function updateProfile(req, res) {
         return res.status(500).json({ message: 'Server error.' });
     }
 }
+async function unlinkGithub(req, res) {
+    try {
+        const user = await UserModel.findByIdAndUpdate(
+            req.userId,
+            { $unset: { githubId: '', githubUsername: '', githubAccessToken: '' } },
+            { new: true }
+        ).select('-password -githubAccessToken');
 
-module.exports = { signup, signin, getMe, githubAuth, githubCallback, getRepos, redeemProCode, updateProfile };
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        return res.json({ message: 'GitHub account unlinked.', user });
+    } catch (e) {
+        console.error('unlinkGithub error:', e);
+        return res.status(500).json({ message: 'Server error.' });
+    }
+}
+
+async function deleteAccount(req, res) {
+    try {
+        const { password } = req.body;
+        if (!password) {
+            return res.status(400).json({ message: 'Password is required to delete your account.' });
+        }
+
+        const user = await UserModel.findById(req.userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Incorrect password.' });
+        }
+
+        // Delete all projects belonging to this user
+        const Project = require('../models/Project');
+        await Project.deleteMany({ userId: req.userId });
+
+        // Delete the user
+        await UserModel.findByIdAndDelete(req.userId);
+
+        return res.json({ message: 'Account deleted successfully.' });
+    } catch (e) {
+        console.error('deleteAccount error:', e);
+        return res.status(500).json({ message: 'Server error.' });
+    }
+}
+
+module.exports = { signup, signin, getMe, githubAuth, githubCallback, getRepos, redeemProCode, updateProfile, unlinkGithub, deleteAccount };

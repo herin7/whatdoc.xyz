@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
     Settings, Globe, History, ChevronRight, Loader2, Save,
-    ExternalLink, Lock, Sparkles, AlertTriangle, Check, Copy,
+    ExternalLink, AlertTriangle, Check, Copy,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { project as projectApi } from '../lib/api';
@@ -401,23 +401,12 @@ function DomainsTab({ project, isPro, subdomain, setSubdomain, hasChanged, savin
                     </p>
                 </div>
                 <div className="p-6">
-                    {!isPro && (
-                        <div className="mb-5 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 flex items-start gap-3">
-                            <Lock size={16} className="text-amber-400 mt-0.5 shrink-0" />
-                            <div>
-                                <p className="text-sm font-medium text-amber-300">Pro Feature</p>
-                                <p className="text-xs text-amber-400/70 mt-0.5">Custom subdomains are available on the Pro plan.</p>
-                            </div>
-                        </div>
-                    )}
-
                     <div className="flex items-center gap-2 mb-4">
                         <input
                             type="text"
                             value={subdomain}
                             onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                            disabled={!isPro}
-                            className="flex-1 h-10 px-3 rounded-lg bg-zinc-900 border border-zinc-800 focus:border-zinc-600 focus:ring-1 focus:ring-zinc-700 text-sm text-white outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex-1 h-10 px-3 rounded-lg bg-zinc-900 border border-zinc-800 focus:border-zinc-600 focus:ring-1 focus:ring-zinc-700 text-sm text-white outline-none transition-colors"
                             placeholder="my-project"
                         />
                         <span className="text-sm text-zinc-600 whitespace-nowrap">.{APP_DOMAIN}</span>
@@ -438,30 +427,19 @@ function DomainsTab({ project, isPro, subdomain, setSubdomain, hasChanged, savin
                     )}
                 </div>
 
-                {isPro ? (
-                    <div className="px-6 py-4 bg-zinc-900/50 border-t border-zinc-800 flex items-center justify-between">
-                        <p className="text-xs text-zinc-600">
-                            {hasChanged ? 'You have unsaved changes.' : 'No changes.'}
-                        </p>
-                        <button
-                            onClick={onSave}
-                            disabled={!hasChanged || saving}
-                            className="inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-white text-black text-sm font-medium hover:bg-zinc-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                        >
-                            {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                            Save Subdomain
-                        </button>
-                    </div>
-                ) : (
-                    <div className="px-6 py-4 bg-zinc-900/50 border-t border-zinc-800">
-                        <button
-                            className="w-full h-10 rounded-lg bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 text-sm font-medium text-amber-300 hover:from-amber-500/30 hover:to-orange-500/30 transition-all flex items-center justify-center gap-2 group"
-                        >
-                            <Sparkles size={14} className="group-hover:animate-pulse" />
-                            Upgrade to Pro to unlock custom subdomains
-                        </button>
-                    </div>
-                )}
+                <div className="px-6 py-4 bg-zinc-900/50 border-t border-zinc-800 flex items-center justify-between">
+                    <p className="text-xs text-zinc-600">
+                        {hasChanged ? 'You have unsaved changes.' : 'No changes.'}
+                    </p>
+                    <button
+                        onClick={onSave}
+                        disabled={!hasChanged || saving}
+                        className="inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-white text-black text-sm font-medium hover:bg-zinc-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                        {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                        Save Subdomain
+                    </button>
+                </div>
             </section>
 
             {/* DNS Info Card */}

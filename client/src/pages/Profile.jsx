@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Github, Camera, Shield, Sparkles, ExternalLink, Check } from 'lucide-react';
+import { Github, Camera, Shield, Sparkles, Check, AlertTriangle, Trash2, Loader2, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { apiRequest, github as githubApi } from '../lib/api';
+import { apiRequest, github as githubApi, auth as authApi } from '../lib/api';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 
 export default function Profile() {
-    const { user, updateUser, fetchUser } = useAuth();
+    const { user, updateUser, fetchUser, logout } = useAuth();
+    const navigate = useNavigate();
 
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -14,6 +16,14 @@ export default function Profile() {
     const [saving, setSaving] = useState(false);
     const [redeemingCode, setRedeemingCode] = useState(false);
     const [toast, setToast] = useState(null);
+
+    // Unlink GitHub state
+    const [unlinking, setUnlinking] = useState(false);
+
+    // Delete account state
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deletePassword, setDeletePassword] = useState('');
+    const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
         if (user) {
@@ -101,6 +111,34 @@ export default function Profile() {
         }
     }
 
+    // --- Unlink GitHub ---
+    async function handleUnlinkGithub() {
+        if (!confirm('Are you sure you want to unlink your GitHub account? You won\'t be able to import private repos until you re-link.')) return;
+        setUnlinking(true);
+        try {
+            const data = await githubApi.unlink();
+            updateUser(data.user);
+            showToast('GitHub account unlinked.');
+        } catch (err) {
+            showToast(err.message || 'Failed to unlink.', 'error');
+        } finally {
+            setUnlinking(false);
+        }
+    }
+
+    // --- Delete account ---
+    async function handleDeleteAccount() {
+        setDeleting(true);
+        try {
+            await authApi.deleteAccount(deletePassword);
+            logout();
+            navigate('/');
+        } catch (err) {
+            showToast(err.message || 'Failed to delete account.', 'error');
+            setDeleting(false);
+        }
+    }
+
     const initials =
         ((firstName?.[0] || '') + (lastName?.[0] || '')).toUpperCase() || '?';
 
@@ -113,11 +151,10 @@ export default function Profile() {
             {/* Toast */}
             {toast && (
                 <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50">
-                    <div className={`px-5 py-2.5 rounded-lg text-sm font-medium shadow-xl backdrop-blur-md ${
-                        toast.type === 'error'
+                    <div className={`px-5 py-2.5 rounded-lg text-sm font-medium shadow-xl backdrop-blur-md ${toast.type === 'error'
                             ? 'bg-red-500/10 border border-red-500/20 text-red-400'
                             : 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
-                    }`}>
+                        }`}>
                         {toast.message}
                     </div>
                 </div>
@@ -226,9 +263,19 @@ export default function Profile() {
                                     <p className="text-xs text-zinc-500">Connected via GitHub OAuth</p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                                <Check size={12} className="text-emerald-400" />
-                                <span className="text-xs text-emerald-400 font-medium">Linked</span>
+                            <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                                    <Check size={12} className="text-emerald-400" />
+                                    <span className="text-xs text-emerald-400 font-medium">Linked</span>
+                                </div>
+                                <button
+                                    onClick={handleUnlinkGithub}
+                                    disabled={unlinking}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-red-500/20 bg-red-500/5 text-red-400 hover:bg-red-500/10 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                >
+                                    {unlinking ? <Loader2 size={12} className="animate-spin" /> : <X size={12} />}
+                                    Unlink
+                                </button>
                             </div>
                         </div>
                     ) : (
@@ -254,15 +301,14 @@ export default function Profile() {
                 </section>
 
                 {/* ── Plan & Pro Code Card ── */}
-                <section className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-8">
+                <section className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-8 mb-6">
                     <h3 className="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-5">Current Plan</h3>
 
                     <div className="flex items-center gap-3 mb-6">
-                        <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
-                            user?.isPro
+                        <div className={`h-10 w-10 rounded-full flex items-center justify-center ${user?.isPro
                                 ? 'bg-gradient-to-br from-amber-500 to-orange-600'
                                 : 'bg-zinc-800 border border-zinc-700'
-                        }`}>
+                            }`}>
                             {user?.isPro ? <Sparkles size={18} className="text-white" /> : <Shield size={18} className="text-zinc-500" />}
                         </div>
                         <div>
@@ -307,7 +353,69 @@ export default function Profile() {
                         </div>
                     )}
                 </section>
+
+                {/* ── Danger Zone ── */}
+                <section className="bg-[#0a0a0a] border border-red-500/15 rounded-2xl p-8">
+                    <h3 className="text-sm font-medium text-red-400 uppercase tracking-wider mb-2">Danger Zone</h3>
+                    <p className="text-xs text-zinc-500 mb-5">Permanently delete your account and all associated data. This action cannot be undone.</p>
+
+                    <button
+                        onClick={() => setShowDeleteModal(true)}
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm rounded-lg border border-red-500/30 bg-red-500/5 text-red-400 hover:bg-red-500/10 transition font-medium cursor-pointer"
+                    >
+                        <Trash2 size={14} />
+                        Delete Account
+                    </button>
+                </section>
             </main>
+
+            {/* ── Delete Confirmation Modal ── */}
+            {showDeleteModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+                    <div className="w-full max-w-md mx-4 bg-[#0a0a0a] border border-zinc-800 rounded-2xl p-8 shadow-2xl">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="h-10 w-10 rounded-full bg-red-500/10 flex items-center justify-center">
+                                <AlertTriangle size={20} className="text-red-400" />
+                            </div>
+                            <div>
+                                <h2 className="text-lg font-semibold text-white">Delete Account</h2>
+                                <p className="text-xs text-zinc-500">This is permanent and irreversible</p>
+                            </div>
+                        </div>
+
+                        <p className="text-sm text-zinc-400 mb-4">
+                            This will immediately delete your account and <strong className="text-white">all of your projects</strong>.
+                            Enter your password to confirm.
+                        </p>
+
+                        <input
+                            type="password"
+                            value={deletePassword}
+                            onChange={(e) => setDeletePassword(e.target.value)}
+                            placeholder="Enter your password"
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-red-500/50 transition mb-5"
+                            onKeyDown={(e) => e.key === 'Enter' && deletePassword && handleDeleteAccount()}
+                        />
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => { setShowDeleteModal(false); setDeletePassword(''); }}
+                                className="flex-1 py-2.5 rounded-lg border border-zinc-700 text-sm font-medium text-zinc-300 hover:bg-zinc-800 transition cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleDeleteAccount}
+                                disabled={deleting || !deletePassword}
+                                className="flex-1 py-2.5 rounded-lg bg-red-600 hover:bg-red-500 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium text-white transition flex items-center justify-center gap-2 cursor-pointer"
+                            >
+                                {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                                {deleting ? 'Deleting…' : 'Delete Forever'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

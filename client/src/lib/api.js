@@ -31,6 +31,9 @@ export const auth = {
         apiRequest('/auth/signin', { method: 'POST', body: JSON.stringify(body) }),
 
     me: () => apiRequest('/auth/me'),
+
+    deleteAccount: (password) =>
+        apiRequest('/auth/account', { method: 'DELETE', body: JSON.stringify({ password }) }),
 };
 
 export const project = {
@@ -75,4 +78,5 @@ export const github = {
     getAuthUrl: (includePrivate = false) =>
         apiRequest(`/auth/github?includePrivate=${includePrivate}`),
     getRepos: () => apiRequest('/auth/github/repos'),
+    unlink: () => apiRequest('/auth/github/unlink', { method: 'PUT' }),
 };
