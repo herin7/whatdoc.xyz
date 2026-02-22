@@ -47,6 +47,8 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 
 // 4. ROUTES (All routes must be below CORS)
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
+
 app.get('/api/usercount', async (req, res) => {
     try {
         const count = await UserModel.countDocuments({});

@@ -11,7 +11,7 @@ export async function warmUpBackend(onStatus) {
             const controller = new AbortController();
             const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-            const res = await fetch(`${API_URL}/auth/me`, {
+            const res = await fetch(`${API_URL}/health`, {
                 signal: controller.signal,
                 headers: { 'Content-Type': 'application/json' },
             });

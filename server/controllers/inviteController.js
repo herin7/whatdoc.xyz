@@ -112,16 +112,21 @@ async function approveInvite(req, res) {
         invite.status = 'approved';
         await invite.save();
 
+        let emailSent = false;
+        let emailError = null;
         try {
             await sendInviteEmail(invite.email, invite.inviteCode);
+            emailSent = true;
         } catch (mailErr) {
+            emailError = mailErr.message;
             console.error('[invite] Email failed:', mailErr.message);
         }
 
         return res.json({
-            message: 'Approved and email sent.',
+            message: emailSent ? 'Approved and email sent.' : `Approved but email failed: ${emailError}`,
             email: invite.email,
             inviteCode: invite.inviteCode,
+            emailSent,
         });
     } catch (err) {
         console.error('approveInvite error:', err);
