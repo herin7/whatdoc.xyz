@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const authmware = require('../middlewares/authmware');
-const { createProject } = require('../controllers/projectController');
+const { createProject, getJobStatus } = require('../controllers/projectController');
 const { engineEmitter, requestCancel } = require('../services/engine');
 const { listProviders } = require('../services/llm');
 const Project = require('../models/Project');
@@ -9,6 +9,7 @@ const { UserModel } = require('../models/User');
 const router = Router();
 
 router.post('/', authmware, createProject);
+router.get('/jobs/:id', authmware, getJobStatus);
 
 // ── List current user's projects: GET /projects/mine ────────────────
 router.get('/mine', authmware, async (req, res) => {

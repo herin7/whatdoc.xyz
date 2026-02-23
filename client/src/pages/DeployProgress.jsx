@@ -8,6 +8,7 @@ export default function DeployProgress() {
 
     // slug is stored in sessionStorage by ConfigureProject before navigating here
     const slug = sessionStorage.getItem('deploy_slug') || '';
+    const jobId = sessionStorage.getItem('deploy_jobId') || '';
 
     return (
         <div className="min-h-screen bg-black text-white flex flex-col">
@@ -37,7 +38,7 @@ export default function DeployProgress() {
                     </div>
 
                     {/* Terminal */}
-                    <GenerationTerminal projectId={projectId} slug={slug} />
+                    <GenerationTerminal projectId={projectId} slug={slug} jobId={jobId} />
                 </div>
             </main>
         </div>

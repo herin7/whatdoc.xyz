@@ -81,6 +81,8 @@ export const project = {
 
     getProviders: () => apiRequest('/projects/providers'),
 
+    getJobStatus: (id) => apiRequest(`/projects/jobs/${id}`),
+
     getBySlug: (slug) => apiRequest(`/projects/slug/${slug}`),
 
     listMine: () => apiRequest('/projects/mine'),

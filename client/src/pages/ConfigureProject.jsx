@@ -54,9 +54,18 @@ export default function ConfigureProject() {
             localStorage.setItem('wtd_gemini_key', customKey);
 
             const res = await project.create({ repoName, slug: slug.trim(), techstack, template: selectedTemplateId, llmProvider });
-            // Stash slug so the deploy page can link to /p/:slug
+
+            // Stash slug and job identifier for the deploy page
             sessionStorage.setItem('deploy_slug', slug.trim());
-            navigate(`/deploy/${res.project._id}`);
+
+            if (res.cached) {
+                // If it was a cache hit, skip the deploy waiting room!
+                navigate(`/p/${slug.trim()}`);
+            } else {
+                if (res.jobId) sessionStorage.setItem('deploy_jobId', res.jobId);
+                navigate(`/deploy/${res.project._id}`);
+            }
+
         } catch (err) {
             setError(err.error || err.message || 'Failed to create project.');
         } finally {
@@ -183,11 +192,10 @@ export default function ConfigureProject() {
                                             key={t.id}
                                             type="button"
                                             onClick={() => setSelectedTemplateId(t.id)}
-                                            className={`group relative rounded-xl border text-left transition-all duration-200 overflow-hidden ${
-                                                isActive
+                                            className={`group relative rounded-xl border text-left transition-all duration-200 overflow-hidden ${isActive
                                                     ? 'border-blue-500 ring-2 ring-blue-500 scale-105 shadow-[0_0_24px_rgba(59,130,246,0.25)]'
                                                     : 'border-zinc-700/40 bg-zinc-900/60 hover:border-zinc-500 hover:scale-[1.02]'
-                                            }`}
+                                                }`}
                                         >
                                             {/* Preview image */}
                                             <img
@@ -227,11 +235,10 @@ export default function ConfigureProject() {
                                 <button
                                     type="button"
                                     onClick={() => setLlmProvider('gemini')}
-                                    className={`relative h-20 rounded-xl border text-left px-4 py-3 transition-all ${
-                                        llmProvider === 'gemini'
+                                    className={`relative h-20 rounded-xl border text-left px-4 py-3 transition-all ${llmProvider === 'gemini'
                                             ? 'border-emerald-400/60 bg-emerald-400/5 ring-1 ring-emerald-400/30'
                                             : 'border-zinc-700/40 bg-zinc-900/60 hover:border-zinc-600'
-                                    }`}
+                                        }`}
                                 >
                                     <span className="block text-sm font-medium text-white">Google Gemini</span>
                                     <span className="block text-xs text-zinc-500 mt-0.5">gemini-2.5-flash</span>

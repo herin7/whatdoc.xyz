@@ -4,6 +4,7 @@ const projectSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   repoName: { type: String, required: true }, // e.g., "expressjs/express"
   slug: { type: String, required: true, unique: true }, // e.g., "my-cool-api"
+  commitHash: { type: String, default: null }, // e.g., "7a8f9b..."
   subdomain: { type: String, unique: true, lowercase: true, sparse: true }, // e.g., "acme" → acme.whatdoc.xyz
   techstack: { type: String, enum: ['MERN', 'Next.js', 'Other'], default: 'Other' },
   generatedDocs: { type: String, default: '' },

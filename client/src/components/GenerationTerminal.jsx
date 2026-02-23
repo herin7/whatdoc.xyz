@@ -6,6 +6,7 @@ import { API_URL } from '../lib/config';
 
 // ── Status badge colours ────────────────────────────────────────────
 const STATUS_COLORS = {
+    queued: 'text-blue-400',
     scanning: 'text-yellow-400',
     analyzing: 'text-cyan-400',
     generating: 'text-purple-400',
@@ -14,6 +15,7 @@ const STATUS_COLORS = {
 };
 
 const STATUS_LABELS = {
+    queued: 'Queued',
     scanning: 'Scanning',
     analyzing: 'Analyzing',
     generating: 'Generating',
@@ -26,16 +28,57 @@ const STATUS_LABELS = {
  *
  * @param {{ projectId: string, slug?: string }} props
  */
-export default function GenerationTerminal({ projectId, slug }) {
+export default function GenerationTerminal({ projectId, slug, jobId }) {
     const [logs, setLogs] = useState([]);
     const [status, setStatus] = useState('connecting');
     const [connected, setConnected] = useState(false);
     const [cancelling, setCancelling] = useState(false);
     const bottomRef = useRef(null);
     const containerRef = useRef(null);
+    const pollInterval = useRef(null);
 
-    // ── SSE connection ──────────────────────────────────────────────
+    // ── Phase 1: Poll BullMQ for Queue Position ─────────────────────
     useEffect(() => {
+        if (!jobId) return; // Fallback to direct SSE if no jobId
+
+        const checkQueue = async () => {
+            try {
+                const res = await projectApi.getJobStatus(jobId);
+                if (res.state === 'waiting' || res.state === 'delayed') {
+                    setStatus('queued');
+                    setLogs((prev) => {
+                        // Prevent spamming the exact same log every second
+                        const lastMsg = prev[prev.length - 1];
+                        if (lastMsg && lastMsg.message.includes('Position in queue')) return prev;
+                        return [...prev, { type: 'system', message: 'Job added to queue. Waiting for an available worker...', ts: Date.now() }];
+                    });
+                } else if (res.state === 'active') {
+                    // Job started! Stop polling and let SSE take over.
+                    if (pollInterval.current) clearInterval(pollInterval.current);
+                    connectSSE();
+                } else if (res.state === 'completed' || res.state === 'failed') {
+                    // Missed the active window (job finished extremely fast or failed instantly)
+                    if (pollInterval.current) clearInterval(pollInterval.current);
+                    setStatus(res.state === 'completed' ? 'ready' : 'failed');
+                    connectSSE(); // Connect briefly just in case there are lingering events or to trigger final UI
+                }
+            } catch (err) {
+                console.error('Job polling failed:', err);
+                if (pollInterval.current) clearInterval(pollInterval.current);
+                connectSSE(); // Fallback to raw SSE
+            }
+        };
+
+        checkQueue(); // Fire immediately
+        pollInterval.current = setInterval(checkQueue, 2000);
+
+        return () => {
+            if (pollInterval.current) clearInterval(pollInterval.current);
+        };
+    }, [jobId]);
+
+    // ── Phase 2: SSE connection (triggered when job active) ──────────
+    const connectSSE = () => {
         if (!projectId) return;
 
         const token = localStorage.getItem('token');
@@ -94,7 +137,14 @@ export default function GenerationTerminal({ projectId, slug }) {
         return () => {
             es.close();
         };
-    }, [projectId]);
+    };
+
+    // If no jobId was passed, connect SSE immediately for backwards compatibility
+    useEffect(() => {
+        let cleanup;
+        if (!jobId) cleanup = connectSSE();
+        return () => { if (cleanup) cleanup(); };
+    }, [projectId, jobId]);
 
     // ── Auto-scroll ─────────────────────────────────────────────────
     useEffect(() => {
@@ -165,10 +215,10 @@ export default function GenerationTerminal({ projectId, slug }) {
                     )}
                     {/* Traffic-light dots */}
                     <div className={`h-2.5 w-2.5 rounded-full ${status === 'ready'
-                            ? 'bg-emerald-400'
-                            : status === 'failed'
-                                ? 'bg-red-400'
-                                : 'bg-yellow-400 animate-pulse'
+                        ? 'bg-emerald-400'
+                        : status === 'failed'
+                            ? 'bg-red-400'
+                            : 'bg-yellow-400 animate-pulse'
                         }`} />
                     <span className={`text-xs font-mono ${STATUS_COLORS[status] || 'text-zinc-500'}`}>
                         {STATUS_LABELS[status] || status}
