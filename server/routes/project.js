@@ -217,7 +217,6 @@ router.get('/:projectId/view', async (req, res) => {
 // });
 
 // ── Get a single project by ID: GET /projects/:projectId ────────────
-
 router.get('/:projectId', authmware, async (req, res) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(req.params.projectId)) {
@@ -284,6 +283,7 @@ router.put('/:projectId', authmware, async (req, res) => {
                     await provisionCustomDomainSSL(sanitized);
                     project.customDomain = sanitized;
                 } catch (sslErr) {
+                    console.error(`[SSL PROVISIONING ERROR] Failed for domain: ${sanitized}`, sslErr);
                     return res.status(500).json({ error: 'Failed to provision SSL certificate for custom domain.' });
                 }
             }
