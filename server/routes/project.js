@@ -137,14 +137,13 @@ router.post('/:projectId/cancel', authmware, async (req, res) => {
         res.status(500).json({ error: 'Failed to cancel.' });
     }
 });
+// GET /projects/:projectId/view (Internal route for custom domains)
 router.get('/:projectId/view', async (req, res) => {
     try {
-        if (!mongoose.Types.ObjectId.isValid(req.params.projectId)) {
-            return res.status(400).json({ error: 'Invalid project ID.' });
-        }
+        const { projectId } = req.params;
 
         const project = await Project.findById(
-            req.params.projectId,
+            projectId,
             'repoName techstack generatedDocs updatedAt isPublic userId template subdomain customization'
         );
 
@@ -152,7 +151,7 @@ router.get('/:projectId/view', async (req, res) => {
             return res.status(404).json({ error: 'Project not found.' });
         }
 
-        // Fetch creator name
+        // Fetch creator name logic
         let creatorName = null;
         if (project.userId) {
             const user = await UserModel.findById(project.userId, 'firstName lastName githubUsername');
@@ -161,6 +160,7 @@ router.get('/:projectId/view', async (req, res) => {
             }
         }
 
+        // Return the payload for the frontend viewer
         res.json({
             repoName: project.repoName,
             techstack: project.techstack,
@@ -176,8 +176,48 @@ router.get('/:projectId/view', async (req, res) => {
         res.status(500).json({ error: 'Internal server error.' });
     }
 });
+// router.get('/:projectId/view', async (req, res) => {
+//     try {
+//         if (!mongoose.Types.ObjectId.isValid(req.params.projectId)) {
+//             return res.status(400).json({ error: 'Invalid project ID.' });
+//         }
+
+//         const project = await Project.findById(
+//             req.params.projectId,
+//             'repoName techstack generatedDocs updatedAt isPublic userId template subdomain customization'
+//         );
+
+//         if (!project) {
+//             return res.status(404).json({ error: 'Project not found.' });
+//         }
+
+//         // Fetch creator name
+//         let creatorName = null;
+//         if (project.userId) {
+//             const user = await UserModel.findById(project.userId, 'firstName lastName githubUsername');
+//             if (user) {
+//                 creatorName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.githubUsername || null;
+//             }
+//         }
+
+//         res.json({
+//             repoName: project.repoName,
+//             techstack: project.techstack,
+//             generatedDocs: project.generatedDocs,
+//             updatedAt: project.updatedAt,
+//             creatorName,
+//             template: project.template || 'modern',
+//             subdomain: project.subdomain,
+//             customization: project.customization || {},
+//         });
+//     } catch (err) {
+//         console.error('Internal view error:', err);
+//         res.status(500).json({ error: 'Internal server error.' });
+//     }
+// });
 
 // ── Get a single project by ID: GET /projects/:projectId ────────────
+
 router.get('/:projectId', authmware, async (req, res) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(req.params.projectId)) {

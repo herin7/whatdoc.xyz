@@ -32,7 +32,7 @@ const customDomainRouter = async (req, res, next) => {
             // Rewrite the URL internally to the standard viewer route
             // The user requested: req.url = '/project/' + project._id + '/view'
             // NOTE: adjust this matching your actual front-facing viewer route string if different
-            req.url = `/projects/${project._id}/view`;
+            req.url = `/${project._id}/view`;
             console.log(`[DOMAIN ROUTER] MATCH FOUND: Project ID ${project._id}. Internal URL rewritten to: ${req.url}`);
             // Or you can proxy it to your frontend app serving logic
             return next();

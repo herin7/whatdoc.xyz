@@ -1,0 +1,80 @@
+# WHATDOC.XYZ - Custom Domain Flow (A to Z)
+
+This document outlines the complete lifecycle of a custom domain within the WhatDoc architecture, from the moment a user configures it to how a request from a visitor is routed and processed.
+
+---
+
+## Part 1: Registering / Updating a Custom Domain
+
+When a user sets up a custom domain (e.g., `docs.example.com`) for their project from the frontend dashboard:
+
+**1. API Route:** `PUT /projects/:projectId` (in `server/routes/project.js`)
+**2. Payload:** The frontend sends a JSON body containing `{ "customDomain": "docs.example.com" }` among other possible update fields.
+**3. Backend Processing:**
+   - **Validation:** Extracts the `customDomain` and checks if it's different from the existing one.
+   - **Sanitization:** Converts to lowercase, strips invalid characters, and trims whitespace: `customDomain.toLowerCase().replace(/[^a-z0-9.-]/g, '').trim()`.
+   - **Uniqueness Check:** Queries the database (`Project.findOne`) to ensure no other project is already using this exact domain. If taken, returns a `409 Conflict`.
+   - **SSL Provisioning:** Calls `provisionCustomDomainSSL(sanitized)` from `utils/cloudflare.js` to automatically set up the domain on Cloudflare via the Cloudflare API.
+   - **Database Save:** If Cloudflare provisioning is successful, updates the `project.customDomain` field and saves it to MongoDB.
+**4. Response:** Returns `{ "message": "Project updated.", "project": { ... } }` to the frontend.
+
+---
+
+## Part 2: Handling an Incoming Request on the Custom Domain
+
+When an external user visits the custom domain (e.g., `https://docs.example.com`) in their browser, the DNS directs the traffic to the backend server. The request goes through a specific middleware pipeline:
+
+### Step 2A: CORS Validation
+**File:** `server/server.js` (Global CORS Middleware)
+- **Action:** Intercepts the request to determine if it should be allowed based on the `Origin`.
+- **Logic:** 
+  - Extracts the `origin` from the request.
+  - If the origin is the base app (`whatdoc.xyz`) or a known subdomain, it allows it immediately.
+  - **Dynamic Fallback:** If not whitelisted statically, it dynamically strips the protocol (`http://` or `https://`) to get `strippedOrigin` (e.g., `docs.example.com`).
+  - **Log Output:** `[CORS] Checking dynamic whitelist for: docs.example.com`
+  - **DB Query:** Looks up `Project.findOne({ customDomain: strippedOrigin })`.
+  - **Result:** If a matching project is found, CORS allows the request (`callback(null, true)`). Otherwise, it rejects it.
+
+### Step 2B: Domain Routing & URL Rewrite
+**File:** `server/middlewares/customDomainRouter.js`
+- **Action:** Intercepts the request before it hits standard endpoints to check if it's meant for a custom domain project.
+- **Logic:**
+  - Extracts the `Host` header (`req.headers.host`).
+  - **Log Output:** `[DOMAIN ROUTER] Incoming request host: docs.example.com`
+  - **Base Domain Check:** If the host is `whatdoc.xyz`, `localhost`, `127.0.0.1`, or `onrender.com`, it skips the lookup, logs `[DOMAIN ROUTER] Internal request detected: skipping lookup.`, and passes the request along using `next()`.
+  - **Custom Domain Extraction:** For external domains, it strips any port numbers (e.g., `:3000`) and lowercases the string to get `strippedHost`.
+  - **Log Output:** `[DOMAIN ROUTER] Searching DB for: docs.example.com`
+  - **DB Query:** Looks up `Project.findOne({ customDomain: strippedHost })`.
+  - **If NO Match is Found:**
+    - **Log Output:** `[DOMAIN ROUTER] 404 - No project registered for host: docs.example.com` (as a warning).
+    - **Response:** Returns a 404 HTML page stating "Domain Not Configured". The request stops here.
+  - **If Match IS Found:**
+    - **Internal Rewrite:** Modifies the internal request URL from its original path (e.g., `/`) to `req.url = /projects/${project._id}/view`. 
+    - **Log Output:** `[DOMAIN ROUTER] MATCH FOUND: Project ID <id>. Internal URL rewritten to: /projects/<id>/view`
+    - **Action:** Calls `next()`, causing the express router to treat this request as if the user directly hit the `/projects/:projectId/view` endpoint.
+
+### Step 2C: Serving the Project Data (The Rewritten Route)
+**File:** `server/routes/project.js`
+- **API Route:** `GET /projects/:projectId/view` (mapped from the rewrite in Step 2B).
+- **Action:** Fetches the actual documentation content for the matched project.
+- **Logic:**
+  - Validates that the parameterized `:projectId` is a valid MongoDB ObjectId.
+  - Queries `Project.findById` for specific fields: `repoName techstack generatedDocs updatedAt isPublic userId template subdomain customization`.
+  - Queries `UserModel.findById` using `project.userId` to retrieve the project creator's name (`firstName`, `lastName`, or `githubUsername`).
+- **Final Output to Visitor:** Returns a JSON payload containing exactly what is needed to render the documentation:
+  ```json
+  {
+      "repoName": "expressjs/express",
+      "techstack": "Node.js",
+      "generatedDocs": "# Documentation Markdown...",
+      "updatedAt": "2023-10-27T...",
+      "creatorName": "John Doe",
+      "template": "modern",
+      "subdomain": "express-docs",
+      "customization": {
+         "logoUrl": "...",
+         "ownerName": "..."
+      }
+  }
+  ```
+  *(Note: Currently, the backend directly returns this JSON data on the custom domain. If the intent is for the custom domain to show a rendered HTML site rather than raw JSON, the backend's `/projects/:projectId/view` endpoint string would either need to be consumed by a frontend application proxy or rendered server-side).*
