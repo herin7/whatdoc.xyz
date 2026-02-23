@@ -1,4 +1,4 @@
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -56,9 +56,33 @@ const PageLoader = () => (
 );
 
 function App() {
+  const [customDocData, setCustomDocData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const { serverReady, warmUpStatus } = useAuth();
-
+  const hostname = window.location.hostname;
+  const isCustomDomain = !hostname.includes('whatdoc.xyz') && !hostname.includes('localhost');
   const subdomain = getSubdomain();
+  useEffect(() => {
+    if (isCustomDomain) {
+      // 2. Fetch the project data from your Render backend using the hostname
+      project.getByCustomDomain(hostname)
+        .then((data) => {
+          setCustomDocData(data);
+          setLoading(false);
+        })
+        .catch((err) => {
+          console.error("Domain lookup failed", err);
+          setLoading(false);
+        });
+    }
+  }, [isCustomDomain, hostname]);
+  if (isCustomDomain) {
+    if (loading) return <div className="loader">Loading Documentation...</div>;
+    if (!customDocData) return <div className="error">404: Documentation Not Found</div>;
+
+    // Render the dedicated viewer component with the fetched docs
+    return <RepoDetailView project={customDocData} isPublicView={true} />;
+  }
   if (subdomain) {
     return (
       <Suspense fallback={<PageLoader />}>
