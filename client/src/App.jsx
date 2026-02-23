@@ -4,7 +4,7 @@ import { Loader2 } from 'lucide-react';
 import ProtectedRoute from './components/ProtectedRoute';
 import ServerWarmup from './components/ServerWarmup';
 import { useAuth } from './context/AuthContext';
-
+import project from './api/project';
 // Lazy load pages for code splitting
 const Home = lazy(() => import('./app/page'));
 const Login = lazy(() => import('./pages/Login'));
