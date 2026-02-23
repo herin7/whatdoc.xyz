@@ -414,7 +414,7 @@ function GeneralTab({ project, user, slug, setSlug, hasChanged, saving, onSave }
 /* ═══════════════════════════════════════════════════════════════════
    § Domains Tab
    ═══════════════════════════════════════════════════════════════════ */
-function DomainsTab({ project, isPro, subdomain, setSubdomain, hasChanged, saving, onSave }) {
+function DomainsTab({ project, isPro, subdomain, setSubdomain, hasChanged, saving, onSave, customDomain, setCustomDomain, savingCustomDomain, onSaveCustomDomain }) {
     return (
         <div className="space-y-8">
             {/* Subdomain Card */}
