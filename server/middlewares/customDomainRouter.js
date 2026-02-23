@@ -7,6 +7,7 @@ const Project = require('../models/Project');
 const customDomainRouter = async (req, res, next) => {
     try {
         const host = req.headers.host;
+        console.log(`[DOMAIN ROUTER] Incoming request host: ${host}`);
 
         // Skip if there's no host header
         if (!host) return next();
@@ -16,6 +17,7 @@ const customDomainRouter = async (req, res, next) => {
         const isBaseDomain = host.includes(appDomain) || host.includes('localhost') || host.includes('127.0.0.1') || host.includes('onrender.com');
 
         if (isBaseDomain) {
+            console.log(`[DOMAIN ROUTER] Internal request detected: skipping lookup.`);
             return next();
         }
 
@@ -23,6 +25,7 @@ const customDomainRouter = async (req, res, next) => {
         // host might include a port (docs.example.com:3000), so strip it if necessary for safety
         const strippedHost = host.split(':')[0].toLowerCase();
 
+        console.log(`[DOMAIN ROUTER] Searching DB for: ${strippedHost}`);
         const project = await Project.findOne({ customDomain: strippedHost });
 
         if (project) {
@@ -30,10 +33,12 @@ const customDomainRouter = async (req, res, next) => {
             // The user requested: req.url = '/project/' + project._id + '/view'
             // NOTE: adjust this matching your actual front-facing viewer route string if different
             req.url = `/projects/${project._id}/view`;
+            console.log(`[DOMAIN ROUTER] MATCH FOUND: Project ID ${project._id}. Internal URL rewritten to: ${req.url}`);
             // Or you can proxy it to your frontend app serving logic
             return next();
         }
 
+        console.warn(`[DOMAIN ROUTER] 404 - No project registered for host: ${strippedHost}`);
         // If the domain is pointing here but isn't registered in our DB
         return res.status(404).send(`
             <html>

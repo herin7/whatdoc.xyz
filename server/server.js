@@ -9,13 +9,11 @@ const { UserModel } = require('./models/User');
 const Project = require('./models/Project');
 const app = express();
 
-// 1. DATABASE CONNECTION
 mongoose.connect(process.env.MONGO_URI).then(async () => {
     console.log('MongoDB connected');
     await UserModel.syncIndexes();
 }).catch(err => console.error('MongoDB connection error:', err));
 
-// 2. CORS CONFIGURATION (MUST BE FIRST)
 const APP_DOMAIN = process.env.APP_DOMAIN || 'whatdoc.xyz';
 const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
 
@@ -27,15 +25,14 @@ app.use(cors({
     origin: async (origin, callback) => {
         if (!origin) return callback(null, true);
 
-        // 1. Existing Whitelist/Subdomain Check
         const isWhitelisted = ALLOWED_ORIGINS.includes(origin);
         const escapedDomain = APP_DOMAIN.replace(/\./g, '\\.');
         const isSubdomain = new RegExp(`^https?://[a-z0-9-]+\\.${escapedDomain}$`).test(origin);
 
         if (isWhitelisted || isSubdomain) return callback(null, true);
 
-        // 2. Dynamic Custom Domain Check
         try {
+            console.log(`[CORS] Checking dynamic whitelist for: ${origin}`);
             const strippedOrigin = origin.replace(/^https?:\/\//, '');
             const projectExists = await Project.findOne({ customDomain: strippedOrigin });
             if (projectExists) return callback(null, true);
