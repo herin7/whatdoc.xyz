@@ -12,21 +12,12 @@ const app = express();
 // 1. DATABASE CONNECTION
 mongoose.connect(process.env.MONGO_URI).then(async () => {
     console.log('MongoDB connected');
-    const { UserModel } = require('./models/User');
     await UserModel.syncIndexes();
 }).catch(err => console.error('MongoDB connection error:', err));
 
-// --- DOMAIN ROUTING ---
-const customDomainRouter = require('./middlewares/customDomainRouter');
-app.use(customDomainRouter);
-// ----------------------
-
-// 2. CORS CONFIGURATION (Must come BEFORE routes)
-const APP_DOMAIN = process.env.APP_DOMAIN || 'localhost';
-const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS || 'http://localhost:5173,http://localhost:4173')
-    .split(',')
-    .map(s => s.trim())
-    .filter(Boolean);
+// 2. CORS CONFIGURATION (MUST BE FIRST)
+const APP_DOMAIN = process.env.APP_DOMAIN || 'whatdoc.xyz';
+const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
 
 if (process.env.CLIENT_URL && !ALLOWED_ORIGINS.includes(process.env.CLIENT_URL)) {
     ALLOWED_ORIGINS.push(process.env.CLIENT_URL);
@@ -34,6 +25,7 @@ if (process.env.CLIENT_URL && !ALLOWED_ORIGINS.includes(process.env.CLIENT_URL))
 
 app.use(cors({
     origin: (origin, callback) => {
+        // Allow server-to-server or non-browser tools (Postman/Curl)
         if (!origin) return callback(null, true);
 
         const isWhitelisted = ALLOWED_ORIGINS.includes(origin);
@@ -49,56 +41,34 @@ app.use(cors({
         if (isWhitelisted || isSubdomain || isLocalhost) {
             callback(null, true);
         } else {
+            console.warn(`[CORS BLOCKED] Origin: ${origin}`);
             callback(new Error('Not allowed by CORS'));
         }
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Explicitly allow these
-    allowedHeaders: ['Content-Type', 'Authorization'] // Explicitly allow these
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
-// Add this immediately after CORS to handle the OPTIONS preflight
+// Handle Global Preflight
 app.options('*', cors());
-// 3. OTHER MIDDLEWARE
 
-// --- Security Middleware Initialization ---
-// Helmet helps secure Express apps by setting various HTTP headers (including removing X-Powered-By)
+// 3. SECURITY & UTILITY MIDDLEWARE
 app.use(helmet());
 
-// Global Rate Limiter: 100 requests per 15 minutes
 const globalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 100,
-    message: { error: 'Too many requests from this IP, please try again after 15 minutes.' },
+    message: { error: 'Too many requests, please try again after 15 minutes.' },
     standardHeaders: true,
     legacyHeaders: false,
 });
 app.use(globalLimiter);
 
-// Specific Limiters
-const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 5,
-    message: { error: 'Too many authentication attempts, please try again after 15 minutes.' },
-    standardHeaders: true,
-    legacyHeaders: false,
-});
-
-const apiLimiter = rateLimit({
-    windowMs: 60 * 1000,
-    max: 15,
-    message: { error: 'Too many generation requests, please try again after a minute.' },
-    standardHeaders: true,
-    legacyHeaders: false,
-});
-// ------------------------------------------
-
 app.use(express.json({ limit: '10mb' }));
 
-// Mongo Sanitize MUST come *after* body-parser/express.json to scrub malicious keys
+// Sanitize inputs to prevent NoSQL Injection
 app.use((req, res, next) => {
-    // Express 5 makes req.query a getter-only property. 
-    // We manually sanitize vectors and surgically redefine req.query to avoid the TypeError
     if (req.body) req.body = mongoSanitize.sanitize(req.body, { replaceWith: '_' });
     if (req.params) req.params = mongoSanitize.sanitize(req.params, { replaceWith: '_' });
     if (req.headers) req.headers = mongoSanitize.sanitize(req.headers, { replaceWith: '_' });
@@ -115,7 +85,16 @@ app.use((req, res, next) => {
     next();
 });
 
-// 4. ROUTES (All routes must be below CORS)
+// 4. DOMAIN ROUTING (After CORS and Security)
+const customDomainRouter = require('./middlewares/customDomainRouter');
+
+// Bypass health check for internal monitoring
+app.use((req, res, next) => {
+    if (req.path === '/health') return next();
+    customDomainRouter(req, res, next);
+});
+
+// 5. ROUTES
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
 app.get('/api/usercount', async (req, res) => {
@@ -127,13 +106,27 @@ app.get('/api/usercount', async (req, res) => {
     }
 });
 
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10, // Slightly higher for production stability
+    message: { error: 'Too many authentication attempts.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+const apiLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 30,
+    message: { error: 'Too many generation requests.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
 const authRoutes = require("./routes/auth");
 const projectRoutes = require("./routes/project");
 
-// Apply specific limiters to their respective route boundaries
 app.use("/auth", authLimiter, authRoutes);
 app.use("/projects", apiLimiter, projectRoutes);
-// Example for invites: app.use("/api/invites/request", authLimiter, inviteRequestRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
