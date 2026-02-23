@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ServerWarmup from './components/ServerWarmup';
 import { useAuth } from './context/AuthContext';
 import { project } from './lib/api';
+import RepoDetailView from './components/RepoDetailView';
 // Lazy load pages for code splitting
 const Home = lazy(() => import('./app/page'));
 const Login = lazy(() => import('./pages/Login'));
