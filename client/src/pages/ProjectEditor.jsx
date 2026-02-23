@@ -143,11 +143,11 @@ export default function ProjectEditor() {
     // ── Build a synthetic project object for live preview ───────────
     const previewProject = proj
         ? {
-              ...proj,
-              subdomain,
-              generatedDocs: docs,
-              customization: { logoUrl, ownerName, currentVersion, upcomingVersion },
-          }
+            ...proj,
+            subdomain,
+            generatedDocs: docs,
+            customization: { logoUrl, ownerName, currentVersion, upcomingVersion },
+        }
         : null;
 
     // ── Loading ─────────────────────────────────────────────────────
@@ -237,9 +237,8 @@ export default function ProjectEditor() {
 
                 {/* ── LEFT PANEL ─────────────────────────────────── */}
                 <div
-                    className={`flex flex-col border-r border-zinc-800/60 transition-all duration-300 relative z-20 ${
-                        previewVisible ? 'w-1/2' : 'w-full'
-                    }`}
+                    className={`flex flex-col border-r border-zinc-800/60 transition-all duration-300 relative z-20 ${previewVisible ? 'w-1/2' : 'w-full'
+                        }`}
                 >
                     {/* Settings drawer */}
                     {settingsOpen && (

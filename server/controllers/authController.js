@@ -308,7 +308,7 @@ async function updateProfile(req, res) {
         const user = await UserModel.findByIdAndUpdate(
             req.userId,
             { firstName, lastName, avatarUrl },
-            { new: true }
+            { returnDocument: 'after' }
         ).select('-password -githubAccessToken');
 
         if (!user) {
@@ -326,7 +326,7 @@ async function unlinkGithub(req, res) {
         const user = await UserModel.findByIdAndUpdate(
             req.userId,
             { $unset: { githubId: '', githubUsername: '', githubAccessToken: '' } },
-            { new: true }
+            { returnDocument: 'after' }
         ).select('-password -githubAccessToken');
 
         if (!user) {

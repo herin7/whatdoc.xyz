@@ -1,24 +1,28 @@
+import { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import Home from './app/page';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import Dashboard from './pages/Dashboard';
-import ImportRepo from './pages/ImportRepo';
-import ConfigureProject from './pages/ConfigureProject';
-import DeployProgress from './pages/DeployProgress';
-import DocViewer from './pages/DocViewer';
-import ProjectEditor from './pages/ProjectEditor';
-import BetaProjectEditor from './pages/BetaProjectEditor';
-import ProjectSettings from './pages/ProjectSettings';
-import Profile from './pages/Profile';
-import Engine from './pages/Engine';
-import Creator from './pages/Creator';
-import SubdomainApp from './pages/SubdomainApp';
+import { Loader2 } from 'lucide-react';
 import ProtectedRoute from './components/ProtectedRoute';
 import ServerWarmup from './components/ServerWarmup';
 import { useAuth } from './context/AuthContext';
-import Templates from './pages/Templates';
-import PublicProjectView from './pages/PublicProjectView';
+
+// Lazy load pages for code splitting
+const Home = lazy(() => import('./app/page'));
+const Login = lazy(() => import('./pages/Login'));
+const Signup = lazy(() => import('./pages/Signup'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const ImportRepo = lazy(() => import('./pages/ImportRepo'));
+const ConfigureProject = lazy(() => import('./pages/ConfigureProject'));
+const DeployProgress = lazy(() => import('./pages/DeployProgress'));
+const DocViewer = lazy(() => import('./pages/DocViewer'));
+const ProjectEditor = lazy(() => import('./pages/ProjectEditor'));
+const BetaProjectEditor = lazy(() => import('./pages/BetaProjectEditor'));
+const ProjectSettings = lazy(() => import('./pages/ProjectSettings'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Engine = lazy(() => import('./pages/Engine'));
+const Creator = lazy(() => import('./pages/Creator'));
+const SubdomainApp = lazy(() => import('./pages/SubdomainApp'));
+const Templates = lazy(() => import('./pages/Templates'));
+const PublicProjectView = lazy(() => import('./pages/PublicProjectView'));
 
 function getSubdomain() {
   const host = window.location.hostname;
@@ -44,34 +48,49 @@ function GuestRoute({ children }) {
   return children;
 }
 
+// Global Suspense Loader
+const PageLoader = () => (
+  <div className="h-screen bg-[#0a0a0a] flex items-center justify-center">
+    <Loader2 className="size-6 animate-spin text-emerald-500" />
+  </div>
+);
+
 function App() {
   const { serverReady, warmUpStatus } = useAuth();
 
   const subdomain = getSubdomain();
-  if (subdomain) return <SubdomainApp subdomain={subdomain} />;
+  if (subdomain) {
+    return (
+      <Suspense fallback={<PageLoader />}>
+        <SubdomainApp subdomain={subdomain} />
+      </Suspense>
+    );
+  }
 
   if (!serverReady) {
     return <ServerWarmup status={warmUpStatus} />;
   }
 
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/p/:slug" element={<PublicProjectView />} />
-      <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
-      <Route path="/signup" element={<GuestRoute><Signup /></GuestRoute>} />
-      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-      <Route path="/import" element={<ProtectedRoute><ImportRepo /></ProtectedRoute>} />
-      <Route path="/configure" element={<ProtectedRoute><ConfigureProject /></ProtectedRoute>} />
-      <Route path="/deploy/:projectId" element={<ProtectedRoute><DeployProgress /></ProtectedRoute>} />
-      <Route path="/editor/:projectId" element={<ProtectedRoute><ProjectEditor /></ProtectedRoute>} />
-      <Route path="/project/:projectId/beta-edit" element={<ProtectedRoute><BetaProjectEditor /></ProtectedRoute>} />
-      <Route path="/project/:id/settings" element={<ProtectedRoute><ProjectSettings /></ProtectedRoute>} />
-      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-      <Route path="/engine" element={<Engine />} />
-      <Route path="/creator" element={<Creator />} />
-      <Route path="/templates" element={<Templates />} />
-    </Routes>
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/p/:slug" element={<PublicProjectView />} />
+        <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
+        <Route path="/signup" element={<GuestRoute><Signup /></GuestRoute>} />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/import" element={<ProtectedRoute><ImportRepo /></ProtectedRoute>} />
+        <Route path="/configure" element={<ProtectedRoute><ConfigureProject /></ProtectedRoute>} />
+        <Route path="/deploy/:projectId" element={<ProtectedRoute><DeployProgress /></ProtectedRoute>} />
+        <Route path="/editor/:projectId" element={<ProtectedRoute><ProjectEditor /></ProtectedRoute>} />
+        <Route path="/project/:projectId/beta-edit" element={<ProtectedRoute><BetaProjectEditor /></ProtectedRoute>} />
+        <Route path="/project/:id/settings" element={<ProtectedRoute><ProjectSettings /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/engine" element={<Engine />} />
+        <Route path="/creator" element={<Creator />} />
+        <Route path="/templates" element={<Templates />} />
+      </Routes>
+    </Suspense>
   );
 }
 
