@@ -91,6 +91,11 @@ export const project = {
 
     getProviders: () => apiRequest('/projects/providers'),
     getByCustomDomain: (domain) => apiRequest(`/projects/custom-domain/${domain}`),
+    update: (projectId, body) =>
+        apiRequest(`/projects/${projectId}`, {
+            method: 'PUT',
+            body: JSON.stringify(body)
+        }),
     getJobStatus: (id) => apiRequest(`/projects/jobs/${id}`),
 
     getBySlug: (slug) => apiRequest(`/projects/slug/${slug}`),

@@ -1,4 +1,6 @@
 const { Router } = require('express');
+const mongoose = require('mongoose');
+const axios = require('axios');
 const authmware = require('../middlewares/authmware');
 const { createProject, getJobStatus } = require('../controllers/projectController');
 const { engineEmitter, requestCancel } = require('../services/engine');
@@ -6,215 +8,11 @@ const { listProviders } = require('../services/llm');
 const Project = require('../models/Project');
 const { UserModel } = require('../models/User');
 const { provisionCustomDomainSSL } = require('../utils/cloudflare');
-const axios = require('axios');
+
 const router = Router();
 
-router.post('/', authmware, createProject);
-router.get('/jobs/:id', authmware, getJobStatus);
+// --- HELPER FUNCTIONS ---
 
-// ── List current user's projects: GET /projects/mine ────────────────
-router.get('/mine', authmware, async (req, res) => {
-    try {
-        const projects = await Project.find(
-            { userId: req.userId },
-            'repoName slug techstack status updatedAt'
-        ).sort({ updatedAt: -1 });
-
-        res.json({ projects });
-    } catch (err) {
-        console.error('List projects error:', err);
-        res.status(500).json({ error: 'Failed to fetch projects.' });
-    }
-});
-
-// ── Public doc viewer: GET /projects/subdomain/:subdomain ───────────
-// No auth — serves generated documentation for public projects.
-router.get('/subdomain/:subdomain', async (req, res) => {
-    try {
-        const project = await Project.findOne(
-            { subdomain: req.params.subdomain.toLowerCase() },
-            'repoName techstack generatedDocs updatedAt isPublic userId template subdomain customization'
-        );
-
-        if (!project) {
-            return res.status(404).json({ error: 'Project not found.' });
-        }
-
-        // Fetch creator name
-        let creatorName = null;
-        if (project.userId) {
-            const user = await UserModel.findById(project.userId, 'firstName lastName githubUsername');
-            if (user) {
-                creatorName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.githubUsername || null;
-            }
-        }
-
-        res.json({
-            repoName: project.repoName,
-            techstack: project.techstack,
-            generatedDocs: project.generatedDocs,
-            updatedAt: project.updatedAt,
-            creatorName,
-            template: project.template || 'modern',
-            subdomain: project.subdomain,
-            customization: project.customization || {},
-        });
-    } catch (err) {
-        console.error('Subdomain lookup error:', err);
-        res.status(500).json({ error: 'Internal server error.' });
-    }
-});
-
-// ── Public doc viewer (slug): GET /projects/slug/:slug ──────────────
-router.get('/slug/:slug', async (req, res) => {
-    try {
-        const targetSlug = req.params.slug.toLowerCase();
-
-        const project = await Project.findOne(
-            { slug: targetSlug },
-            'repoName techstack generatedDocs updatedAt isPublic userId template subdomain slug customization'
-        );
-
-        if (!project) {
-            return res.status(404).json({ error: 'Project not found.' });
-        }
-
-        // Fetch creator name
-        let creatorName = null;
-        if (project.userId) {
-            const user = await UserModel.findById(project.userId, 'firstName lastName githubUsername');
-            if (user) {
-                creatorName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.githubUsername || null;
-            }
-        }
-
-        res.json({
-            project: {
-                repoName: project.repoName,
-                techstack: project.techstack,
-                generatedDocs: project.generatedDocs,
-                updatedAt: project.updatedAt,
-                creatorName,
-                template: project.template || 'modern',
-                subdomain: project.subdomain,
-                slug: project.slug,
-                customization: project.customization || {},
-            },
-        });
-    } catch (err) {
-        console.error('Slug lookup error:', err);
-        res.status(500).json({ error: 'Internal server error.' });
-    }
-});
-
-// ── List available LLM providers: GET /projects/providers ───────────
-router.get('/providers', (_req, res) => {
-    res.json({ providers: listProviders() });
-});
-
-// ── Cancel a running pipeline: POST /projects/:projectId/cancel ─────
-const mongoose = require('mongoose');
-
-router.post('/:projectId/cancel', authmware, async (req, res) => {
-    try {
-        if (!mongoose.Types.ObjectId.isValid(req.params.projectId)) {
-            return res.status(400).json({ error: 'Invalid project ID.' });
-        }
-        const project = await Project.findById(req.params.projectId);
-
-        if (!project) return res.status(404).json({ error: 'Project not found.' });
-        if (String(project.userId) !== req.userId) return res.status(403).json({ error: 'Forbidden.' });
-
-        const running = ['scanning', 'analyzing', 'generating'];
-        if (!running.includes(project.status)) {
-            return res.status(400).json({ error: 'Pipeline is not running.' });
-        }
-
-        requestCancel(req.params.projectId);
-        res.json({ message: 'Cancellation requested.' });
-    } catch (err) {
-        console.error('Cancel error:', err);
-        res.status(500).json({ error: 'Failed to cancel.' });
-    }
-});
-// GET /projects/:projectId/view (Internal route for custom domains)
-router.get('/:projectId/view', async (req, res) => {
-    try {
-        const { projectId } = req.params;
-
-        const project = await Project.findById(
-            projectId,
-            'repoName techstack generatedDocs updatedAt isPublic userId template subdomain customization'
-        );
-
-        if (!project) {
-            return res.status(404).json({ error: 'Project not found.' });
-        }
-
-        // Fetch creator name logic
-        let creatorName = null;
-        if (project.userId) {
-            const user = await UserModel.findById(project.userId, 'firstName lastName githubUsername');
-            if (user) {
-                creatorName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.githubUsername || null;
-            }
-        }
-
-        // Return the payload for the frontend viewer
-        res.json({
-            repoName: project.repoName,
-            techstack: project.techstack,
-            generatedDocs: project.generatedDocs,
-            updatedAt: project.updatedAt,
-            creatorName,
-            template: project.template || 'modern',
-            subdomain: project.subdomain,
-            customization: project.customization || {},
-        });
-    } catch (err) {
-        console.error('Internal view error:', err);
-        res.status(500).json({ error: 'Internal server error.' });
-    }
-});
-// router.get('/:projectId/view', async (req, res) => {
-//     try {
-//         if (!mongoose.Types.ObjectId.isValid(req.params.projectId)) {
-//             return res.status(400).json({ error: 'Invalid project ID.' });
-//         }
-
-//         const project = await Project.findById(
-//             req.params.projectId,
-//             'repoName techstack generatedDocs updatedAt isPublic userId template subdomain customization'
-//         );
-
-//         if (!project) {
-//             return res.status(404).json({ error: 'Project not found.' });
-//         }
-
-//         // Fetch creator name
-//         let creatorName = null;
-//         if (project.userId) {
-//             const user = await UserModel.findById(project.userId, 'firstName lastName githubUsername');
-//             if (user) {
-//                 creatorName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.githubUsername || null;
-//             }
-//         }
-
-//         res.json({
-//             repoName: project.repoName,
-//             techstack: project.techstack,
-//             generatedDocs: project.generatedDocs,
-//             updatedAt: project.updatedAt,
-//             creatorName,
-//             template: project.template || 'modern',
-//             subdomain: project.subdomain,
-//             customization: project.customization || {},
-//         });
-//     } catch (err) {
-//         console.error('Internal view error:', err);
-//         res.status(500).json({ error: 'Internal server error.' });
-//     }
-// });
 const addDomainToVercel = async (domain) => {
     try {
         const response = await axios.post(
@@ -227,195 +25,170 @@ const addDomainToVercel = async (domain) => {
                 }
             }
         );
-
         console.log(`[VERCEL] Successfully added domain: ${domain}`);
         return response.data;
     } catch (error) {
         const vError = error.response?.data?.error;
-
-        // If the domain is already there, Vercel returns a 400 with 'domain_already_in_use'
         const isAlreadyThere =
             vError?.code === 'domain_already_in_use' ||
             vError?.code === 'duplicate-team-registration';
 
         if (error.response?.status === 400 && isAlreadyThere) {
-            console.log("Domain already exists on Vercel. This is fine.");
-            return { alreadyActive: true }; // RETURN instead of THROW
+            console.log("Domain already exists on Vercel. Proceeding.");
+            return { alreadyActive: true };
         }
-        console.error('[VERCEL ERROR]:', vError || error.message);
-        throw new Error('Failed to link domain to Vercel infrastructure.');
+        throw new Error(vError?.message || 'Failed to link domain to Vercel.');
     }
 };
-// ── Get a single project by ID: GET /projects/:projectId ────────────
-router.get('/:projectId', authmware, async (req, res) => {
+
+// --- ROUTES ---
+
+// 1. PUBLIC ROUTES (No Auth)
+router.get('/providers', (_req, res) => res.json({ providers: listProviders() }));
+
+// CRITICAL: This must be ABOVE /:projectId to avoid ID collision
+router.get('/custom-domain/:domain', async (req, res) => {
     try {
-        if (!mongoose.Types.ObjectId.isValid(req.params.projectId)) {
-            return res.status(400).json({ error: 'Invalid project ID.' });
-        }
-        const project = await Project.findById(req.params.projectId);
+        const domain = req.params.domain.toLowerCase().trim();
+        const project = await Project.findOne({ customDomain: domain });
 
         if (!project) return res.status(404).json({ error: 'Project not found.' });
-        if (String(project.userId) !== req.userId) return res.status(403).json({ error: 'Forbidden.' });
 
-        res.json({ project });
+        let creatorName = null;
+        if (project.userId) {
+            const user = await UserModel.findById(project.userId, 'firstName lastName githubUsername');
+            if (user) {
+                creatorName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.githubUsername;
+            }
+        }
+
+        res.json({
+            repoName: project.repoName,
+            techstack: project.techstack,
+            generatedDocs: project.generatedDocs,
+            updatedAt: project.updatedAt,
+            creatorName,
+            template: project.template || 'modern',
+            subdomain: project.subdomain,
+            customization: project.customization || {},
+        });
     } catch (err) {
-        console.error('Get project error:', err);
-        res.status(500).json({ error: 'Failed to fetch project.' });
+        res.status(500).json({ error: 'Internal server error.' });
     }
 });
 
-// ── Update a project: PUT /projects/:projectId ─────────────────────
+router.get('/subdomain/:subdomain', async (req, res) => {
+    try {
+        const project = await Project.findOne({ subdomain: req.params.subdomain.toLowerCase() });
+        if (!project) return res.status(404).json({ error: 'Project not found.' });
+        res.json(project);
+    } catch (err) { res.status(500).json({ error: 'Server error.' }); }
+});
+
+router.get('/slug/:slug', async (req, res) => {
+    try {
+        const project = await Project.findOne({ slug: req.params.slug.toLowerCase() });
+        if (!project) return res.status(404).json({ error: 'Project not found.' });
+        res.json({ project });
+    } catch (err) { res.status(500).json({ error: 'Server error.' }); }
+});
+
+// 2. PROTECTED ROUTES (Auth Required)
+router.post('/', authmware, createProject);
+router.get('/jobs/:id', authmware, getJobStatus);
+
+router.get('/mine', authmware, async (req, res) => {
+    try {
+        const projects = await Project.find({ userId: req.userId }).sort({ updatedAt: -1 });
+        res.json({ projects });
+    } catch (err) { res.status(500).json({ error: 'Failed to fetch projects.' }); }
+});
+
+router.post('/:projectId/cancel', authmware, async (req, res) => {
+    try {
+        const project = await Project.findById(req.params.projectId);
+        if (!project || String(project.userId) !== req.userId) return res.status(403).json({ error: 'Forbidden.' });
+        requestCancel(req.params.projectId);
+        res.json({ message: 'Cancellation requested.' });
+    } catch (err) { res.status(500).json({ error: 'Failed to cancel.' }); }
+});
+
+router.get('/:projectId', authmware, async (req, res) => {
+    try {
+        const project = await Project.findById(req.params.projectId);
+        if (!project || String(project.userId) !== req.userId) return res.status(403).json({ error: 'Forbidden.' });
+        res.json({ project });
+    } catch (err) { res.status(500).json({ error: 'Fetch failed.' }); }
+});
+
 router.put('/:projectId', authmware, async (req, res) => {
     try {
-        if (!mongoose.Types.ObjectId.isValid(req.params.projectId)) {
-            return res.status(400).json({ error: 'Invalid project ID.' });
-        }
         const project = await Project.findById(req.params.projectId);
+        if (!project || String(project.userId) !== req.userId) return res.status(403).json({ error: 'Forbidden.' });
 
-        if (!project) return res.status(404).json({ error: 'Project not found.' });
-        if (String(project.userId) !== req.userId) return res.status(403).json({ error: 'Forbidden.' });
+        const { customDomain, template, customization, slug, subdomain, generatedDocs } = req.body;
 
-        const { generatedDocs, subdomain, slug, template, customization, customDomain } = req.body;
-
-        // Validate slug uniqueness when changing
-        if (slug !== undefined && slug !== project.slug) {
-            const sanitized = slug.toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '');
-            if (!sanitized || sanitized.length < 2) return res.status(400).json({ error: 'Slug must be at least 2 characters.' });
-
-            const taken = await Project.findOne({ slug: sanitized, _id: { $ne: project._id } });
-            if (taken) return res.status(409).json({ error: 'Slug is already taken.' });
-
-            project.slug = sanitized;
-        }
-
-        // Validate subdomain uniqueness when changing
-        if (subdomain !== undefined && subdomain !== project.subdomain) {
-            const sanitized = subdomain.toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '');
-            if (!sanitized) return res.status(400).json({ error: 'Invalid subdomain.' });
-
-            const taken = await Project.findOne({ subdomain: sanitized, _id: { $ne: project._id } });
-            if (taken) return res.status(409).json({ error: 'Subdomain is already taken.' });
-
-            project.subdomain = sanitized;
-        }
-
-        // Inside the PUT /projects/:projectId route
+        // --- Custom Domain Logic ---
         if (customDomain !== undefined && customDomain !== project.customDomain) {
-            if (customDomain === null || customDomain === '') {
+            if (!customDomain) {
                 project.customDomain = undefined;
             } else {
-                const sanitized = customDomain.toLowerCase().replace(/[^a-z0-9.-]/g, '').trim();
-
-                // Check uniqueness in your own DB first
+                const sanitized = customDomain.toLowerCase().trim();
                 const taken = await Project.findOne({ customDomain: sanitized, _id: { $ne: project._id } });
-                if (taken) return res.status(409).json({ error: 'Custom domain already mapped.' });
+                if (taken) return res.status(409).json({ error: 'Domain already mapped.' });
 
                 try {
-                    // 1. Tell Cloudflare to handle SSL (The "Pipe")
-                    await provisionCustomDomainSSL(sanitized);
-
-                    // 2. Tell Vercel to allow the Host header (The "Bouncer")
+                    // Skip Cloudflare for Vercel internal testing aliases
+                    if (!sanitized.includes('vercel.app')) {
+                        await provisionCustomDomainSSL(sanitized);
+                    }
                     await addDomainToVercel(sanitized);
-
-                    // 3. Only if both succeed, save to your DB
                     project.customDomain = sanitized;
                 } catch (err) {
-                    console.error('Infrastructure Link Error:', err.message);
                     return res.status(500).json({ error: err.message });
                 }
             }
         }
 
-        if (generatedDocs !== undefined) project.generatedDocs = generatedDocs;
-
-        if (template !== undefined) {
-            const allowed = ['modern', 'minimal', 'twilio', 'django', 'mdn', 'aerolatex'];
-            if (allowed.includes(template)) project.template = template;
-        }
-
-        if (customization && typeof customization === 'object') {
-            const c = project.customization || {};
-            if (customization.logoUrl !== undefined) c.logoUrl = customization.logoUrl;
-            if (customization.ownerName !== undefined) c.ownerName = customization.ownerName;
-            if (customization.currentVersion !== undefined) c.currentVersion = customization.currentVersion;
-            if (customization.upcomingVersion !== undefined) c.upcomingVersion = customization.upcomingVersion;
-            project.customization = c;
-        }
+        // --- Basic Updates ---
+        if (slug) project.slug = slug.toLowerCase().replace(/[^a-z0-9-]/g, '');
+        if (subdomain) project.subdomain = subdomain.toLowerCase().replace(/[^a-z0-9-]/g, '');
+        if (generatedDocs) project.generatedDocs = generatedDocs;
+        if (template) project.template = template;
+        if (customization) project.customization = { ...project.customization, ...customization };
 
         await project.save();
         res.json({ message: 'Project updated.', project });
     } catch (err) {
-        console.error('Update project error:', err);
+        console.error('Update Error:', err);
         res.status(500).json({ error: 'Failed to update project.' });
     }
 });
 
-// ── Delete a project: DELETE /projects/:projectId ───────────────────
 router.delete('/:projectId', authmware, async (req, res) => {
     try {
-        if (!mongoose.Types.ObjectId.isValid(req.params.projectId)) {
-            return res.status(400).json({ error: 'Invalid project ID.' });
-        }
         const project = await Project.findById(req.params.projectId);
-
-        if (!project) return res.status(404).json({ error: 'Project not found.' });
-        if (String(project.userId) !== req.userId) return res.status(403).json({ error: 'Forbidden.' });
-
-        const running = ['scanning', 'analyzing', 'generating'];
-        if (running.includes(project.status)) {
-            requestCancel(req.params.projectId);
-        }
-
+        if (!project || String(project.userId) !== req.userId) return res.status(403).json({ error: 'Forbidden.' });
         await Project.findByIdAndDelete(req.params.projectId);
         res.json({ message: 'Project deleted.' });
-    } catch (err) {
-        console.error('Delete project error:', err);
-        res.status(500).json({ error: 'Failed to delete project.' });
-    }
+    } catch (err) { res.status(500).json({ error: 'Delete failed.' }); }
 });
 
-// ── SSE stream: GET /projects/:projectId/stream ─────────────────────
-// Streams real-time status + log events for a running generation pipeline.
+// --- SSE STREAM ---
 router.get('/:projectId/stream', authmware, (req, res) => {
     const { projectId } = req.params;
-
-    // SSE headers — keep connection alive, disable buffering
     res.writeHead(200, {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
         Connection: 'keep-alive',
-        'X-Accel-Buffering': 'no', // nginx
     });
-
-    // Flush headers immediately
-    res.flushHeaders();
-
-    // Send an initial comment so the client knows the connection is open
-    res.write(': connected\n\n');
-
-    // ── Event listeners scoped to this project ──
-    const onStatus = (data) => {
-        res.write(`event: status\ndata: ${JSON.stringify(data)}\n\n`);
-    };
-
-    const onLog = (data) => {
-        res.write(`event: log\ndata: ${JSON.stringify(data)}\n\n`);
-    };
-
+    const onStatus = (data) => res.write(`event: status\ndata: ${JSON.stringify(data)}\n\n`);
+    const onLog = (data) => res.write(`event: log\ndata: ${JSON.stringify(data)}\n\n`);
     engineEmitter.on(`status:${projectId}`, onStatus);
     engineEmitter.on(`log:${projectId}`, onLog);
-
-    // ── Keep-alive ping every 15 s (prevents proxy/browser timeouts) ──
-    const keepAlive = setInterval(() => {
-        res.write(': ping\n\n');
-    }, 15_000);
-
-    // ── Clean up on client disconnect ──
     req.on('close', () => {
-        clearInterval(keepAlive);
         engineEmitter.off(`status:${projectId}`, onStatus);
         engineEmitter.off(`log:${projectId}`, onLog);
-        res.end();
     });
 });
 
