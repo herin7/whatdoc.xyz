@@ -6,6 +6,7 @@ const projectSchema = new mongoose.Schema({
   slug: { type: String, required: true, unique: true }, // e.g., "my-cool-api"
   commitHash: { type: String, default: null }, // e.g., "7a8f9b..."
   subdomain: { type: String, unique: true, lowercase: true, sparse: true }, // e.g., "acme" → acme.whatdoc.xyz
+  customDomain: { type: String, unique: true, lowercase: true, sparse: true }, // e.g., "docs.startup.com"
   techstack: { type: String, enum: ['MERN', 'Next.js', 'Other'], default: 'Other' },
   generatedDocs: { type: String, default: '' },
   isPublic: { type: Boolean, default: true },

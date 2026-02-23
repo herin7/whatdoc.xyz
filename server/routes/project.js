@@ -5,6 +5,7 @@ const { engineEmitter, requestCancel } = require('../services/engine');
 const { listProviders } = require('../services/llm');
 const Project = require('../models/Project');
 const { UserModel } = require('../models/User');
+const { provisionCustomDomainSSL } = require('../utils/cloudflare');
 
 const router = Router();
 
@@ -166,7 +167,7 @@ router.put('/:projectId', authmware, async (req, res) => {
         if (!project) return res.status(404).json({ error: 'Project not found.' });
         if (String(project.userId) !== req.userId) return res.status(403).json({ error: 'Forbidden.' });
 
-        const { generatedDocs, subdomain, slug, template, customization } = req.body;
+        const { generatedDocs, subdomain, slug, template, customization, customDomain } = req.body;
 
         // Validate slug uniqueness when changing
         if (slug !== undefined && slug !== project.slug) {
@@ -188,6 +189,25 @@ router.put('/:projectId', authmware, async (req, res) => {
             if (taken) return res.status(409).json({ error: 'Subdomain is already taken.' });
 
             project.subdomain = sanitized;
+        }
+
+        // Validate custom domain uniqueness and provision SSL when changing
+        if (customDomain !== undefined && customDomain !== project.customDomain) {
+            if (customDomain === null || customDomain === '') {
+                project.customDomain = undefined;
+            } else {
+                const sanitized = customDomain.toLowerCase().replace(/[^a-z0-9.-]/g, '').trim();
+                const taken = await Project.findOne({ customDomain: sanitized, _id: { $ne: project._id } });
+                if (taken) return res.status(409).json({ error: 'Custom domain is already mapped to another project.' });
+
+                // Provision Cloudflare SSL
+                try {
+                    await provisionCustomDomainSSL(sanitized);
+                    project.customDomain = sanitized;
+                } catch (sslErr) {
+                    return res.status(500).json({ error: 'Failed to provision SSL certificate for custom domain.' });
+                }
+            }
         }
 
         if (generatedDocs !== undefined) project.generatedDocs = generatedDocs;

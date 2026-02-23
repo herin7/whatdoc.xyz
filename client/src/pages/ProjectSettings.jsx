@@ -42,6 +42,9 @@ export default function ProjectSettings() {
     const [subdomain, setSubdomain] = useState('');
     const [savingDomain, setSavingDomain] = useState(false);
 
+    const [customDomain, setCustomDomain] = useState('');
+    const [savingCustomDomain, setSavingCustomDomain] = useState(false);
+
     /* ── Fetch project on mount ──────────────────────────────────── */
     const fetchProject = useCallback(async () => {
         try {
@@ -49,6 +52,7 @@ export default function ProjectSettings() {
             setProject(data.project);
             setSlug(data.project.slug || '');
             setSubdomain(data.project.subdomain || '');
+            setCustomDomain(data.project.customDomain || '');
         } catch (err) {
             setToast({ type: 'error', message: err.error || 'Failed to load project.' });
         } finally {
@@ -101,6 +105,22 @@ export default function ProjectSettings() {
             setToast({ type: 'error', message: err.error || 'Subdomain is taken.' });
         } finally {
             setSavingDomain(false);
+        }
+    };
+
+    /* ── Save custom domain ──────────────────────────────────────── */
+    const handleSaveCustomDomain = async () => {
+        const sanitized = customDomain.toLowerCase().replace(/[^a-z0-9.-]/g, '').trim();
+        setSavingCustomDomain(true);
+        try {
+            const data = await projectApi.update(projectId, { customDomain: sanitized || null });
+            setProject(data.project);
+            setCustomDomain(data.project.customDomain || '');
+            setToast({ type: 'success', message: 'Custom domain updated.' });
+        } catch (err) {
+            setToast({ type: 'error', message: err.error || 'Custom domain update failed. It may be in use.' });
+        } finally {
+            setSavingCustomDomain(false);
         }
     };
 
@@ -230,6 +250,11 @@ export default function ProjectSettings() {
                                 hasChanged={hasSubdomainChanged}
                                 saving={savingDomain}
                                 onSave={handleSaveDomain}
+                                customDomain={customDomain}
+                                setCustomDomain={setCustomDomain}
+                                hasCustomDomainChanged={customDomain !== (project.customDomain || '')}
+                                savingCustomDomain={savingCustomDomain}
+                                onSaveCustomDomain={handleSaveCustomDomain}
                             />
                         )}
                         {activeTab === 'history' && (
@@ -450,9 +475,61 @@ function DomainsTab({ project, isPro, subdomain, setSubdomain, hasChanged, savin
                 <div className="p-6 space-y-3 text-sm text-zinc-400">
                     <p>When you set a subdomain, your documentation becomes instantly accessible at <span className="text-zinc-300">your-name.{APP_DOMAIN}</span>.</p>
                     <p>Subdomains must be unique across all WHATDOC projects. Only lowercase letters, numbers, and hyphens are allowed.</p>
-                    <p className="text-zinc-600">Custom domain support (e.g., docs.yourdomain.com) is coming soon.</p>
                 </div>
             </section>
+
+            {/* --- CUSTOM DOMAIN BLOCK --- */}
+            <div className="mt-8 border border-zinc-800 bg-zinc-950/50 rounded-lg overflow-hidden">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800 bg-zinc-900/50">
+                    <div className="flex items-center gap-3">
+                        <h3 className="text-sm font-semibold text-white">Custom Domain</h3>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold tracking-widest uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            BETA: TESTING MODE
+                        </span>
+                    </div>
+                </div>
+
+                <div className="p-5 space-y-4">
+                    <p className="text-xs text-zinc-400 leading-relaxed">
+                        Host your engine on your own infrastructure. Connect a custom domain (e.g., <code className="text-emerald-400">docs.your-startup.com</code>).
+                    </p>
+                    <div className="flex items-start gap-2 p-3 rounded bg-emerald-500/5 border border-emerald-500/10">
+                        <AlertTriangle className="size-4 text-emerald-400 shrink-0 mt-0.5" />
+                        <p className="text-xs text-emerald-400/80 leading-relaxed">
+                            Note: This feature is currently in a testing phase. Cloudflare SSL provisioning and DNS propagation can occasionally take up to 24 hours to stabilize.
+                        </p>
+                    </div>
+
+                    <div className="flex gap-3">
+                        <input
+                            type="text"
+                            placeholder="docs.example.com"
+                            value={customDomain}
+                            onChange={(e) => setCustomDomain(e.target.value)}
+                            className="flex-1 h-10 px-3 rounded-lg bg-zinc-900 border border-zinc-700 text-sm text-white focus:border-emerald-500 focus:outline-none transition-colors"
+                        />
+                        <button
+                            onClick={onSaveCustomDomain}
+                            disabled={savingCustomDomain}
+                            className="h-10 px-5 rounded-lg bg-emerald-500 text-black text-xs font-bold uppercase tracking-wider hover:bg-emerald-400 disabled:opacity-50 transition-colors"
+                        >
+                            {savingCustomDomain ? 'Linking...' : 'Connect'}
+                        </button>
+                    </div>
+
+                    {/* Terminal Instructions */}
+                    {customDomain && (
+                        <div className="mt-4 p-4 rounded bg-black border border-zinc-800 font-mono text-xs">
+                            <p className="text-zinc-500 mb-2">// ACTION_REQUIRED: Update your DNS records</p>
+                            <div className="grid grid-cols-[60px_1fr] gap-2 text-zinc-300">
+                                <span className="text-emerald-500">TYPE</span> <span>CNAME</span>
+                                <span className="text-emerald-500">NAME</span> <span>{customDomain.split('.')[0] || 'docs'}</span>
+                                <span className="text-emerald-500">TARGET</span> <span>cname.whatdoc.xyz</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
         </div>
     );
 }

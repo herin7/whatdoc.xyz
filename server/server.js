@@ -16,6 +16,11 @@ mongoose.connect(process.env.MONGO_URI).then(async () => {
     await UserModel.syncIndexes();
 }).catch(err => console.error('MongoDB connection error:', err));
 
+// --- DOMAIN ROUTING ---
+const customDomainRouter = require('./middlewares/customDomainRouter');
+app.use(customDomainRouter);
+// ----------------------
+
 // 2. CORS CONFIGURATION (Must come BEFORE routes)
 const APP_DOMAIN = process.env.APP_DOMAIN || 'localhost';
 const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS || 'http://localhost:5173,http://localhost:4173')

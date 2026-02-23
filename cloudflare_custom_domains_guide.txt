@@ -1,0 +1,50 @@
+# WHATDOC.XYZ - Cloudflare Custom Domain & SSL Integration Guide
+
+This document explains how the Multi-Tenant Custom Domain and Automated SSL (Cloudflare Setup) functionality works in the WhatDoc platform.
+
+## 1. Overview
+When a user wants to host their generated documentation on their own domain (e.g., `docs.their-startup.com`), they configure a CNAME DNS record pointing to `cname.whatdoc.xyz`. However, for the connection to be secure (HTTPS), our server needs an SSL certificate valid for *their* specific domain. 
+
+We automated this using Cloudflare's **Cloudflare for SaaS** API. 
+
+## 2. Setting Up Your Cloudflare Account
+Before users can connect domains, the platform administrator must configure the environment variables connecting to Cloudflare.
+
+1. Create a Cloudflare account and add `whatdoc.xyz` as a site.
+2. In your Cloudflare Dashboard, go to your site -> SSL/TLS -> Custom Hostnames.
+3. Enable **Cloudflare for SaaS** (this requires adding a payment method but comes with 100 free custom hostnames).
+4. Extract your credentials:
+   - **Zone ID**: Found on the Overview page of your site on the right sidebar.
+   - **API Token**: Go to My Profile -> API Tokens -> Create Token (Use the "Edit zone DNS" template or create a custom one with Zone:Zone:Read and Zone:Custom Hostnames:Edit permissions).
+5. Add these credentials to your `server/.env` file:
+   - `CLOUDFLARE_ZONE_ID=your_zone_id_here`
+   - `CLOUDFLARE_API_TOKEN=your_api_token_here`
+
+## 3. How the Backend Works
+
+### The Utility Function (`server/utils/cloudflare.js`)
+We created an Axios helper function `provisionCustomDomainSSL(userCustomDomain)`. 
+When this function is called, it makes a POST request to the Cloudflare API (`https://api.cloudflare.com/client/v4/zones/{CF_ZONE_ID}/custom_hostnames`). 
+It passes the new custom domain and tells Cloudflare to immediately provision a Domain Validated (DV) SSL certificate via HTTP validation.
+
+### The Save Route (`server/routes/project.js`)
+When a user saves their project settings in the React dashboard:
+1. The Express `PUT /:projectId` route receives the new `customDomain`.
+2. It verifies the domain is unique across all projects in the MongoDB database.
+3. Before saving to the database, it `await`s the `provisionCustomDomainSSL()` function.
+4. If Cloudflare successfully registers the hostname and initiates the SSL generation, the domain is saved to the `Project` document in MongoDB.
+
+### The Routing Middleware (`server/middlewares/customDomainRouter.js`)
+When an external request hits the Express server:
+1. The middleware inspects the incoming `Host` header (e.g., `docs.acme.com`).
+2. If the host is not the base app domain (`whatdoc.xyz` or `localhost`), it queries MongoDB for a project matching that `customDomain`.
+3. If a match is found, it silently rewrites the Express `req.url` to the internal viewer path (`/projects/:id/view`).
+4. The user sees their fully white-labeled documentation on their own SSL-secured domain.
+5. If no match is found, it returns a 404 "Domain Not Configured" screen.
+
+## 4. How the Frontend Works
+In `ProjectSettings.jsx` (under the Domains tab):
+- Users are presented with a "Testing Mode" Custom Domain input box.
+- When they type their domain and click "Connect", it triggers the backend API flow described above.
+- The UI provides clear, dynamic instructions telling them to create a CNAME record in their DNS provider pointing their domain (e.g., `docs`) to our routing target: `cname.whatdoc.xyz`.
+- A warning banner informs them that DNS propagation and SSL generation can take some time to fully stabilize.
