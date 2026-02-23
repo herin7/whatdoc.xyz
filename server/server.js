@@ -34,16 +34,12 @@ if (process.env.CLIENT_URL && !ALLOWED_ORIGINS.includes(process.env.CLIENT_URL))
 
 app.use(cors({
     origin: (origin, callback) => {
-        // ALLOW non-browser clients (curl, Postman, mobile apps)
         if (!origin) return callback(null, true);
 
         const isWhitelisted = ALLOWED_ORIGINS.includes(origin);
-
-        // FIX: Escape ALL dots in the domain
         const escapedDomain = APP_DOMAIN.replace(/\./g, '\\.');
         const isSubdomain = new RegExp(`^https?://[a-z0-9-]+\\.${escapedDomain}$`).test(origin);
 
-        // FIX: Only allow localhost if NOT in production
         const isDev = process.env.NODE_ENV !== 'production';
         const isLocalhost = isDev && (
             /^http:\/\/localhost:\d+$/.test(origin) ||
@@ -53,13 +49,16 @@ app.use(cors({
         if (isWhitelisted || isSubdomain || isLocalhost) {
             callback(null, true);
         } else {
-            console.warn(`[CORS BLOCKED] Origin: ${origin}`); // Good for debugging
             callback(new Error('Not allowed by CORS'));
         }
     },
-    credentials: true // Crucial if you are using JWT cookies
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Explicitly allow these
+    allowedHeaders: ['Content-Type', 'Authorization'] // Explicitly allow these
 }));
 
+// Add this immediately after CORS to handle the OPTIONS preflight
+app.options('*', cors());
 // 3. OTHER MIDDLEWARE
 
 // --- Security Middleware Initialization ---
