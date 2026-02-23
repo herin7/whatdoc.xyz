@@ -1,7 +1,7 @@
 import { API_URL } from './config';
 
 export async function warmUpBackend(onStatus) {
-    const MAX_ATTEMPTS = 8;
+    const MAX_ATTEMPTS = 100000;
     const TIMEOUT_MS = 8_000;
 
     for (let i = 1; i <= MAX_ATTEMPTS; i++) {

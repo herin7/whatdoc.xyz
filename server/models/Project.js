@@ -10,7 +10,7 @@ const projectSchema = new mongoose.Schema({
   techstack: { type: String, enum: ['MERN', 'Next.js', 'Other'], default: 'Other' },
   generatedDocs: { type: String, default: '' },
   isPublic: { type: Boolean, default: true },
-  status: { type: String, enum: ['idle', 'scanning', 'analyzing', 'generating', 'ready', 'failed'], default: 'idle' },
+  status: { type: String, enum: ['idle', 'queued', 'scanning', 'analyzing', 'generating', 'ready', 'failed'], default: 'idle' },
   llmProvider: { type: String, enum: ['gemini', 'openai'], default: 'gemini' },
   template: { type: String, enum: ['modern', 'minimal', 'twilio', 'django', 'mdn', 'aerolatex'], default: 'twilio' },
   customization: {
