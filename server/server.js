@@ -32,12 +32,17 @@ app.use(cors({
         if (isWhitelisted || isSubdomain) return callback(null, true);
 
         try {
-            console.log(`[CORS] Checking dynamic whitelist for: ${origin}`);
-            const strippedOrigin = origin.replace(/^https?:\/\//, '');
+            // Strip https:// and trailing slashes for the DB lookup
+            const strippedOrigin = origin.replace(/^https?:\/\//, '').split(':')[0].toLowerCase();
+
             const projectExists = await Project.findOne({ customDomain: strippedOrigin });
-            if (projectExists) return callback(null, true);
+
+            if (projectExists) {
+                console.log(`[CORS] Dynamic match found for: ${strippedOrigin}`);
+                return callback(null, true);
+            }
         } catch (err) {
-            console.error("CORS DB Check Error", err);
+            console.error('[CORS DB ERROR]', err);
         }
 
         callback(new Error('Not allowed by CORS'));

@@ -6,7 +6,7 @@ const { listProviders } = require('../services/llm');
 const Project = require('../models/Project');
 const { UserModel } = require('../models/User');
 const { provisionCustomDomainSSL } = require('../utils/cloudflare');
-
+const axios = require('axios');
 const router = Router();
 
 router.post('/', authmware, createProject);
@@ -215,7 +215,37 @@ router.get('/:projectId/view', async (req, res) => {
 //         res.status(500).json({ error: 'Internal server error.' });
 //     }
 // });
+const addDomainToVercel = async (domain) => {
+    try {
+        const response = await axios.post(
+            `https://api.vercel.com/v10/projects/${process.env.VERCEL_PROJECT_ID}/domains`,
+            { name: domain },
+            {
+                headers: {
+                    Authorization: `Bearer ${process.env.VERCEL_API_TOKEN}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
 
+        console.log(`[VERCEL] Successfully added domain: ${domain}`);
+        return response.data;
+    } catch (error) {
+        const vError = error.response?.data?.error;
+
+        // If the domain is already there, Vercel returns a 400 with 'domain_already_in_use'
+        const isAlreadyThere =
+            vError?.code === 'domain_already_in_use' ||
+            vError?.code === 'duplicate-team-registration';
+
+        if (error.response?.status === 400 && isAlreadyThere) {
+            console.log("Domain already exists on Vercel. This is fine.");
+            return { alreadyActive: true }; // RETURN instead of THROW
+        }
+        console.error('[VERCEL ERROR]:', vError || error.message);
+        throw new Error('Failed to link domain to Vercel infrastructure.');
+    }
+};
 // ── Get a single project by ID: GET /projects/:projectId ────────────
 router.get('/:projectId', authmware, async (req, res) => {
     try {
@@ -269,22 +299,29 @@ router.put('/:projectId', authmware, async (req, res) => {
             project.subdomain = sanitized;
         }
 
-        // Validate custom domain uniqueness and provision SSL when changing
+        // Inside the PUT /projects/:projectId route
         if (customDomain !== undefined && customDomain !== project.customDomain) {
             if (customDomain === null || customDomain === '') {
                 project.customDomain = undefined;
             } else {
                 const sanitized = customDomain.toLowerCase().replace(/[^a-z0-9.-]/g, '').trim();
-                const taken = await Project.findOne({ customDomain: sanitized, _id: { $ne: project._id } });
-                if (taken) return res.status(409).json({ error: 'Custom domain is already mapped to another project.' });
 
-                // Provision Cloudflare SSL
+                // Check uniqueness in your own DB first
+                const taken = await Project.findOne({ customDomain: sanitized, _id: { $ne: project._id } });
+                if (taken) return res.status(409).json({ error: 'Custom domain already mapped.' });
+
                 try {
+                    // 1. Tell Cloudflare to handle SSL (The "Pipe")
                     await provisionCustomDomainSSL(sanitized);
+
+                    // 2. Tell Vercel to allow the Host header (The "Bouncer")
+                    await addDomainToVercel(sanitized);
+
+                    // 3. Only if both succeed, save to your DB
                     project.customDomain = sanitized;
-                } catch (sslErr) {
-                    console.error(`[SSL PROVISIONING ERROR] Failed for domain: ${sanitized}`, sslErr);
-                    return res.status(500).json({ error: 'Failed to provision SSL certificate for custom domain.' });
+                } catch (err) {
+                    console.error('Infrastructure Link Error:', err.message);
+                    return res.status(500).json({ error: err.message });
                 }
             }
         }
