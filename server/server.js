@@ -51,8 +51,7 @@ app.use(cors({
 }));
 
 // Handle Global Preflight
-app.options('*', cors());
-
+// app.options('*', cors());
 // 3. SECURITY & UTILITY MIDDLEWARE
 app.use(helmet());
 
