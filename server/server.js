@@ -6,7 +6,7 @@ const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const rateLimit = require('express-rate-limit');
 const { UserModel } = require('./models/User');
-
+const Project = require('./models/Project');
 const app = express();
 
 // 1. DATABASE CONNECTION
@@ -24,32 +24,29 @@ if (process.env.CLIENT_URL && !ALLOWED_ORIGINS.includes(process.env.CLIENT_URL))
 }
 
 app.use(cors({
-    origin: (origin, callback) => {
-        // Allow server-to-server or non-browser tools (Postman/Curl)
+    origin: async (origin, callback) => {
         if (!origin) return callback(null, true);
 
+        // 1. Existing Whitelist/Subdomain Check
         const isWhitelisted = ALLOWED_ORIGINS.includes(origin);
         const escapedDomain = APP_DOMAIN.replace(/\./g, '\\.');
         const isSubdomain = new RegExp(`^https?://[a-z0-9-]+\\.${escapedDomain}$`).test(origin);
 
-        const isDev = process.env.NODE_ENV !== 'production';
-        const isLocalhost = isDev && (
-            /^http:\/\/localhost:\d+$/.test(origin) ||
-            /^http:\/\/[a-z0-9-]+\.localhost:\d+$/.test(origin)
-        );
+        if (isWhitelisted || isSubdomain) return callback(null, true);
 
-        if (isWhitelisted || isSubdomain || isLocalhost) {
-            callback(null, true);
-        } else {
-            console.warn(`[CORS BLOCKED] Origin: ${origin}`);
-            callback(new Error('Not allowed by CORS'));
+        // 2. Dynamic Custom Domain Check
+        try {
+            const strippedOrigin = origin.replace(/^https?:\/\//, '');
+            const projectExists = await Project.findOne({ customDomain: strippedOrigin });
+            if (projectExists) return callback(null, true);
+        } catch (err) {
+            console.error("CORS DB Check Error", err);
         }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}));
 
+        callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true
+}));
 // Handle Global Preflight
 // app.options('*', cors());
 // 3. SECURITY & UTILITY MIDDLEWARE
