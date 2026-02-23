@@ -13,7 +13,7 @@ const customDomainRouter = async (req, res, next) => {
 
         // Base domain ignores (e.g., whatdoc.xyz, localhost, internal apps)
         const appDomain = process.env.APP_DOMAIN || 'whatdoc.xyz';
-        const isBaseDomain = host.includes(appDomain) || host.includes('localhost') || host.includes('127.0.0.1');
+        const isBaseDomain = host.includes(appDomain) || host.includes('localhost') || host.includes('127.0.0.1') || host.includes('onrender.com');
 
         if (isBaseDomain) {
             return next();
