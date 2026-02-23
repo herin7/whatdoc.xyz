@@ -49,14 +49,10 @@ app.use(cors({
 // 3. SECURITY & UTILITY MIDDLEWARE
 app.use(helmet());
 
-const globalLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 100,
-    message: { error: 'Too many requests, please try again after 15 minutes.' },
-    standardHeaders: true,
-    legacyHeaders: false,
-});
-app.use(globalLimiter);
+// Bypass rate limiting and domain routing for health check
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
+
+
 
 app.use(express.json({ limit: '10mb' }));
 
@@ -81,14 +77,9 @@ app.use((req, res, next) => {
 // 4. DOMAIN ROUTING (After CORS and Security)
 const customDomainRouter = require('./middlewares/customDomainRouter');
 
-// Bypass health check for internal monitoring
-app.use((req, res, next) => {
-    if (req.path === '/health') return next();
-    customDomainRouter(req, res, next);
-});
+app.use(customDomainRouter);
 
 // 5. ROUTES
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
 app.get('/api/usercount', async (req, res) => {
     try {
@@ -99,13 +90,7 @@ app.get('/api/usercount', async (req, res) => {
     }
 });
 
-const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 10, // Slightly higher for production stability
-    message: { error: 'Too many authentication attempts.' },
-    standardHeaders: true,
-    legacyHeaders: false,
-});
+
 
 const apiLimiter = rateLimit({
     windowMs: 60 * 1000,
@@ -118,7 +103,7 @@ const apiLimiter = rateLimit({
 const authRoutes = require("./routes/auth");
 const projectRoutes = require("./routes/project");
 
-app.use("/auth", authLimiter, authRoutes);
+app.use("/auth", authRoutes);
 app.use("/projects", apiLimiter, projectRoutes);
 
 const PORT = process.env.PORT || 3000;

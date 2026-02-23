@@ -1,12 +1,16 @@
 import { API_URL } from './config';
 
 export async function warmUpBackend(onStatus) {
-    const MAX_ATTEMPTS = 100000;
+    const MAX_ATTEMPTS = 12;
     const TIMEOUT_MS = 8_000;
 
     for (let i = 1; i <= MAX_ATTEMPTS; i++) {
         try {
-            if (onStatus) onStatus(i <= 2 ? 'Connecting to server…' : i <= 5 ? 'Server is waking up…' : 'Almost there…');
+            if (onStatus) {
+                if (i === 1) onStatus('Connecting to server…');
+                else if (i <= 3) onStatus('Server is waking up (usually takes ~30s)…');
+                else onStatus('Still waking up, almost there…');
+            }
 
             const controller = new AbortController();
             const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
@@ -17,9 +21,15 @@ export async function warmUpBackend(onStatus) {
             });
             clearTimeout(timer);
 
-            if (res.status > 0) return { ok: true, attempts: i };
-        } catch {
-            const backoff = Math.min(2000, 500 * i);
+            // If we get a 200 OK, the server is fully awake.
+            // If we hit a 429, the server IS awake, it's just telling us to slow down!
+            if (res.ok || res.status === 429) {
+                return { ok: true, attempts: i };
+            }
+        } catch (err) {
+            // Network error or timeout (server is still asleep/booting)
+            // Exponential backoff: 2s, 4s, 6s, 8s... capping at 10 seconds.
+            const backoff = Math.min(10_000, 2000 * i);
             await new Promise((r) => setTimeout(r, backoff));
         }
     }
