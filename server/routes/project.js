@@ -111,8 +111,13 @@ router.get('/providers', (_req, res) => {
 });
 
 // ── Cancel a running pipeline: POST /projects/:projectId/cancel ─────
+const mongoose = require('mongoose');
+
 router.post('/:projectId/cancel', authmware, async (req, res) => {
     try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.projectId)) {
+            return res.status(400).json({ error: 'Invalid project ID.' });
+        }
         const project = await Project.findById(req.params.projectId);
 
         if (!project) return res.status(404).json({ error: 'Project not found.' });
@@ -134,6 +139,9 @@ router.post('/:projectId/cancel', authmware, async (req, res) => {
 // ── Get a single project by ID: GET /projects/:projectId ────────────
 router.get('/:projectId', authmware, async (req, res) => {
     try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.projectId)) {
+            return res.status(400).json({ error: 'Invalid project ID.' });
+        }
         const project = await Project.findById(req.params.projectId);
 
         if (!project) return res.status(404).json({ error: 'Project not found.' });
@@ -149,6 +157,9 @@ router.get('/:projectId', authmware, async (req, res) => {
 // ── Update a project: PUT /projects/:projectId ─────────────────────
 router.put('/:projectId', authmware, async (req, res) => {
     try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.projectId)) {
+            return res.status(400).json({ error: 'Invalid project ID.' });
+        }
         const project = await Project.findById(req.params.projectId);
 
         if (!project) return res.status(404).json({ error: 'Project not found.' });
@@ -205,6 +216,9 @@ router.put('/:projectId', authmware, async (req, res) => {
 // ── Delete a project: DELETE /projects/:projectId ───────────────────
 router.delete('/:projectId', authmware, async (req, res) => {
     try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.projectId)) {
+            return res.status(400).json({ error: 'Invalid project ID.' });
+        }
         const project = await Project.findById(req.params.projectId);
 
         if (!project) return res.status(404).json({ error: 'Project not found.' });

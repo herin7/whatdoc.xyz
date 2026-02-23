@@ -83,8 +83,8 @@ export default function Dashboard() {
             {toast && (
                 <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50">
                     <div className={`px-4 py-2.5 rounded-lg text-sm font-medium shadow-xl backdrop-blur-md ${toast.type === 'success'
-                            ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
-                            : 'bg-red-500/10 border border-red-500/20 text-red-400'
+                        ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                        : 'bg-red-500/10 border border-red-500/20 text-red-400'
                         }`}>
                         {toast.message}
                     </div>
@@ -216,6 +216,13 @@ export default function Dashboard() {
                                                 className="flex-1 h-9 rounded-lg bg-zinc-100 text-black text-sm font-medium flex items-center justify-center gap-2 hover:bg-white transition-colors"
                                             >
                                                 Edit Docs
+                                            </Link>
+                                            <Link
+                                                to={`/project/${p._id}/beta-edit`}
+                                                className="h-9 w-9 rounded-lg border border-emerald-500/20 bg-emerald-500/5 flex items-center justify-center text-emerald-400 hover:bg-emerald-500/15 transition-colors shrink-0"
+                                                title="This is Beta"
+                                            >
+                                                <Sparkles size={16} />
                                             </Link>
                                             <Link
                                                 to={`/project/${p._id}/settings`}

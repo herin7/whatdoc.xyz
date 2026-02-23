@@ -8,6 +8,7 @@ import ConfigureProject from './pages/ConfigureProject';
 import DeployProgress from './pages/DeployProgress';
 import DocViewer from './pages/DocViewer';
 import ProjectEditor from './pages/ProjectEditor';
+import BetaProjectEditor from './pages/BetaProjectEditor';
 import ProjectSettings from './pages/ProjectSettings';
 import Profile from './pages/Profile';
 import Engine from './pages/Engine';
@@ -64,6 +65,7 @@ function App() {
       <Route path="/configure" element={<ProtectedRoute><ConfigureProject /></ProtectedRoute>} />
       <Route path="/deploy/:projectId" element={<ProtectedRoute><DeployProgress /></ProtectedRoute>} />
       <Route path="/editor/:projectId" element={<ProtectedRoute><ProjectEditor /></ProtectedRoute>} />
+      <Route path="/project/:projectId/beta-edit" element={<ProtectedRoute><BetaProjectEditor /></ProtectedRoute>} />
       <Route path="/project/:id/settings" element={<ProtectedRoute><ProjectSettings /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
       <Route path="/engine" element={<Engine />} />
