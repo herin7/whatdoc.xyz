@@ -9,6 +9,7 @@ import { project } from './lib/api';
 // Lazy load pages for code splitting
 const Home = lazy(() => import('./app/page'));
 const Login = lazy(() => import('./pages/Login'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 const Signup = lazy(() => import('./pages/Signup'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const ImportRepo = lazy(() => import('./pages/ImportRepo'));
@@ -114,6 +115,7 @@ function App() {
         <Route path="/engine" element={<Engine />} />
         <Route path="/creator" element={<Creator />} />
         <Route path="/templates" element={<Templates />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
   );
