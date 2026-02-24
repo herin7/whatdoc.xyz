@@ -183,9 +183,9 @@ export default function Signup() {
                     {/* Terms */}
                     <p className="mt-6 text-center text-xs text-zinc-600 leading-relaxed">
                         By deploying, you agree to our{' '}
-                        <a href="#" className="text-zinc-400 hover:text-emerald-400 transition-colors underline decoration-zinc-700 underline-offset-2">Terms</a>
+                        <a href="/terms" className="text-zinc-400 hover:text-emerald-400 transition-colors underline decoration-zinc-700 underline-offset-2">Terms</a>
                         {' '}and{' '}
-                        <a href="#" className="text-zinc-400 hover:text-emerald-400 transition-colors underline decoration-zinc-700 underline-offset-2">Privacy Policy</a>.
+                        <a href="/privacy" className="text-zinc-400 hover:text-emerald-400 transition-colors underline decoration-zinc-700 underline-offset-2">Privacy Policy</a>.
                     </p>
                 </div>
 

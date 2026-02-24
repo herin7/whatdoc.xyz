@@ -7,6 +7,9 @@ import RepoDetailView from './components/RepoDetailView';
 import { useAuth } from './context/AuthContext';
 import { project } from './lib/api';
 // Lazy load pages for code splitting
+
+const Terms = lazy(() => import('./pages/Terms'));
+const Privacy = lazy(() => import('./pages/Privacy'));
 const Home = lazy(() => import('./app/page'));
 const Login = lazy(() => import('./pages/Login'));
 const NotFound = lazy(() => import('./pages/NotFound'));
@@ -102,6 +105,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/p/:slug" element={<PublicProjectView />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
         <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
         <Route path="/signup" element={<GuestRoute><Signup /></GuestRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
