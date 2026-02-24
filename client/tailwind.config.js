@@ -11,11 +11,11 @@ export default {
         logo: 'Space Grotesk'
       },
       // 1. Define the actual movement here
-      keyframes: { 
-        scan: { 
-          '0%': { transform: 'translateY(-100%)' }, 
-          '100%': { transform: 'translateY(100%)' } 
-        } 
+      keyframes: {
+        scan: {
+          '0%': { transform: 'translateY(-100%)' },
+          '100%': { transform: 'translateY(100%)' }
+        }
       },
       // 2. Register the class name here
       animation: {

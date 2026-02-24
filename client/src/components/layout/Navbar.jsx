@@ -31,7 +31,6 @@ export default function Navbar() {
 
   const [userCount, setUserCount] = useState(0);
 
-  // LAUNCH LINKS
   const PH_LINK = "https://www.producthunt.com/products/whatdoc-xyz";
   const PEERLIST_LINK = "https://peerlist.io/herinsoni/project/whatdoc";
 
