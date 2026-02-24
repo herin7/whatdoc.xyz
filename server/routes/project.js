@@ -10,9 +10,6 @@ const { UserModel } = require('../models/User');
 const { provisionCustomDomainSSL } = require('../utils/cloudflare');
 
 const router = Router();
-
-// --- HELPER FUNCTIONS ---
-
 const addDomainToVercel = async (domain) => {
     try {
         const response = await axios.post(
@@ -40,9 +37,6 @@ const addDomainToVercel = async (domain) => {
         throw new Error(vError?.message || 'Failed to link domain to Vercel.');
     }
 };
-
-// --- ROUTES ---
-
 // 1. PUBLIC ROUTES (No Auth)
 router.get('/providers', (_req, res) => res.json({ providers: listProviders() }));
 
@@ -127,8 +121,6 @@ router.put('/:projectId', authmware, async (req, res) => {
         if (!project || String(project.userId) !== req.userId) return res.status(403).json({ error: 'Forbidden.' });
 
         const { customDomain, template, customization, slug, subdomain, generatedDocs } = req.body;
-
-        // --- Custom Domain Logic ---
         if (customDomain !== undefined && customDomain !== project.customDomain) {
             if (!customDomain) {
                 project.customDomain = undefined;
@@ -149,8 +141,6 @@ router.put('/:projectId', authmware, async (req, res) => {
                 }
             }
         }
-
-        // --- Basic Updates ---
         if (slug) project.slug = slug.toLowerCase().replace(/[^a-z0-9-]/g, '');
         if (subdomain) project.subdomain = subdomain.toLowerCase().replace(/[^a-z0-9-]/g, '');
         if (generatedDocs) project.generatedDocs = generatedDocs;
@@ -173,8 +163,6 @@ router.delete('/:projectId', authmware, async (req, res) => {
         res.json({ message: 'Project deleted.' });
     } catch (err) { res.status(500).json({ error: 'Delete failed.' }); }
 });
-
-// --- SSE STREAM ---
 router.get('/:projectId/stream', authmware, (req, res) => {
     const { projectId } = req.params;
     res.writeHead(200, {

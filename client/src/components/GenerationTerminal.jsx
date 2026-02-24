@@ -4,7 +4,6 @@ import { CheckCircle2, ExternalLink, AlertCircle, Terminal, Square } from 'lucid
 import { project as projectApi } from '../lib/api';
 import { API_URL } from '../lib/config';
 
-// ── Status badge colours ────────────────────────────────────────────
 const STATUS_COLORS = {
     queued: 'text-blue-400',
     scanning: 'text-yellow-400',
@@ -18,7 +17,7 @@ const STATUS_LABELS = {
     queued: 'Queued',
     scanning: 'Scanning',
     analyzing: 'Analyzing',
-    generating: 'Generating',
+    generating: 'Generating Data...',
     ready: 'Complete',
     failed: 'Failed',
 };
@@ -37,7 +36,7 @@ export default function GenerationTerminal({ projectId, slug, jobId }) {
     const containerRef = useRef(null);
     const pollInterval = useRef(null);
 
-    // ── Phase 1: Poll BullMQ for Queue Position ─────────────────────
+
     useEffect(() => {
         if (!jobId) return; // Fallback to direct SSE if no jobId
 
@@ -77,7 +76,7 @@ export default function GenerationTerminal({ projectId, slug, jobId }) {
         };
     }, [jobId]);
 
-    // ── Phase 2: SSE connection (triggered when job active) ──────────
+
     const connectSSE = () => {
         if (!projectId) return;
 
@@ -94,7 +93,6 @@ export default function GenerationTerminal({ projectId, slug, jobId }) {
             ]);
         };
 
-        // ── status events ───────────────────────────────────────────
         es.addEventListener('status', (e) => {
             try {
                 const data = JSON.parse(e.data);
@@ -111,7 +109,6 @@ export default function GenerationTerminal({ projectId, slug, jobId }) {
             } catch { /* malformed — ignore */ }
         });
 
-        // ── log events ──────────────────────────────────────────────
         es.addEventListener('log', (e) => {
             try {
                 const data = JSON.parse(e.data);
@@ -146,18 +143,38 @@ export default function GenerationTerminal({ projectId, slug, jobId }) {
         return () => { if (cleanup) cleanup(); };
     }, [projectId, jobId]);
 
-    // ── Auto-scroll ─────────────────────────────────────────────────
+    useEffect(() => {
+        let timer1, timer2;
+        if (status === 'generating') {
+            timer1 = setTimeout(() => {
+                setLogs((prev) => [
+                    ...prev,
+                    { type: 'system', message: 'Analyzing deep context... Pro & advanced models can take up to 60-90 seconds.', ts: Date.now() },
+                ]);
+            }, 12000); // Wait 12 seconds before warning
+
+            timer2 = setTimeout(() => {
+                setLogs((prev) => [
+                    ...prev,
+                    { type: 'system', message: 'Still reasoning... Building comprehensive documentation structure. Please do not close the page.', ts: Date.now() },
+                ]);
+            }, 35000); // 35 seconds warning
+        }
+        return () => {
+            clearTimeout(timer1);
+            clearTimeout(timer2);
+        };
+    }, [status]);
+
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [logs]);
 
-    // ── Format timestamp ────────────────────────────────────────────
     const fmtTime = (ts) => {
         const d = new Date(ts);
         return d.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
     };
 
-    // ── Line prefix colours ─────────────────────────────────────────
     const lineColor = (entry) => {
         if (entry.type === 'error') return 'text-red-400';
         if (entry.type === 'system') return 'text-zinc-500';
@@ -195,7 +212,7 @@ export default function GenerationTerminal({ projectId, slug, jobId }) {
 
     return (
         <div className="w-full rounded-2xl border border-zinc-800 bg-zinc-950 overflow-hidden">
-            {/* ── Title bar ─────────────────────────────────────────── */}
+            {/* ── Title bar  */}
             <div className="flex items-center justify-between px-4 py-2.5 border-b border-zinc-800 bg-zinc-900/60">
                 <div className="flex items-center gap-2">
                     <Terminal className="size-4 text-zinc-500" />
@@ -220,13 +237,13 @@ export default function GenerationTerminal({ projectId, slug, jobId }) {
                             ? 'bg-red-400'
                             : 'bg-yellow-400 animate-pulse'
                         }`} />
-                    <span className={`text-xs font-mono ${STATUS_COLORS[status] || 'text-zinc-500'}`}>
+                    <span className={`text-xs font-mono font-semibold ${STATUS_COLORS[status] || 'text-zinc-500'} ${status === 'generating' ? 'animate-pulse' : ''}`}>
                         {STATUS_LABELS[status] || status}
                     </span>
                 </div>
             </div>
 
-            {/* ── Terminal body ──────────────────────────────────────── */}
+            {/* ── Terminal body ── */}
             <div
                 ref={containerRef}
                 className="bg-black text-green-400 font-mono text-[13px] leading-relaxed p-4 h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent"
@@ -258,7 +275,7 @@ export default function GenerationTerminal({ projectId, slug, jobId }) {
                 <div ref={bottomRef} />
             </div>
 
-            {/* ── Footer — CTA buttons ──────────────────────────────── */}
+            {/* ── Footer — CTA buttons  */}
             {isTerminal && (
                 <div className="px-4 py-3 border-t border-zinc-800 bg-zinc-900/40 flex items-center justify-between">
                     {status === 'ready' ? (

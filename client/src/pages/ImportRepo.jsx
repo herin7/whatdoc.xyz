@@ -23,9 +23,9 @@ function timeAgo(dateString) {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-// ──────────────────────────────────────────────
+// 
 // Small circle with language color
-// ──────────────────────────────────────────────
+// 
 const LANG_COLORS = {
     JavaScript: '#f1e05a',
     TypeScript: '#3178c6',
@@ -58,9 +58,9 @@ function LangDot({ language }) {
     );
 }
 
-// ──────────────────────────────────────────────
+// 
 // Main component
-// ──────────────────────────────────────────────
+// 
 export default function ImportRepo() {
     const { user, fetchUser } = useAuth();
     const navigate = useNavigate();
@@ -76,7 +76,7 @@ export default function ImportRepo() {
 
     const isGithubConnected = !!user?.githubId;
 
-    // ── Fetch repos on mount ──
+
     useEffect(() => {
         if (!isGithubConnected) {
             setLoading(false);
@@ -102,7 +102,7 @@ export default function ImportRepo() {
         return () => { cancelled = true; };
     }, [isGithubConnected]);
 
-    // ── Connect GitHub ──
+
     const handleConnectGithub = async (withPrivate = true) => {
         try {
             const data = await github.getAuthUrl(withPrivate);
@@ -113,7 +113,7 @@ export default function ImportRepo() {
         }
     };
 
-    // ── After returning from GitHub callback, refresh user ──
+
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const ghStatus = params.get('github');
@@ -129,7 +129,7 @@ export default function ImportRepo() {
         }
     }, [fetchUser]);
 
-    // ── Filtered + searched repos ──
+
     const filteredRepos = useMemo(() => {
         let list = repos;
 
@@ -150,7 +150,7 @@ export default function ImportRepo() {
         navigate(`/configure?repo=${encodeURIComponent(repo.fullName)}`);
     };
 
-    // ── Not connected state ──
+
     if (!isGithubConnected && !loading) {
         return (
             <div className="min-h-screen bg-black text-white">
@@ -315,9 +315,9 @@ export default function ImportRepo() {
     );
 }
 
-// ──────────────────────────────────────────────
+// 
 // Single repo row
-// ──────────────────────────────────────────────
+// 
 function RepoRow({ repo, onImport }) {
     return (
         <li className="flex items-center justify-between px-5 py-4 hover:bg-zinc-900/50 transition-colors group">
@@ -376,9 +376,9 @@ function RepoRow({ repo, onImport }) {
     );
 }
 
-// ──────────────────────────────────────────────
+// 
 // Shared header
-// ──────────────────────────────────────────────
+// 
 function Header() {
     const { user, logout } = useAuth();
     const navigate = useNavigate();

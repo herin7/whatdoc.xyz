@@ -9,7 +9,7 @@ import { project as projectApi } from '../lib/api';
 import { APP_DOMAIN } from '../lib/config';
 import Navbar from '../components/layout/Navbar';
 
-/* ── Sidebar tab definitions ─────────────────────────────────────── */
+/* ── Sidebar tab definitions ─ */
 const TABS = [
     { id: 'general', label: 'General', icon: Settings },
     { id: 'domains', label: 'Domains', icon: Globe },
@@ -45,7 +45,7 @@ export default function ProjectSettings() {
     const [customDomain, setCustomDomain] = useState('');
     const [savingCustomDomain, setSavingCustomDomain] = useState(false);
 
-    /* ── Fetch project on mount ──────────────────────────────────── */
+    /* ── Fetch project on mount ─ */
     const fetchProject = useCallback(async () => {
         try {
             const data = await projectApi.getById(projectId);
@@ -68,7 +68,7 @@ export default function ProjectSettings() {
         return () => clearTimeout(t);
     }, [toast]);
 
-    /* ── Save slug ───────────────────────────────────────────────── */
+    /* ── Save slug ─── */
     const handleSaveGeneral = async () => {
         const sanitized = slug.toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '');
         if (sanitized.length < 2) {
@@ -88,7 +88,7 @@ export default function ProjectSettings() {
         }
     };
 
-    /* ── Save subdomain ──────────────────────────────────────────── */
+    /* ── Save subdomain ─ */
     const handleSaveDomain = async () => {
         const sanitized = subdomain.toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '');
         if (!sanitized) {
@@ -108,7 +108,7 @@ export default function ProjectSettings() {
         }
     };
 
-    /* ── Save custom domain ──────────────────────────────────────── */
+    /* ── Save custom domain ── */
     const handleSaveCustomDomain = async () => {
         const sanitized = customDomain.toLowerCase().replace(/[^a-z0-9.-]/g, '').trim();
         setSavingCustomDomain(true);
@@ -124,7 +124,7 @@ export default function ProjectSettings() {
         }
     };
 
-    /* ── Loading / error states ──────────────────────────────────── */
+    /* ── Loading / error states ─ */
     if (loading) {
         return (
             <div className="min-h-screen bg-[#050505] text-white">
@@ -164,7 +164,7 @@ export default function ProjectSettings() {
         <div className="min-h-screen bg-[#050505] text-white">
             <Navbar variant="dashboard" />
 
-            {/* Toast */}
+
             {toast && (
                 <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-[slideIn_0.2s_ease]">
                     <div className={`px-4 py-2.5 rounded-lg text-sm font-medium shadow-xl backdrop-blur-sm ${toast.type === 'success'
@@ -177,7 +177,7 @@ export default function ProjectSettings() {
             )}
 
             <main className="mx-auto max-w-6xl px-6 pt-24 pb-16">
-                {/* ── Breadcrumb ───────────────────────────────────── */}
+                {/* ── Breadcrumb ── */}
                 <nav className="flex items-center gap-1.5 text-sm text-zinc-500 mb-8">
                     <Link to="/dashboard" className="hover:text-zinc-300 transition-colors">Dashboard</Link>
                     <ChevronRight size={14} />
@@ -186,7 +186,7 @@ export default function ProjectSettings() {
                     <span className="text-white font-medium truncate max-w-[200px]">{projectName}</span>
                 </nav>
 
-                {/* ── Page header ──────────────────────────────────── */}
+                {/* ── Page header ─ */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
                     <div>
                         <h1 className="text-2xl font-semibold tracking-tight mb-1">{projectName}</h1>
@@ -203,7 +203,7 @@ export default function ProjectSettings() {
                     </a>
                 </div>
 
-                {/* ── Layout: Sidebar + Content ───────────────────── */}
+                {/* ── Layout: Sidebar + Content ── */}
                 <div className="flex flex-col md:flex-row gap-8">
                     {/* Sidebar */}
                     <aside className="md:w-56 shrink-0">
@@ -228,7 +228,7 @@ export default function ProjectSettings() {
                         </nav>
                     </aside>
 
-                    {/* Main content */}
+
                     <div className="flex-1 min-w-0">
                         {activeTab === 'general' && (
                             <GeneralTab

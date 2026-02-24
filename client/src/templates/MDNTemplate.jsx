@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import Logo from '../components/Logo';
 
-/* ── Parse markdown into sections by ## headings ───────────────────── */
+/* ── Parse markdown into sections by ## headings ── */
 function parseSections(markdown) {
     if (!markdown) return [];
     const lines = markdown.split('\n');
@@ -38,7 +38,7 @@ function parseSections(markdown) {
         .filter((s) => s.content && !s.content.match(/^\s*_?\(?Not enough data/i));
 }
 
-/* ── Markdown component overrides ──────────────────────────────────── */
+/* ── Markdown component overrides ─ */
 const mdComponents = {
     code({ node, inline, className, children, ...props }) {
         const match = /language-(\w+)/.exec(className || '');
@@ -102,7 +102,7 @@ export default function MDNTemplate({ project }) {
     const [progress, setProgress] = useState(0);
     const contentRef = useRef(null);
 
-    /* ── Scroll-spy ────────────────────────────────────────────────── */
+    /* ── Scroll-spy ──── */
     useEffect(() => {
         const root = contentRef.current;
         if (!root) return;
@@ -114,7 +114,7 @@ export default function MDNTemplate({ project }) {
         return () => ob.disconnect();
     }, [sections]);
 
-    /* ── Scroll progress + back-to-top ─────────────────────────────── */
+    /* ── Scroll progress + back-to-top ──── */
     useEffect(() => {
         const root = contentRef.current;
         if (!root) return;
@@ -137,7 +137,7 @@ export default function MDNTemplate({ project }) {
     return (
         <div className="h-screen flex flex-col bg-white text-gray-900 overflow-hidden">
 
-            {/* ── Reading progress bar ─────────────────────────────── */}
+            {/* ── Reading progress bar ──── */}
             <div className="fixed top-0 left-0 right-0 z-[60] h-[3px] bg-gray-100">
                 <div
                     className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 transition-[width] duration-150"
@@ -145,7 +145,7 @@ export default function MDNTemplate({ project }) {
                 />
             </div>
 
-            {/* ── Header ───────────────────────────────────────────── */}
+            {/* ── Header ── */}
             <header className="shrink-0 z-50 border-b-[3px] border-gray-900 bg-white">
                 <div className="max-w-[1200px] mx-auto flex items-center justify-between h-14 px-5">
                     <div className="flex items-center gap-3">
@@ -176,7 +176,7 @@ export default function MDNTemplate({ project }) {
 
             <div className="flex flex-1 overflow-hidden relative max-w-[1200px] mx-auto w-full">
 
-                {/* ── Sidebar / On-this-page ───────────────────────── */}
+                {/* ── Sidebar / On-this-page ─ */}
                 <aside
                     className={`
                         absolute md:static inset-y-0 left-0 z-40 w-[250px] flex flex-col
@@ -230,12 +230,12 @@ export default function MDNTemplate({ project }) {
                     </div>
                 </aside>
 
-                {/* ── Mobile overlay ───────────────────────────────── */}
+                {/* ── Mobile overlay ─ */}
                 {mobileNav && (
                     <div className="fixed inset-0 z-30 bg-black/20 md:hidden" onClick={() => setMobileNav(false)} />
                 )}
 
-                {/* ── Main reading area ────────────────────────────── */}
+                {/* ── Main reading area ─── */}
                 <main ref={contentRef} className="flex-1 overflow-y-auto scroll-smooth">
                     <div className="max-w-4xl mx-auto px-6 md:px-10 py-10">
 
@@ -316,7 +316,7 @@ export default function MDNTemplate({ project }) {
                 </main>
             </div>
 
-            {/* ── Floating back-to-top ─────────────────────────────── */}
+            {/* ── Floating back-to-top ──── */}
             <button
                 onClick={() => contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
                 className={`
@@ -328,7 +328,7 @@ export default function MDNTemplate({ project }) {
                 <ArrowUp className="size-4" />
             </button>
 
-            {/* ── Keyframes ────────────────────────────────────────── */}
+            {/* ── Keyframes ──── */}
             <style>{`
                 @keyframes fadeUp {
                     from { opacity: 0; transform: translateY(14px); }

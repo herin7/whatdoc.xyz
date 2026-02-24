@@ -9,7 +9,6 @@ import { makeBlockquote, makeOl } from '../components/MarkdownExtras';
 import { ExternalLink, FileText, Menu, X, Paintbrush, BookOpen, User, Calendar, Code2, ArrowRight } from 'lucide-react';
 import Logo from '../components/Logo';
 
-// ── Theme definitions ───────────────────────────────────────────────
 const THEMES = {
     default: {
         label: 'Default (Dark)',
@@ -58,7 +57,7 @@ const THEMES = {
     },
 };
 
-// ── Parse markdown into sections by ## headings ─────────────────────
+
 function parseMarkdownSections(markdown) {
     if (!markdown) return [];
 
@@ -91,7 +90,7 @@ function parseMarkdownSections(markdown) {
         .filter((s) => s.content && !s.content.match(/^\s*_?\(?Not enough data/i));
 }
 
-// ── Shared ReactMarkdown code component ─────────────────────────────
+
 const markdownComponents = {
     code({ node, inline, className, children, ...props }) {
         const match = /language-(\w+)/.exec(className || '');
@@ -151,7 +150,7 @@ export default function ModernTemplate({ project }) {
 
     return (
         <div className={`min-h-screen flex flex-col transition-colors duration-300 ${t.page}`}>
-            {/* ── Sticky navbar ─────────────────────────────────────── */}
+            {/* ── Sticky navbar ─ */}
             <header className={`sticky top-0 z-50 w-full border-b backdrop-blur-md transition-colors duration-300 ${t.header}`}>
                 <div className="flex h-14 items-center justify-between px-4 sm:px-6">
                     <div className="flex items-center gap-3">
@@ -207,7 +206,7 @@ export default function ModernTemplate({ project }) {
                 </div>
             </header>
 
-            {/* ── Body: Sidebar + Content ───────────────────────────── */}
+            {/* ── Body: Sidebar + Content ── */}
             <div className="flex flex-1 overflow-hidden">
                 {/* Mobile overlay */}
                 {sidebarOpen && (
@@ -286,7 +285,7 @@ export default function ModernTemplate({ project }) {
                     </div>
                 </aside>
 
-                {/* ── Content area ──────────────────────────────────── */}
+                {/* ── Content area ─ */}
                 <main className="flex-1 overflow-y-auto min-w-0">
                     <div className="max-w-4xl mx-auto px-6 sm:px-10 py-12">
                         {activeSection === 'welcome' ? (

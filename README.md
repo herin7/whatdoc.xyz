@@ -58,23 +58,23 @@ Every developer knows the pain: you build something great, but writing the docs 
 WhatDoc uses a multi-stage pipeline to go from raw repo → polished docs:
 
 ```
-┌──────────────────────────────────────────────────────────────┐
+┌┐
 │                                                              │
 │   ① Shallow Clone        ② Code Ingestion      ③ LLM Call   │
-│   ──────────────────     ──────────────────     ──────────   │
+│   ──     ──     ──   │
 │   simple-git depth-1     Walk dir tree,         Gemini       │
 │   to /tmp, ephemeral     filter noise files,    generates    │
 │                          regex-minify each,     README +     │
 │                          concatenate all         API ref     │
 │                                                              │
 │   ④ Cleanup & Render                                         │
-│   ──────────────────                                         │
+│   ──                                         │
 │   Nuke cloned files,                                         │
 │   save markdown to DB,                                       │
 │   render with chosen                                         │
 │   React template                                             │
 │                                                              │
-└──────────────────────────────────────────────────────────────┘
+└┘
 ```
 
 **Key design decisions:**

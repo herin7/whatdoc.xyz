@@ -11,7 +11,7 @@ export default function Creator() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 md:grid-rows-4 gap-4 max-w-5xl mx-auto mt-24">
 
-                {/* ── Box 1: Hero (span 2 cols, 2 rows) ── */}
+
                 <div className="md:col-span-2 md:row-span-2 bg-[#0a0a0a] border border-white/10 rounded-2xl p-8 sm:p-10 hover:border-white/20 transition-colors relative overflow-hidden group flex flex-col justify-between">
                     {/* Background glow */}
                     <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-emerald-500/[0.04] blur-[100px] pointer-events-none group-hover:bg-emerald-500/[0.08] transition-all duration-700" />
@@ -44,7 +44,7 @@ export default function Creator() {
                     </div>
                 </div>
 
-                {/* ── Box 2: DSA Stats (span 1 col, 2 rows) ── */}
+
                 <div className="md:row-span-2 bg-[#0a0a0a] border border-white/10 rounded-2xl p-8 hover:border-white/20 transition-colors relative overflow-hidden group">
                     <div className="absolute -bottom-16 -right-16 w-48 h-48 rounded-full bg-amber-500/[0.04] blur-[80px] pointer-events-none group-hover:bg-amber-500/[0.08] transition-all duration-700" />
 
@@ -88,7 +88,7 @@ export default function Creator() {
                     </div>
                 </div>
 
-                {/* ── Box 3: GitForMe Traction (span 2 cols, 1 row) ── */}
+
                 <div className="md:col-span-2 bg-[#0a0a0a] border border-white/10 rounded-2xl p-8 hover:border-white/20 transition-colors relative overflow-hidden group">
                     <div className="absolute -top-16 -left-16 w-48 h-48 rounded-full bg-purple-500/[0.04] blur-[80px] pointer-events-none group-hover:bg-purple-500/[0.08] transition-all duration-700" />
 
@@ -114,7 +114,7 @@ export default function Creator() {
                     </div>
                 </div>
 
-                {/* ── Box 4: MiniDB / C++ (span 1 col, 1 row) ── */}
+
                 <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-8 hover:border-white/20 transition-colors relative overflow-hidden group">
                     <div className="absolute -bottom-12 -right-12 w-40 h-40 rounded-full bg-blue-500/[0.04] blur-[80px] pointer-events-none group-hover:bg-blue-500/[0.08] transition-all duration-700" />
 
@@ -135,7 +135,7 @@ export default function Creator() {
                         </div>
                     </div>
                 </div>
-                {/* ── Box 5: Social Links (full width, 1 row) ── */}
+
                 <div className="md:col-span-3 bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-colors relative overflow-hidden">
                     <div className="flex flex-wrap items-center justify-center gap-3">
                         <a

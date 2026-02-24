@@ -6,15 +6,13 @@ const ignore = require('ignore');
 const Project = require('../models/Project');
 const { getLLMProvider } = require('./llm');
 
-// ── Global emitter ──────────────────────────────────────────────────
 // Events are namespaced per project:  `status:<projectId>`  and  `log:<projectId>`
 const engineEmitter = new EventEmitter();
 engineEmitter.setMaxListeners(100); // allow many concurrent SSE clients
 
-// ── Paths ───────────────────────────────────────────────────────────
+
 const TMP_ROOT = path.join(__dirname, '..', 'tmp');
 
-// ── Cancellation ────────────────────────────────────────────────────
 const cancelledSet = new Set();
 
 function requestCancel(projectId) {
@@ -36,7 +34,6 @@ function checkCancelled(projectId) {
     }
 }
 
-// ── Helpers ─────────────────────────────────────────────────────────
 function emit(projectId, type, payload) {
     engineEmitter.emit(`${type}:${projectId}`, payload);
 }
@@ -50,7 +47,7 @@ function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// ── Allowed file extensions / names for universal ingestion ──────────
+
 const ALLOWED_EXTENSIONS = new Set([
     '.js', '.jsx', '.ts', '.tsx',
     '.py', '.java', '.kt', '.scala',
@@ -60,7 +57,6 @@ const ALLOWED_EXTENSIONS = new Set([
 ]);
 const ALLOWED_EXACT_NAMES = new Set(['Dockerfile', 'Makefile']);
 
-// ── Fat-Trimmer Blacklist ───────────────────────────────────────────
 // Files & directories that waste tokens but provide zero documentation value.
 const BLOCKED_FILENAMES = new Set([
     'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml',
@@ -86,13 +82,12 @@ function isBlockedPattern(filename) {
     const lower = filename.toLowerCase();
     if (lower.endsWith('.min.js') || lower.endsWith('.min.css')) return true;
     if (lower.endsWith('.bundle.js') || lower.endsWith('.chunk.js')) return true;
-    if (lower.endsWith('.map'))  return true;   // source maps
+    if (lower.endsWith('.map')) return true;   // source maps
     // Test files — strip before checking (e.g. auth.test.js → test)
     if (/\.(test|spec)\.(js|jsx|ts|tsx|py|java)$/i.test(filename)) return true;
     return false;
 }
 
-// ── Regex Guillotine — lightweight per-file content compressor ──────
 /**
  * Fast, regex-based minification that strips noise the LLM doesn't need.
  *   1. Block comments (/* … * /) — copyright headers, JSDoc novels
@@ -125,7 +120,7 @@ function minifyFileContent(raw) {
     return s;
 }
 
-// ── Hard character cap for the raw code payload ─────────────────────
+
 const MAX_CHARS = 900_000; // ~225k tokens — fits comfortably in Gemini's 1M context
 
 /**
@@ -139,7 +134,7 @@ async function extractArchitectureUniversal(repoPath) {
     let combinedCode = '';
     let fileCount = 0;
 
-    // ── Set up .gitignore filtering + blocked dirs ──────────────────
+
     const ig = ignore();
     ig.add('.git');
     ig.add('node_modules');
@@ -154,7 +149,7 @@ async function extractArchitectureUniversal(repoPath) {
         // No .gitignore — that's fine
     }
 
-    // ── Recursive directory walker ──────────────────────────────────
+
     async function walkDir(currentPath, relativePath = '') {
         const entries = await fs.readdir(currentPath, { withFileTypes: true });
 
@@ -170,7 +165,7 @@ async function extractArchitectureUniversal(repoPath) {
             if (entry.isDirectory()) {
                 await walkDir(fullPath, entryRelativePath);
             } else if (entry.isFile()) {
-                // ── Fat-Trimmer: skip blacklisted filenames & patterns ──
+
                 if (BLOCKED_FILENAMES.has(entry.name)) continue;
                 if (isBlockedPattern(entry.name)) continue;
 
@@ -180,7 +175,7 @@ async function extractArchitectureUniversal(repoPath) {
                 if (isAllowed && combinedCode.length < MAX_CHARS) {
                     try {
                         const raw = await fs.readFile(fullPath, 'utf8');
-                        // ── Regex Guillotine: compress content before appending ──
+
                         const content = minifyFileContent(raw);
                         combinedCode += `\n\n--- FILE: ${entryRelativePath} ---\n\n${content}`;
                         fileCount++;
@@ -203,12 +198,11 @@ async function extractArchitectureUniversal(repoPath) {
     return { rawCode: combinedCode, fileCount };
 }
 
-// ── Generation pipeline ─────────────────────────────────────────────
+
 async function runGenerationPipeline(projectId, repoUrl, llmProvider = 'gemini', byokOptions = {}) {
     const tempPath = path.join(TMP_ROOT, projectId);
 
     try {
-        // ── Step 1 — Clone ──────────────────────────────────────────
         checkCancelled(projectId);
         await setStatus(projectId, 'scanning', 'Cloning repository…');
         emit(projectId, 'log', { step: 'cloning', message: 'Cloning repository...' });
@@ -225,7 +219,6 @@ async function runGenerationPipeline(projectId, repoUrl, llmProvider = 'gemini',
         const fileCount = files.length;
         emit(projectId, 'log', { step: 'cloning', message: `Repository cloned — ${fileCount} entries found` });
 
-        // ── Step 2 — Universal Code Ingestion ────────────────────────
         checkCancelled(projectId);
         await setStatus(projectId, 'analyzing', 'Aggregating multi-language codebase…');
         emit(projectId, 'log', { step: 'analyzing', message: 'Scanning directory and concatenating whitelisted files...' });
@@ -274,7 +267,7 @@ async function runGenerationPipeline(projectId, repoUrl, llmProvider = 'gemini',
         );
     } finally {
         clearCancel(projectId);
-        // ── Cleanup — always delete cloned code ─────────────────────
+
         try {
             await fs.rm(tempPath, { recursive: true, force: true });
             emit(projectId, 'log', { step: 'cleanup', message: 'Temporary files removed' });

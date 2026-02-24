@@ -49,12 +49,18 @@ export default function Dashboard() {
 
     useEffect(() => {
         const ghStatus = searchParams.get('github');
+        const reason = searchParams.get('reason');
+
         if (ghStatus === 'success') {
             setToast({ type: 'success', message: 'GitHub connection secured! 🚀' });
             fetchUser();
             window.history.replaceState({}, '', '/dashboard');
         } else if (ghStatus === 'error') {
-            setToast({ type: 'error', message: 'GitHub handshake failed. Try again.' });
+            if (reason === 'already_linked') {
+                setToast({ type: 'error', message: 'That GitHub account is already linked to another email.' });
+            } else {
+                setToast({ type: 'error', message: 'GitHub handshake failed. Try again.' });
+            }
             window.history.replaceState({}, '', '/dashboard');
         }
     }, [searchParams, fetchUser]);

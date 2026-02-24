@@ -78,7 +78,7 @@ export default function Engine() {
         <div className="min-h-screen bg-[#050505] text-zinc-300 selection:bg-emerald-500/30">
             <Navbar />
 
-            {/* ── Hero ── */}
+
             <header className="relative pt-32 pb-20 px-6 text-center overflow-hidden">
                 {/* Radial glow */}
                 <div className="absolute inset-0 pointer-events-none">
@@ -105,7 +105,7 @@ export default function Engine() {
                 </div>
             </header>
 
-            {/* ── Timeline ── */}
+
             <section className="relative max-w-4xl mx-auto px-6 pb-32">
                 {/* Vertical line */}
                 <div className="absolute left-6 sm:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-white/10 via-white/5 to-transparent pointer-events-none -translate-x-1/2 hidden sm:block" />
@@ -167,7 +167,7 @@ export default function Engine() {
                     })}
                 </div>
 
-                {/* Bottom CTA */}
+
                 <div className="text-center mt-32 relative z-10 animate-[fadeSlideUp_1s_ease-out]">
                     <p className="text-sm text-zinc-500 mb-5 font-mono uppercase tracking-widest">Pipeline Complete.</p>
                     <Link

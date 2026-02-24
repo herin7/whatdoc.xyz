@@ -89,6 +89,24 @@ export default function CommandPalette({ projects = [] }) {
                                 <Plus size={15} className="shrink-0 opacity-60" />
                                 <span>Create New Project</span>
                             </Command.Item>
+
+                            {/* Dynamically check if deployment is in progress */}
+                            {sessionStorage.getItem('deploy_jobId') && (
+                                <Command.Item
+                                    value="View Current Deployment"
+                                    onSelect={() => {
+                                        const deployProjectId = sessionStorage.getItem('deploy_jobId');
+                                        // Try to find the project this job belonged to. Usually deploy urls use the project ID.
+                                        // For now, if we cannot infer the projectId perfectly, fallback to dashboard.
+                                        // Let's assume the user was on /deploy/:id
+                                        runAction(() => navigate(`/dashboard`))
+                                    }}
+                                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-emerald-400 cursor-pointer transition-colors data-[selected=true]:bg-emerald-500/10 data-[selected=true]:text-emerald-300"
+                                >
+                                    <div className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse shrink-0" />
+                                    <span>View Current Deployment Status</span>
+                                </Command.Item>
+                            )}
                             <Command.Item
                                 value="Go to Settings"
                                 onSelect={() => runAction(() => navigate('/dashboard'))}

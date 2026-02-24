@@ -11,6 +11,9 @@ const userSchema = new Schema({
     githubUsername: String,
     githubAccessToken: String,
     isPro: { type: Boolean, default: false },
+    proExpiryDate: { type: Date, default: null },
+    generationCount: { type: Number, default: 0 },
+    planTier: { type: String, enum: ['free', '499', '999'], default: 'free' },
     avatarUrl: { type: String, default: '' }
 })
 

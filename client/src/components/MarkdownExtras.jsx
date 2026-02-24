@@ -1,7 +1,7 @@
 import React from 'react';
 import { Info, AlertTriangle, Lightbulb } from 'lucide-react';
 
-/* ── Callout type config ─────────────────────────────────────────── */
+/* ── Callout type config  */
 const CALLOUT_TYPES = {
     NOTE: {
         icon: Info,
@@ -92,7 +92,7 @@ function detectCallout(children) {
     return null;
 }
 
-/* ── Callout blockquote handler ──────────────────────────────────── */
+/* ── Callout blockquote handler ─ */
 export function makeBlockquote(variant = 'dark', fallbackClasses = '') {
     return function Blockquote({ children }) {
         const callout = detectCallout(children);
@@ -125,7 +125,7 @@ export function makeBlockquote(variant = 'dark', fallbackClasses = '') {
     };
 }
 
-/* ── Steps ordered-list handler ──────────────────────────────────── */
+/* ── Steps ordered-list handler ─ */
 export function makeOl(variant = 'dark') {
     const lineColor = variant === 'dark' ? 'bg-zinc-700' : 'bg-zinc-300';
     const circleBase = variant === 'dark'

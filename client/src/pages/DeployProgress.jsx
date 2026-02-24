@@ -12,7 +12,7 @@ export default function DeployProgress() {
 
     return (
         <div className="min-h-screen bg-black text-white flex flex-col">
-            {/* Top bar */}
+
             <header className="fixed top-0 left-0 z-50 w-full border-b border-white/5 bg-black/80 backdrop-blur-md px-6">
                 <div className="mx-auto flex h-14 max-w-7xl items-center justify-between">
                     <Logo className="text-lg" />
@@ -31,10 +31,17 @@ export default function DeployProgress() {
                 <div className="w-full max-w-2xl py-16">
                     {/* Heading */}
                     <div className="text-center mb-8">
-                        <h1 className="text-2xl font-bold tracking-tight mb-1">Deploying documentation</h1>
-                        <p className="text-sm text-zinc-500">
+                        <h1 className="text-2xl font-bold tracking-tight mb-2">Deploying documentation</h1>
+                        <p className="text-sm text-zinc-400">
                             Your project is being cloned, analyzed, and documented in real time.
                         </p>
+                        <div className="mt-3 inline-flex mx-auto items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400/90 text-xs px-3 py-1.5 rounded-full font-medium">
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                            Note: Advanced reasoning templates (like Pro models) may take 1-2 minutes.
+                        </div>
                     </div>
 
                     {/* Terminal */}

@@ -28,11 +28,11 @@ import {
 import StarterKit from '@tiptap/starter-kit';
 import { Markdown } from 'tiptap-markdown';
 
-import ModernTemplate    from '../templates/ModernTemplate';
-import MinimalTemplate   from '../templates/MinimalTemplate';
-import TwilioTemplate    from '../templates/TwilioTemplate';
-import DjangoTemplate    from '../templates/DjangoTemplate';
-import MDNTemplate       from '../templates/MDNTemplate';
+import ModernTemplate from '../templates/ModernTemplate';
+import MinimalTemplate from '../templates/MinimalTemplate';
+import TwilioTemplate from '../templates/TwilioTemplate';
+import DjangoTemplate from '../templates/DjangoTemplate';
+import MDNTemplate from '../templates/MDNTemplate';
 import AeroLatexTemplate from '../templates/AeroLatexTemplate';
 
 const TemplateMap = {
@@ -40,58 +40,58 @@ const TemplateMap = {
     django: DjangoTemplate, mdn: MDNTemplate, aerolatex: AeroLatexTemplate,
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ─
 // CONSTANTS
-// ─────────────────────────────────────────────────────────────────────────────
+// ─
 
 const GOOGLE_FONTS = [
-    { label: 'Playfair Display',  value: 'Playfair+Display'  },
-    { label: 'Fraunces',          value: 'Fraunces'          },
-    { label: 'DM Serif Display',  value: 'DM+Serif+Display'  },
-    { label: 'Syne',              value: 'Syne'              },
-    { label: 'Lora',              value: 'Lora'              },
+    { label: 'Playfair Display', value: 'Playfair+Display' },
+    { label: 'Fraunces', value: 'Fraunces' },
+    { label: 'DM Serif Display', value: 'DM+Serif+Display' },
+    { label: 'Syne', value: 'Syne' },
+    { label: 'Lora', value: 'Lora' },
     { label: 'Libre Baskerville', value: 'Libre+Baskerville' },
-    { label: 'Cormorant',         value: 'Cormorant'         },
-    { label: 'Space Mono',        value: 'Space+Mono'        },
-    { label: 'Crimson Pro',       value: 'Crimson+Pro'       },
-    { label: 'Source Serif 4',    value: 'Source+Serif+4'    },
+    { label: 'Cormorant', value: 'Cormorant' },
+    { label: 'Space Mono', value: 'Space+Mono' },
+    { label: 'Crimson Pro', value: 'Crimson+Pro' },
+    { label: 'Source Serif 4', value: 'Source+Serif+4' },
 ];
 
 const BODY_FONTS = [
-    { label: 'DM Sans',           value: 'DM+Sans'           },
-    { label: 'Nunito',            value: 'Nunito'            },
-    { label: 'Manrope',           value: 'Manrope'           },
+    { label: 'DM Sans', value: 'DM+Sans' },
+    { label: 'Nunito', value: 'Nunito' },
+    { label: 'Manrope', value: 'Manrope' },
     { label: 'Plus Jakarta Sans', value: 'Plus+Jakarta+Sans' },
-    { label: 'Outfit',            value: 'Outfit'            },
-    { label: 'Figtree',           value: 'Figtree'           },
-    { label: 'Work Sans',         value: 'Work+Sans'         },
-    { label: 'Karla',             value: 'Karla'             },
+    { label: 'Outfit', value: 'Outfit' },
+    { label: 'Figtree', value: 'Figtree' },
+    { label: 'Work Sans', value: 'Work+Sans' },
+    { label: 'Karla', value: 'Karla' },
 ];
 
 const ALL_FONTS = [...GOOGLE_FONTS, ...BODY_FONTS];
 
 const PRESET_THEMES = [
-    { name: 'Emerald Dark',  emoji: '🌿', primary: '#10b981', accent: '#065f46', bg: '#050505', surface: '#0f0f0f', text: '#e4e4e7', headingFont: 'Syne',             bodyFont: 'Manrope',           borderRadius: '12px', mode: 'dark'  },
-    { name: 'Django Green',  emoji: '🌱', primary: '#44b78b', accent: '#0c4b33', bg: '#f8f8f8', surface: '#ffffff', text: '#333333', headingFont: 'Playfair+Display', bodyFont: 'DM+Sans',           borderRadius: '8px',  mode: 'light' },
-    { name: 'Midnight Blue', emoji: '🌙', primary: '#818cf8', accent: '#312e81', bg: '#0d0d1a', surface: '#141428', text: '#e2e8f0', headingFont: 'Fraunces',         bodyFont: 'Outfit',            borderRadius: '16px', mode: 'dark'  },
-    { name: 'Warm Paper',    emoji: '📜', primary: '#d97706', accent: '#92400e', bg: '#fefce8', surface: '#fffbeb', text: '#1c1917', headingFont: 'Cormorant',        bodyFont: 'Karla',             borderRadius: '6px',  mode: 'light' },
-    { name: 'Noir',          emoji: '🎭', primary: '#f4f4f5', accent: '#a1a1aa', bg: '#000000', surface: '#0a0a0a', text: '#f4f4f5', headingFont: 'DM+Serif+Display', bodyFont: 'Work+Sans',         borderRadius: '4px',  mode: 'dark'  },
-    { name: 'Coral Bloom',   emoji: '🌸', primary: '#f43f5e', accent: '#9f1239', bg: '#fff1f2', surface: '#ffe4e6', text: '#1c1917', headingFont: 'Lora',             bodyFont: 'Figtree',           borderRadius: '12px', mode: 'light' },
+    { name: 'Emerald Dark', emoji: '🌿', primary: '#10b981', accent: '#065f46', bg: '#050505', surface: '#0f0f0f', text: '#e4e4e7', headingFont: 'Syne', bodyFont: 'Manrope', borderRadius: '12px', mode: 'dark' },
+    { name: 'Django Green', emoji: '🌱', primary: '#44b78b', accent: '#0c4b33', bg: '#f8f8f8', surface: '#ffffff', text: '#333333', headingFont: 'Playfair+Display', bodyFont: 'DM+Sans', borderRadius: '8px', mode: 'light' },
+    { name: 'Midnight Blue', emoji: '🌙', primary: '#818cf8', accent: '#312e81', bg: '#0d0d1a', surface: '#141428', text: '#e2e8f0', headingFont: 'Fraunces', bodyFont: 'Outfit', borderRadius: '16px', mode: 'dark' },
+    { name: 'Warm Paper', emoji: '📜', primary: '#d97706', accent: '#92400e', bg: '#fefce8', surface: '#fffbeb', text: '#1c1917', headingFont: 'Cormorant', bodyFont: 'Karla', borderRadius: '6px', mode: 'light' },
+    { name: 'Noir', emoji: '🎭', primary: '#f4f4f5', accent: '#a1a1aa', bg: '#000000', surface: '#0a0a0a', text: '#f4f4f5', headingFont: 'DM+Serif+Display', bodyFont: 'Work+Sans', borderRadius: '4px', mode: 'dark' },
+    { name: 'Coral Bloom', emoji: '🌸', primary: '#f43f5e', accent: '#9f1239', bg: '#fff1f2', surface: '#ffe4e6', text: '#1c1917', headingFont: 'Lora', bodyFont: 'Figtree', borderRadius: '12px', mode: 'light' },
 ];
 
 const BLOCK_TYPES = [
-    { type: 'prose',   label: 'Prose',       icon: '📝', color: '#6366f1', description: 'Regular text & paragraphs',  defaultContent: '## New Section\n\nStart writing your docs here. Use **bold**, *italic*, and `inline code`.' },
-    { type: 'hero',    label: 'Hero',         icon: '🚀', color: '#10b981', description: 'Big title introduction',      defaultContent: '## Getting Started\n\nWelcome to the documentation. This guide walks you through everything you need to know.' },
-    { type: 'callout', label: 'Callout',      icon: '💡', color: '#f59e0b', description: 'Tip, note, or warning',      defaultContent: '## Important Note\n\n> **Note:** This is an important callout. Use it to highlight critical information for your readers.' },
-    { type: 'code',    label: 'Code',         icon: '💻', color: '#8b5cf6', description: 'Code examples & snippets',   defaultContent: '## Code Example\n\n```javascript\nconst response = await fetch(\'/api/v1/users\');\nconst data = await response.json();\nconsole.log(data);\n```' },
-    { type: 'api',     label: 'API',          icon: '⚡', color: '#06b6d4', description: 'Live interactive endpoint',  defaultContent: '' },
+    { type: 'prose', label: 'Prose', icon: '📝', color: '#6366f1', description: 'Regular text & paragraphs', defaultContent: '## New Section\n\nStart writing your docs here. Use **bold**, *italic*, and `inline code`.' },
+    { type: 'hero', label: 'Hero', icon: '🚀', color: '#10b981', description: 'Big title introduction', defaultContent: '## Getting Started\n\nWelcome to the documentation. This guide walks you through everything you need to know.' },
+    { type: 'callout', label: 'Callout', icon: '💡', color: '#f59e0b', description: 'Tip, note, or warning', defaultContent: '## Important Note\n\n> **Note:** This is an important callout. Use it to highlight critical information for your readers.' },
+    { type: 'code', label: 'Code', icon: '💻', color: '#8b5cf6', description: 'Code examples & snippets', defaultContent: '## Code Example\n\n```javascript\nconst response = await fetch(\'/api/v1/users\');\nconst data = await response.json();\nconsole.log(data);\n```' },
+    { type: 'api', label: 'API', icon: '⚡', color: '#06b6d4', description: 'Live interactive endpoint', defaultContent: '' },
 ];
 
 const SPACING_OPTIONS = [
-    { label: 'Tight',  value: '16px', desc: '16px' },
+    { label: 'Tight', value: '16px', desc: '16px' },
     { label: 'Normal', value: '24px', desc: '24px' },
-    { label: 'Airy',   value: '40px', desc: '40px' },
-    { label: 'Open',   value: '64px', desc: '64px' },
+    { label: 'Airy', value: '40px', desc: '40px' },
+    { label: 'Open', value: '64px', desc: '64px' },
 ];
 
 const DEFAULT_THEME = {
@@ -100,9 +100,9 @@ const DEFAULT_THEME = {
     borderRadius: '12px', sectionSpacing: '40px', mode: 'dark',
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ─
 // UTILITIES
-// ─────────────────────────────────────────────────────────────────────────────
+// ─
 
 function loadGoogleFont(v) {
     if (!v) return;
@@ -118,8 +118,8 @@ function injectThemeCss(t) {
     let el = document.getElementById('wd-theme');
     if (!el) { el = document.createElement('style'); el.id = 'wd-theme'; document.head.appendChild(el); }
     const h = ALL_FONTS.find(f => f.value === t.headingFont)?.label || t.headingFont;
-    const b = ALL_FONTS.find(f => f.value === t.bodyFont)?.label    || t.bodyFont;
-    el.textContent = `:root{--wd-primary:${t.primary};--wd-accent:${t.accent};--wd-bg:${t.bg};--wd-surface:${t.surface};--wd-text:${t.text};--wd-radius:${t.borderRadius};--wd-spacing:${t.sectionSpacing||'40px'};--wd-hfont:'${h}',serif;--wd-bfont:'${b}',sans-serif;}`;
+    const b = ALL_FONTS.find(f => f.value === t.bodyFont)?.label || t.bodyFont;
+    el.textContent = `:root{--wd-primary:${t.primary};--wd-accent:${t.accent};--wd-bg:${t.bg};--wd-surface:${t.surface};--wd-text:${t.text};--wd-radius:${t.borderRadius};--wd-spacing:${t.sectionSpacing || '40px'};--wd-hfont:'${h}',serif;--wd-bfont:'${b}',sans-serif;}`;
 }
 
 function parseSections(md) {
@@ -136,9 +136,9 @@ function parseSections(md) {
     return secs.map(s => ({ ...s, content: s.content.trimEnd() })).filter(s => s.content);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ─
 // MICRO-COMPONENTS
-// ─────────────────────────────────────────────────────────────────────────────
+// ─
 
 // Keyboard badge
 function Kbd({ children }) {
@@ -194,7 +194,7 @@ function Toast({ message, type = 'success', onClose }) {
 function ColorPickerPopover({ color, onChange, label }) {
     const [open, setOpen] = useState(false);
     const ref = useRef(null);
-    const [history, setHistory] = useState(['#10b981','#6366f1','#f43f5e','#f59e0b','#06b6d4','#8b5cf6','#fff','#000']);
+    const [history, setHistory] = useState(['#10b981', '#6366f1', '#f43f5e', '#f59e0b', '#06b6d4', '#8b5cf6', '#fff', '#000']);
     useEffect(() => {
         const h = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
         document.addEventListener('mousedown', h);
@@ -233,9 +233,9 @@ function ColorPickerPopover({ color, onChange, label }) {
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ─
 // INSPECTOR PRIMITIVES
-// ─────────────────────────────────────────────────────────────────────────────
+// ─
 
 function Field({ icon: Icon, label, children, hint }) {
     return (
@@ -280,9 +280,9 @@ function FontSelector({ value, onChange, options }) {
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ─
 // FLOATING BLOCK TOOLBAR — appears above selected block (Figma-style)
-// ─────────────────────────────────────────────────────────────────────────────
+// ─
 
 function FloatingToolbar({ block, onDuplicate, onDelete, onTypeChange }) {
     return (
@@ -317,17 +317,17 @@ function FloatingToolbar({ block, onDuplicate, onDelete, onTypeChange }) {
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ─
 // TIPTAP NODE — API PLAYGROUND
-// ─────────────────────────────────────────────────────────────────────────────
+// ─
 
 const ApiPlaygroundComponent = props => {
     let config = {};
-    try { config = JSON.parse(props.node.attrs.configJson); } catch (_) {}
+    try { config = JSON.parse(props.node.attrs.configJson); } catch (_) { }
     return (
         <NodeViewWrapper className={`my-6 border rounded-2xl overflow-hidden transition-all ${props.selected ? 'border-cyan-500/40 shadow-[0_0_24px_rgba(6,182,212,0.12)]' : 'border-zinc-800/60'}`} contentEditable={false}>
             <div className="bg-zinc-900/60 px-4 py-2.5 border-b border-zinc-800/60 flex items-center gap-2.5">
-                <div className="flex gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-red-500/50"/><div className="w-2.5 h-2.5 rounded-full bg-yellow-500/50"/><div className="w-2.5 h-2.5 rounded-full bg-green-500/50"/></div>
+                <div className="flex gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-red-500/50" /><div className="w-2.5 h-2.5 rounded-full bg-yellow-500/50" /><div className="w-2.5 h-2.5 rounded-full bg-green-500/50" /></div>
                 <span className="text-[10px] font-bold uppercase tracking-widest text-cyan-400 bg-cyan-500/8 px-2 py-0.5 rounded-full border border-cyan-500/20">⚡ API Block</span>
                 <div className="ml-auto cursor-grab active:cursor-grabbing" data-drag-handle><GripVertical className="size-3.5 text-zinc-700" /></div>
             </div>
@@ -344,9 +344,9 @@ const ApiPlaygroundNode = Node.create({
     addNodeView() { return ReactNodeViewRenderer(ApiPlaygroundComponent); },
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ─
 // SORTABLE BLOCK CARD
-// ─────────────────────────────────────────────────────────────────────────────
+// ─
 
 function SortableBlockCard({ block, isSelected, onSelect, onDelete, onDuplicate, onUpdate, onTypeChange, theme }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id });
@@ -394,11 +394,10 @@ function SortableBlockCard({ block, isSelected, onSelect, onDelete, onDuplicate,
             {/* Card surface */}
             <div
                 onClick={() => onSelect(block.id)}
-                className={`relative cursor-pointer rounded-[13px] transition-all duration-200 ${
-                    isSelected
-                        ? 'ring-2 ring-emerald-500/35 ring-offset-4 ring-offset-[#0c0c0c]'
-                        : 'hover:ring-1 hover:ring-zinc-700/50 hover:ring-offset-2 hover:ring-offset-[#0c0c0c]'
-                }`}
+                className={`relative cursor-pointer rounded-[13px] transition-all duration-200 ${isSelected
+                    ? 'ring-2 ring-emerald-500/35 ring-offset-4 ring-offset-[#0c0c0c]'
+                    : 'hover:ring-1 hover:ring-zinc-700/50 hover:ring-offset-2 hover:ring-offset-[#0c0c0c]'
+                    }`}
             >
                 {/* Accent line top when selected */}
                 {isSelected && (
@@ -432,9 +431,9 @@ function SortableBlockCard({ block, isSelected, onSelect, onDelete, onDuplicate,
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ─
 // DRAG GHOST
-// ─────────────────────────────────────────────────────────────────────────────
+// ─
 
 function DragGhost({ block }) {
     const def = BLOCK_TYPES.find(b => b.type === block?.type);
@@ -447,9 +446,9 @@ function DragGhost({ block }) {
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ─
 // ADD BLOCK PANEL — Canva-style, beautiful
-// ─────────────────────────────────────────────────────────────────────────────
+// ─
 
 function AddBlockPanel({ onAdd, onClose }) {
     const [hovered, setHovered] = useState(null);
@@ -513,9 +512,9 @@ function AddBlockPanel({ onAdd, onClose }) {
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ─
 // KEYBOARD SHORTCUTS MODAL
-// ─────────────────────────────────────────────────────────────────────────────
+// ─
 
 function ShortcutsModal({ onClose }) {
     const groups = [
@@ -548,9 +547,9 @@ function ShortcutsModal({ onClose }) {
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ─
 // LIVE PREVIEW
-// ─────────────────────────────────────────────────────────────────────────────
+// ─
 
 function LivePreview({ blocks, theme, proj, subdomain, logoUrl, ownerName, currentVersion, upcomingVersion }) {
     const generatedDocs = blocks.map(b => b.content).join('\n\n');
@@ -563,9 +562,9 @@ function LivePreview({ blocks, theme, proj, subdomain, logoUrl, ownerName, curre
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ─
 // AUTO-SAVE INDICATOR
-// ─────────────────────────────────────────────────────────────────────────────
+// ─
 
 function SaveIndicator({ saving, lastSaved }) {
     if (saving) return (
@@ -581,35 +580,35 @@ function SaveIndicator({ saving, lastSaved }) {
     return null;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ─
 // MAIN COMPONENT
-// ─────────────────────────────────────────────────────────────────────────────
+// ─
 
 export default function BetaProjectEditor() {
     const { projectId } = useParams();
 
-    const [proj,    setProj]    = useState(null);
+    const [proj, setProj] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [error,   setError]   = useState('');
+    const [error, setError] = useState('');
 
-    const [subdomain,       setSubdomain]       = useState('');
-    const [logoUrl,         setLogoUrl]         = useState('');
-    const [ownerName,       setOwnerName]       = useState('');
-    const [currentVersion,  setCurrentVersion]  = useState('1.0.0');
+    const [subdomain, setSubdomain] = useState('');
+    const [logoUrl, setLogoUrl] = useState('');
+    const [ownerName, setOwnerName] = useState('');
+    const [currentVersion, setCurrentVersion] = useState('1.0.0');
     const [upcomingVersion, setUpcomingVersion] = useState('');
 
-    const [theme,           setTheme]           = useState(DEFAULT_THEME);
-    const [blocks,          setBlocks]          = useState([]);
+    const [theme, setTheme] = useState(DEFAULT_THEME);
+    const [blocks, setBlocks] = useState([]);
     const [selectedBlockId, setSelectedBlockId] = useState(null);
-    const [activeId,        setActiveId]        = useState(null);
+    const [activeId, setActiveId] = useState(null);
 
-    const [saving,        setSaving]        = useState(false);
-    const [lastSaved,     setLastSaved]     = useState(null);
-    const [toast,         setToast]         = useState(null);
+    const [saving, setSaving] = useState(false);
+    const [lastSaved, setLastSaved] = useState(null);
+    const [toast, setToast] = useState(null);
     const [inspectorOpen, setInspectorOpen] = useState(true);
-    const [viewMode,      setViewMode]      = useState('split');
-    const [showAddBlock,  setShowAddBlock]  = useState(false);
-    const [inspectorTab,  setInspectorTab]  = useState('block');
+    const [viewMode, setViewMode] = useState('split');
+    const [showAddBlock, setShowAddBlock] = useState(false);
+    const [inspectorTab, setInspectorTab] = useState('block');
     const [showShortcuts, setShowShortcuts] = useState(false);
     // Theme preset hover preview
     const [hoveredPreset, setHoveredPreset] = useState(null);
@@ -620,7 +619,7 @@ export default function BetaProjectEditor() {
     );
 
     const selectedBlock = useMemo(() => blocks.find(b => b.id === selectedBlockId) || null, [blocks, selectedBlockId]);
-    const activeBlock   = useMemo(() => blocks.find(b => b.id === activeId) || null, [blocks, activeId]);
+    const activeBlock = useMemo(() => blocks.find(b => b.id === activeId) || null, [blocks, activeId]);
 
     useEffect(() => { loadGoogleFont(theme.headingFont); loadGoogleFont(theme.bodyFont); injectThemeCss(theme); }, [theme]);
 
@@ -645,7 +644,7 @@ export default function BetaProjectEditor() {
             if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); handleSave(); return; }
             if (e.key === 'Escape') { setSelectedBlockId(null); setShowAddBlock(false); setShowShortcuts(false); return; }
             if (e.key === '?') { setShowShortcuts(v => !v); return; }
-            if (!selectedBlockId || e.target.isContentEditable || ['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
+            if (!selectedBlockId || e.target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
             if (e.key === 'd') duplicateBlock(selectedBlockId);
             if (e.key === 'Delete' || e.key === 'Backspace') deleteBlock(selectedBlockId);
         };
@@ -715,9 +714,9 @@ export default function BetaProjectEditor() {
         </div>
     );
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // 
     // INSPECTOR PANELS
-    // ─────────────────────────────────────────────────────────────────────────
+    // 
 
     const BlockInspector = () => {
         if (!selectedBlock) return (
@@ -780,16 +779,16 @@ export default function BetaProjectEditor() {
                 <InspSection title="Spacing" icon={Sliders}>
                     <Field label="Padding" hint="inner spacing">
                         <div className="grid grid-cols-3 gap-1.5">
-                            {['0px','12px','24px','40px','56px','80px'].map(p => (
+                            {['0px', '12px', '24px', '40px', '56px', '80px'].map(p => (
                                 <button key={p} onClick={() => updateBlock(selectedBlockId, { padding: p })} className={`h-8 text-xs rounded-xl border font-mono transition-all ${selectedBlock.padding === p ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400' : 'bg-[#141414] border-zinc-800 text-zinc-600 hover:text-zinc-200 hover:border-zinc-700'}`}>
-                                    {p.replace('px','') || '0'}
+                                    {p.replace('px', '') || '0'}
                                 </button>
                             ))}
                         </div>
                     </Field>
                     <Field label="Corner radius">
                         <div className="grid grid-cols-4 gap-1.5">
-                            {[['□','0px'],['▢','8px'],['▣','14px'],['●','22px']].map(([l,v]) => (
+                            {[['□', '0px'], ['▢', '8px'], ['▣', '14px'], ['●', '22px']].map(([l, v]) => (
                                 <button key={v} onClick={() => updateBlock(selectedBlockId, { borderRadius: v })} className={`h-8 text-sm rounded-xl border transition-all ${selectedBlock.borderRadius === v ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400' : 'bg-[#141414] border-zinc-800 text-zinc-600 hover:text-zinc-200 hover:border-zinc-700'}`}>
                                     {l}
                                 </button>
@@ -849,7 +848,7 @@ export default function BetaProjectEditor() {
                 </InspSection>
 
                 <InspSection title="Colors" icon={Palette} accent="#f43f5e">
-                    {[['primary','Primary / Brand'],['accent','Accent'],['bg','Page Background'],['surface','Card / Surface'],['text','Body Text']].map(([k, l]) => (
+                    {[['primary', 'Primary / Brand'], ['accent', 'Accent'], ['bg', 'Page Background'], ['surface', 'Card / Surface'], ['text', 'Body Text']].map(([k, l]) => (
                         <Field key={k} label={l}><ColorPickerPopover color={theme[k]} onChange={c => updateTheme({ [k]: c })} label={l} /></Field>
                     ))}
                 </InspSection>
@@ -882,7 +881,7 @@ export default function BetaProjectEditor() {
                     </Field>
                     <Field label="Corner radius">
                         <div className="grid grid-cols-4 gap-1.5">
-                            {[['□','0px'],['▢','8px'],['▣','14px'],['●','22px']].map(([l,v]) => (
+                            {[['□', '0px'], ['▢', '8px'], ['▣', '14px'], ['●', '22px']].map(([l, v]) => (
                                 <button key={v} onClick={() => updateTheme({ borderRadius: v })} className={`h-9 text-sm rounded-xl border transition-all ${theme.borderRadius === v ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400' : 'bg-[#141414] border-zinc-800 text-zinc-600 hover:text-zinc-200 hover:border-zinc-700'}`}>{l}</button>
                             ))}
                         </div>
@@ -901,7 +900,7 @@ export default function BetaProjectEditor() {
             <div className="space-y-1">
                 <Field icon={Globe} label="Subdomain">
                     <div className="flex items-center rounded-xl bg-[#141414] border border-zinc-800 overflow-hidden focus-within:border-zinc-600 transition-all">
-                        <input type="text" value={subdomain} onChange={e => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g,'').replace(/-+/g,'-'))} placeholder="my-org" className="flex-1 h-9 px-3 bg-transparent text-sm text-zinc-100 placeholder-zinc-700 outline-none" />
+                        <input type="text" value={subdomain} onChange={e => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-'))} placeholder="my-org" className="flex-1 h-9 px-3 bg-transparent text-sm text-zinc-100 placeholder-zinc-700 outline-none" />
                         <span className="pr-3 text-[10px] text-zinc-700 font-mono select-none">.whatdoc.xyz</span>
                     </div>
                 </Field>
@@ -909,7 +908,7 @@ export default function BetaProjectEditor() {
                     <input type="url" value={logoUrl} onChange={e => setLogoUrl(e.target.value)} placeholder="https://…/logo.png" className={inputClass} />
                     {logoUrl && (
                         <div className="mt-2 flex items-center gap-2 px-3 py-2 rounded-xl bg-[#141414] border border-zinc-900">
-                            <img src={logoUrl} className="h-5 object-contain" alt="" onError={e => e.target.style.display='none'} />
+                            <img src={logoUrl} className="h-5 object-contain" alt="" onError={e => e.target.style.display = 'none'} />
                             <span className="text-[10px] text-zinc-600 truncate">{logoUrl}</span>
                         </div>
                     )}
@@ -931,9 +930,9 @@ export default function BetaProjectEditor() {
         </div>
     );
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // 
     // RENDER
-    // ─────────────────────────────────────────────────────────────────────────
+    // 
 
     return (
         <div className="h-screen flex flex-col bg-[#0c0c0c] text-zinc-200 overflow-hidden" style={{ fontFamily: "'Figtree', 'DM Sans', system-ui, sans-serif" }}>
@@ -944,12 +943,12 @@ export default function BetaProjectEditor() {
             {showAddBlock && <AddBlockPanel onAdd={handleAddBlock} onClose={() => setShowAddBlock(false)} />}
             {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
 
-            {/* ── HEADER ──────────────────────────────────────────────── */}
+            {/* ── HEADER ── */}
             <header className="shrink-0 h-[52px] flex items-center justify-between px-4 border-b border-zinc-900 bg-[#0a0a0a] z-50 relative">
                 {/* Gradient accent line */}
                 <div className="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent" />
 
-                {/* Left */}
+
                 <div className="flex items-center gap-3">
                     <Tip label="Dashboard" side="bottom">
                         <Link to="/dashboard" className="w-7 h-7 flex items-center justify-center rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-500 hover:text-white hover:bg-zinc-800 hover:border-zinc-700 transition-all">
@@ -968,13 +967,13 @@ export default function BetaProjectEditor() {
                     </div>
                 </div>
 
-                {/* Center — view switcher */}
+
                 <div className="absolute left-1/2 -translate-x-1/2">
                     <div className="flex items-center bg-zinc-900/80 border border-zinc-800 rounded-xl p-1 gap-0.5">
                         {[
-                            { key: 'edit',    icon: FileText, label: 'Edit',    tip: 'Edit canvas' },
-                            { key: 'split',   icon: Layout,   label: 'Split',   tip: 'Side-by-side' },
-                            { key: 'preview', icon: Eye,      label: 'Preview', tip: 'Full preview' },
+                            { key: 'edit', icon: FileText, label: 'Edit', tip: 'Edit canvas' },
+                            { key: 'split', icon: Layout, label: 'Split', tip: 'Side-by-side' },
+                            { key: 'preview', icon: Eye, label: 'Preview', tip: 'Full preview' },
                         ].map(({ key, icon: Icon, label, tip }) => (
                             <Tip key={key} label={tip} side="bottom">
                                 <button
@@ -988,7 +987,7 @@ export default function BetaProjectEditor() {
                     </div>
                 </div>
 
-                {/* Right */}
+
                 <div className="flex items-center gap-2.5">
                     <SaveIndicator saving={saving} lastSaved={lastSaved} />
 
@@ -1026,10 +1025,10 @@ export default function BetaProjectEditor() {
                 </div>
             </header>
 
-            {/* ── BODY ────────────────────────────────────────────────── */}
+            {/* ── BODY ──── */}
             <div className="flex flex-1 overflow-hidden">
 
-                {/* LEFT — section navigator */}
+
                 <aside className="w-[196px] shrink-0 border-r border-zinc-900 bg-[#0a0a0a] flex flex-col">
                     {/* Section list */}
                     <div className="flex-1 overflow-hidden flex flex-col">
@@ -1086,7 +1085,7 @@ export default function BetaProjectEditor() {
                     </div>
                 </aside>
 
-                {/* CENTER ─────────────────────────────────────────────── */}
+
                 <main className="flex-1 overflow-hidden flex min-w-0">
 
                     {/* Edit canvas */}
@@ -1124,7 +1123,7 @@ export default function BetaProjectEditor() {
                                         </DragOverlay>
                                     </DndContext>
 
-                                    {/* Empty state */}
+
                                     {blocks.length === 0 && (
                                         <div className="text-center py-32 animate-[fadeUp_0.5s_ease_both]">
                                             <div className="text-5xl mb-5 animate-[float_4s_ease-in-out_infinite]">✦</div>
@@ -1136,7 +1135,7 @@ export default function BetaProjectEditor() {
                                         </div>
                                     )}
 
-                                    {/* Bottom add zone */}
+
                                     {blocks.length > 0 && (
                                         <button onClick={() => setShowAddBlock(true)} className="w-full mt-3 h-11 rounded-2xl border border-dashed border-zinc-900 text-zinc-800 hover:text-emerald-400 hover:border-emerald-500/25 hover:bg-emerald-500/3 text-xs font-semibold flex items-center justify-center gap-2 transition-all group">
                                             <Plus className="size-3.5 group-hover:rotate-90 transition-transform duration-300" /> Add block below
@@ -1175,15 +1174,15 @@ export default function BetaProjectEditor() {
                     )}
                 </main>
 
-                {/* RIGHT — Inspector */}
+
                 {inspectorOpen && (
                     <aside className="w-[264px] shrink-0 border-l border-zinc-900 bg-[#0a0a0a] flex flex-col animate-[slideIn_0.25s_cubic-bezier(0.34,1.56,0.64,1)_both]">
                         {/* Tab bar */}
                         <div className="flex border-b border-zinc-900 shrink-0">
                             {[
-                                { key: 'block', icon: Layers,    label: 'Block' },
-                                { key: 'theme', icon: Palette,   label: 'Theme' },
-                                { key: 'meta',  icon: Settings2, label: 'Meta'  },
+                                { key: 'block', icon: Layers, label: 'Block' },
+                                { key: 'theme', icon: Palette, label: 'Theme' },
+                                { key: 'meta', icon: Settings2, label: 'Meta' },
                             ].map(({ key, icon: Icon, label }) => (
                                 <button key={key} onClick={() => setInspectorTab(key)} className={`flex-1 flex items-center justify-center gap-1.5 h-10 text-[9px] font-bold uppercase tracking-wider border-b-2 transition-all ${inspectorTab === key ? 'border-emerald-500 text-emerald-400' : 'border-transparent text-zinc-700 hover:text-zinc-400'}`}>
                                     <Icon className="size-3" />{label}
@@ -1196,7 +1195,7 @@ export default function BetaProjectEditor() {
                         <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: '#1a1a1a transparent' }}>
                             {inspectorTab === 'block' && <BlockInspector />}
                             {inspectorTab === 'theme' && <ThemeInspector />}
-                            {inspectorTab === 'meta'  && <MetaInspector />}
+                            {inspectorTab === 'meta' && <MetaInspector />}
                         </div>
 
                         {/* Inspector footer */}
@@ -1210,7 +1209,7 @@ export default function BetaProjectEditor() {
                 )}
             </div>
 
-            {/* ── STYLES ──────────────────────────────────────────────── */}
+            {/* ── STYLES ── */}
             <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap');
 

@@ -10,7 +10,7 @@ export default function Footer() {
 
       <div className="mx-auto max-w-6xl px-6 pt-16 pb-8">
 
-        {/* ── Top: Three-column layout ── */}
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
 
           {/* Col 1: Brand + tagline */}
@@ -128,7 +128,7 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* ── Divider ── */}
+
         <div className="mt-12 pt-6 border-t border-white/[0.04]">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <p className="text-[11px] text-zinc-700 font-mono">

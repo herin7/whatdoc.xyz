@@ -4,10 +4,14 @@ import { Rocket, Loader2, ArrowLeft, AlertCircle, CheckCircle2, LayoutTemplate, 
 import Logo from '../components/Logo';
 import { project } from '../lib/api';
 import { DOC_TEMPLATES } from '../config/templates';
+import UpgradeModal from '../components/UpgradeModal';
+import ModelSelector, { models } from '../components/ModelSelector';
+import { useAuth } from '../context/AuthContext';
 
 export default function ConfigureProject() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
+    const { user } = useAuth(); // To access user properties
 
     const repoName = searchParams.get('repo') || '';
 
@@ -23,11 +27,15 @@ export default function ConfigureProject() {
     const [slug, setSlug] = useState(defaultSlug);
     const [techstack, setTechstack] = useState('MERN');
     const [selectedTemplateId, setSelectedTemplateId] = useState('twilio');
-    const [llmProvider, setLlmProvider] = useState('gemini');
-    const [customModel, setCustomModel] = useState(() => localStorage.getItem('wtd_gemini_model') || 'gemini-2.5-flash-lite');
-    const [customKey, setCustomKey] = useState(() => localStorage.getItem('wtd_gemini_key') || '');
+    const [customModel, setCustomModel] = useState(() => localStorage.getItem('wtd_custom_model') || 'gemini-2.5-flash-lite');
+    const [customKey, setCustomKey] = useState(() => localStorage.getItem('wtd_custom_key') || '');
+
+    // We compute the active provider on the fly based on the chosen customModel
+    const activeModelObj = models.find(m => m.id === customModel) || models[0];
+    const llmProvider = activeModelObj.provider;
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
 
     const handleSlugChange = (e) => {
         // Only allow lowercase alphanumeric + hyphens
@@ -50,8 +58,10 @@ export default function ConfigureProject() {
         setLoading(true);
         try {
             // Persist BYOK settings to localStorage so api.js sends them as headers
-            localStorage.setItem('wtd_gemini_model', customModel);
-            localStorage.setItem('wtd_gemini_key', customKey);
+            localStorage.setItem('wtd_custom_model', customModel);
+            // Don't persist if they cleared it
+            if (customKey.trim()) localStorage.setItem('wtd_custom_key', customKey);
+            else localStorage.removeItem('wtd_custom_key');
 
             const res = await project.create({ repoName, slug: slug.trim(), techstack, template: selectedTemplateId, llmProvider });
 
@@ -67,6 +77,9 @@ export default function ConfigureProject() {
             }
 
         } catch (err) {
+            if (err.code === 'UPGRADE_REQUIRED' || err.code === 'DAILY_LIMIT') {
+                setIsUpgradeOpen(true);
+            }
             setError(err.error || err.message || 'Failed to create project.');
         } finally {
             setLoading(false);
@@ -87,7 +100,7 @@ export default function ConfigureProject() {
 
     return (
         <div className="min-h-screen bg-black text-white flex flex-col">
-            {/* Top bar */}
+
             <header className="fixed top-0 left-0 z-50 w-full border-b border-white/5 bg-black/80 backdrop-blur-md px-6">
                 <div className="mx-auto flex h-14 max-w-7xl items-center justify-between">
                     <Logo className="text-lg" />
@@ -101,7 +114,7 @@ export default function ConfigureProject() {
                 </div>
             </header>
 
-            {/* Centered card */}
+
             <main className="flex-1 flex items-center justify-center px-4 pt-14">
                 <div className="w-full max-w-3xl">
                     {/* Heading */}
@@ -176,7 +189,7 @@ export default function ConfigureProject() {
                             </div>
                         </div>
 
-                        {/* ── Choose your Design ─────────────────── */}
+                        {/* ── Choose your Design  */}
                         <div>
                             <label className="block text-sm font-medium text-zinc-300 mb-3">
                                 <span className="flex items-center gap-1.5">
@@ -193,8 +206,8 @@ export default function ConfigureProject() {
                                             type="button"
                                             onClick={() => setSelectedTemplateId(t.id)}
                                             className={`group relative rounded-xl border text-left transition-all duration-200 overflow-hidden ${isActive
-                                                    ? 'border-blue-500 ring-2 ring-blue-500 scale-105 shadow-[0_0_24px_rgba(59,130,246,0.25)]'
-                                                    : 'border-zinc-700/40 bg-zinc-900/60 hover:border-zinc-500 hover:scale-[1.02]'
+                                                ? 'border-blue-500 ring-2 ring-blue-500 scale-105 shadow-[0_0_24px_rgba(59,130,246,0.25)]'
+                                                : 'border-zinc-700/40 bg-zinc-900/60 hover:border-zinc-500 hover:scale-[1.02]'
                                                 }`}
                                         >
                                             {/* Preview image */}
@@ -226,38 +239,9 @@ export default function ConfigureProject() {
                             </div>
                         </div>
 
-                        {/* LLM Provider */}
-                        <div>
-                            <label className="block text-sm font-medium text-zinc-300 mb-2">
-                                AI Model
-                            </label>
-                            <div className="grid grid-cols-2 gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => setLlmProvider('gemini')}
-                                    className={`relative h-20 rounded-xl border text-left px-4 py-3 transition-all ${llmProvider === 'gemini'
-                                            ? 'border-emerald-400/60 bg-emerald-400/5 ring-1 ring-emerald-400/30'
-                                            : 'border-zinc-700/40 bg-zinc-900/60 hover:border-zinc-600'
-                                        }`}
-                                >
-                                    <span className="block text-sm font-medium text-white">Google Gemini</span>
-                                    <span className="block text-xs text-zinc-500 mt-0.5">gemini-2.5-flash</span>
-                                    {llmProvider === 'gemini' && (
-                                        <div className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-emerald-400" />
-                                    )}
-                                </button>
-                                <button
-                                    type="button"
-                                    disabled
-                                    className="relative h-20 rounded-xl border border-zinc-700/40 bg-zinc-900/30 text-left px-4 py-3 opacity-50 cursor-not-allowed"
-                                >
-                                    <span className="block text-sm font-medium text-zinc-400">OpenAI</span>
-                                    <span className="block text-xs text-zinc-600 mt-0.5">Coming soon</span>
-                                </button>
-                            </div>
-                        </div>
 
-                        {/* ── BYOK: Model & API Key ──────────────── */}
+
+                        {/* ── BYOK: Model & API Key  */}
                         <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-4">
                             <label className="block text-sm font-medium text-zinc-300">
                                 Model &amp; API Key <span className="text-zinc-600 font-normal">(optional — Bring Your Own Key)</span>
@@ -265,20 +249,17 @@ export default function ConfigureProject() {
 
                             {/* Model select */}
                             <div className="relative">
-                                <select
-                                    value={customModel}
-                                    onChange={(e) => setCustomModel(e.target.value)}
-                                    className="appearance-none w-full h-11 px-4 rounded-lg bg-[#111] border border-zinc-800 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-transparent transition-all cursor-pointer"
-                                >
-                                    <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite (Fast, Default)</option>
-                                    <option value="gemini-2.5-flash">Gemini 2.5 Flash (Balanced)</option>
-                                    <option value="gemini-2.5-pro">Gemini 2.5 Pro (High Quality, BYOK)</option>
-                                </select>
-                                <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500">
-                                    <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </div>
+                                {/* Using the new ModelSelector component */}
+                                <ModelSelector
+                                    hasCustomKey={customKey.trim().length > 20}
+                                    selectedModel={customModel}
+                                    setSelectedModel={setCustomModel}
+                                    onRequestKey={(model) => {
+                                        setError(`You must provide your own API key to use ${model?.name || 'advanced models'}!`);
+                                        // Scroll to error
+                                        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                                    }}
+                                />
                             </div>
 
                             {/* API Key input */}
@@ -287,23 +268,32 @@ export default function ConfigureProject() {
                                     type="password"
                                     value={customKey}
                                     onChange={(e) => setCustomKey(e.target.value)}
-                                    placeholder="AIzaSy... (leave blank to use free tier)"
+                                    placeholder={
+                                        llmProvider === 'openai' ? 'sk-proj-... (API Key required)' :
+                                            llmProvider === 'anthropic' ? 'sk-ant-... (API Key required)' :
+                                                'AIzaSy... (leave blank for free models)'
+                                    }
                                     className="w-full h-11 px-4 rounded-lg bg-[#111] border border-zinc-800 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-transparent transition-all placeholder:text-zinc-600"
                                 />
-                                <a
-                                    href="https://aistudio.google.com/app/apikey"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-block mt-1.5 text-xs text-zinc-500 hover:text-emerald-400 transition-colors"
-                                >
-                                    Get a free key from Google AI Studio ↗
-                                </a>
+                                {llmProvider === 'openai' ? (
+                                    <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="inline-block mt-1.5 text-xs text-zinc-500 hover:text-emerald-400 transition-colors">
+                                        Get your API key from OpenAI Platform ↗
+                                    </a>
+                                ) : llmProvider === 'anthropic' ? (
+                                    <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer" className="inline-block mt-1.5 text-xs text-zinc-500 hover:text-emerald-400 transition-colors">
+                                        Get your API key from Anthropic Console ↗
+                                    </a>
+                                ) : (
+                                    <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="inline-block mt-1.5 text-xs text-zinc-500 hover:text-emerald-400 transition-colors">
+                                        Get a free key from Google AI Studio ↗
+                                    </a>
+                                )}
                             </div>
 
                             {/* Trust badge */}
                             <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-3 rounded-lg flex items-start gap-2 text-xs">
                                 <ShieldCheck className="size-4 mt-0.5 shrink-0" />
-                                <span>Your key stays in your browser. It's sent directly to Google and never stored in our database.</span>
+                                <span>Your key stays in your browser. It is relayed to {llmProvider.charAt(0).toUpperCase() + llmProvider.slice(1)} and never persisted in our database.</span>
                             </div>
                         </div>
 
@@ -336,6 +326,7 @@ export default function ConfigureProject() {
                     </form>
                 </div>
             </main>
+            <UpgradeModal isOpen={isUpgradeOpen} onClose={() => setIsUpgradeOpen(false)} />
         </div>
     );
 }

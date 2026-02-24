@@ -22,16 +22,24 @@ const createProject = async (req, res) => {
   try {
     const user = await UserModel.findById(req.userId);
 
-    if (!user.isPro) {
-      const startOfDay = new Date();
-      startOfDay.setHours(0, 0, 0, 0);
-      const todayCount = await Project.countDocuments({ userId: req.userId, createdAt: { $gte: startOfDay } });
+    // Gatekeeper Logic
+    if (user.isPro && user.proExpiryDate && new Date() > user.proExpiryDate) {
+      user.isPro = false;
+      user.planTier = 'free';
+      await user.save();
+    }
 
-      if (todayCount >= 2) {
-        return res.status(429).json({
-          error: 'Daily limit reached. You can generate up to 2 docs per day. Redeem a Pro code for unlimited access.',
-          code: 'DAILY_LIMIT'
-        });
+    if (!user.isPro) {
+      if (user.generationCount >= 2) {
+        return res.status(403).json({ error: 'Free tier limit reached!', code: 'UPGRADE_REQUIRED' });
+      }
+    } else {
+      // Pro user repo limit logic based on plan
+      const repoCount = await Project.countDocuments({ userId: req.userId });
+      const limit = user.planTier === '499' ? 10 : (user.planTier === '999' ? 25 : 0);
+
+      if (limit > 0 && repoCount >= limit) {
+        return res.status(403).json({ error: `Plan limit reached! Your plan allows up to ${limit} repos.`, code: 'UPGRADE_REQUIRED' });
       }
     }
 
@@ -44,9 +52,13 @@ const createProject = async (req, res) => {
 
     // Smart Caching Logic: Fetch latest commit SHA
     const commitHash = await fetchLatestCommitHash(repoName, user.githubAccessToken);
-    const repoUrl = `https://github.com/${repoName}`;
 
-    if (commitHash) {
+    // Inject OAuth token into the Git URL for simpleGit to grab Private Repos perfectly!
+    const repoUrl = user.githubAccessToken
+      ? `https://x-access-token:${user.githubAccessToken}@github.com/${repoName}.git`
+      : `https://github.com/${repoName}.git`;
+
+    if (commitHash && !user.isPro) {
       // Check if we've already generated docs for this exact commit across the platform
       const cachedProject = await Project.findOne({ repoName, commitHash, generatedDocs: { $ne: '' } });
 
@@ -65,6 +77,11 @@ const createProject = async (req, res) => {
           status: 'ready' // Instantly ready!
         });
 
+        if (!user.isPro) {
+          user.generationCount += 1;
+          await user.save();
+        }
+
         return res.status(201).json({ message: 'Project configured successfully', project, cached: true });
       }
     }
@@ -81,23 +98,30 @@ const createProject = async (req, res) => {
       status: 'queued' // Mark as queued
     });
 
-    const rawCustomKey = (req.headers['x-custom-gemini-key'] || '').trim();
-    const isCustomKeyValid = rawCustomKey && rawCustomKey !== 'null' && rawCustomKey.length > 30;
+    const rawCustomKey = (req.headers['x-custom-api-key'] || '').trim();
+    const isCustomKeyValid = rawCustomKey && rawCustomKey !== 'null' && rawCustomKey.length > 20;
     const byokOptions = {
       customKey: isCustomKeyValid ? rawCustomKey : '',
       targetModel: req.headers['x-target-model'] || 'gemini-2.5-flash-lite',
     };
 
     // Add to BullMQ Queue (Async)
+    const jobOptions = user.isPro ? { priority: 1 } : { priority: 10 };
+
     const job = await docGenerationQueue.add('generateDocs', {
       projectId: project._id.toString(),
       repoUrl,
       commitHash,
       llmProvider: project.llmProvider,
       byokOptions,
-    });
+    }, jobOptions);
 
     console.log(`[Queue] Added job ${job.id} for project ${project._id}`);
+
+    if (!user.isPro) {
+      user.generationCount += 1;
+      await user.save();
+    }
 
     res.status(201).json({
       message: 'Project queued for documentation generation',

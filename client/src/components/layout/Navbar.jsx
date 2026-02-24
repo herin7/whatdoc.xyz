@@ -1,8 +1,9 @@
-import { Menu, X, LogOut, Star } from 'lucide-react';
+import { Menu, X, LogOut, Star, Zap } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { API_URL } from '../../lib/config';
+import UpgradeModal from '../UpgradeModal';
 
 // Custom sleek SVGs
 const ProductHuntIcon = ({ className }) => (
@@ -26,6 +27,7 @@ const GithubIcon = ({ className }) => (
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -67,11 +69,11 @@ export default function Navbar() {
   return (
     <div className="fixed top-0 left-0 z-50 w-full border-b border-white/5 bg-[#050505]/80 backdrop-blur-xl px-4 md:px-6">
       <nav className="mx-auto h-14 max-w-[1400px]">
-        {/* The Grid layout ensures the center user count NEVER overlaps the buttons */}
-        <div className="flex justify-between md:grid md:grid-cols-3 h-full items-center">
+        {/* Flex layout dynamically handles widths without overlapping */}
+        <div className="flex justify-between items-center h-full w-full gap-2 lg:gap-4">
 
           {/* LEFT: Logo */}
-          <div className="flex items-center justify-start">
+          <div className="flex items-center justify-start shrink-0">
             <Link to="/" className="flex items-center gap-2 relative z-10">
               <span className="font-logo text-lg tracking-tight text-white hover:text-emerald-400 transition-colors">
                 <span className='font-bold'>W</span>HATDOC.XYZ
@@ -80,7 +82,7 @@ export default function Navbar() {
           </div>
 
           {/* CENTER: Links & User Count */}
-          <div className="hidden md:flex items-center justify-center gap-6">
+          <div className="hidden md:flex flex-1 items-center justify-center gap-3 lg:gap-6 mx-2 whitespace-nowrap">
             <div className="flex items-center gap-1">
               <Link to="/" className="h-8 px-3 py-1.5 text-xs font-medium text-zinc-400 rounded-full transition-all hover:bg-white/5 hover:text-white">Home</Link>
               <Link to="/templates" className="h-8 px-3 py-1.5 text-xs font-medium text-zinc-400 rounded-full transition-all hover:bg-white/5 hover:text-white">Templates</Link>
@@ -105,7 +107,7 @@ export default function Navbar() {
           </div>
 
           {/* RIGHT: Launch Buttons & Auth */}
-          <div className="hidden md:flex items-center justify-end gap-2 lg:gap-3">
+          <div className="hidden md:flex items-center justify-end gap-1.5 lg:gap-3 shrink-0">
 
             {/* --- LAUNCH LINKS --- */}
             <div className="flex items-center gap-2 mr-1 lg:mr-2 border-r border-white/10 pr-3 lg:pr-4">
@@ -151,6 +153,15 @@ export default function Navbar() {
             </a>
             {user ? (
               <>
+                {!user.isPro && (
+                  <button
+                    onClick={() => setIsUpgradeOpen(true)}
+                    className="hidden lg:flex items-center gap-1.5 h-8 px-3 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs font-semibold text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all duration-300 shadow-[0_0_10px_rgba(16,185,129,0.1)] hover:shadow-[0_0_20px_rgba(16,185,129,0.3)]"
+                  >
+                    <Zap className="size-3.5" />
+                    Upgrade
+                  </button>
+                )}
                 <Link to="/dashboard" className="hidden lg:flex items-center gap-2 h-8 px-4 rounded-full border border-white/10 bg-[#111] text-xs font-medium hover:bg-white hover:text-black hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all duration-300">
                   <span>Dashboard</span>
                 </Link>
@@ -257,6 +268,7 @@ export default function Navbar() {
           )}
         </div>
       )}
+      <UpgradeModal isOpen={isUpgradeOpen} onClose={() => setIsUpgradeOpen(false)} />
     </div>
   );
 }

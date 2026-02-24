@@ -19,7 +19,8 @@ const worker = new Worker(
     queueName,
     async (job) => {
         const { projectId, repoUrl, commitHash, llmProvider, byokOptions } = job.data;
-        console.log(`[Worker] Started processing project ${projectId} for repo ${repoUrl} @ hash ${commitHash}`);
+        const safeLogUrl = repoUrl.replace(/https:\/\/.*@github\.com/, 'https://github.com');
+        console.log(`[Worker] Started processing project ${projectId} for repo ${safeLogUrl} @ hash ${commitHash}`);
 
         try {
             // Save the commitHash we are generating for

@@ -11,7 +11,7 @@ import AeroLatexTemplate from '../templates/AeroLatexTemplate';
 
 import { API_URL } from '../lib/config';
 
-// ── Template map — drop new templates here ──────────────────────────
+
 const TemplateMap = {
     modern: ModernTemplate,
     minimal: MinimalTemplate,
@@ -50,7 +50,7 @@ export default function DocViewer() {
         })();
     }, [slug]);
 
-    // ── Loading state ───────────────────────────────────────────────
+
     if (loading) {
         return (
             <div className="min-h-screen bg-[#0a0a0a] text-zinc-200 flex items-center justify-center">
@@ -59,7 +59,7 @@ export default function DocViewer() {
         );
     }
 
-    // ── Error / 404 state ───────────────────────────────────────────
+
     if (error || !project) {
         return (
             <div className="min-h-screen bg-[#0a0a0a] text-zinc-200 flex flex-col items-center justify-center gap-4 px-4">
@@ -78,7 +78,7 @@ export default function DocViewer() {
         );
     }
 
-    // ── Dynamic template rendering ──────────────────────────────────
+
     const SelectedTemplate = TemplateMap[project.template] || TemplateMap.modern;
 
     return (

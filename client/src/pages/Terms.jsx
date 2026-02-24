@@ -7,7 +7,7 @@ export default function Terms() {
     return (
         <div className="min-h-screen bg-[#050505] text-zinc-300 font-sans relative selection:bg-emerald-500/30 pb-20">
 
-            {/* Ambient Background */}
+
             <div className="fixed inset-0 pointer-events-none flex justify-center z-0">
                 <div className="absolute top-[-20%] w-[800px] h-[400px] rounded-[100%] bg-emerald-500/5 blur-[120px]" />
             </div>
@@ -63,8 +63,8 @@ export default function Terms() {
                             but we do not claim any ownership over your source code, IP, or the generated documentation.
                         </p>
                         <ul className="space-y-2 text-zinc-400 list-disc pl-5">
-                            <li>Public Repositories: We read them to generate public docs.</li>
-                            <li>API Keys: If you provide your own LLM API keys (e.g., Gemini), they are stored securely and used exclusively for your requests.</li>
+                            <li>Public & Private Repositories: We read both public and authorized private repositories securely to generate your docs.</li>
+                            <li>API Keys: Your BYOK custom LLM API keys remain securely on your device (browser localStorage) and are relayed to providers contextually. They are NEVER stored in our database.</li>
                         </ul>
                     </section>
 

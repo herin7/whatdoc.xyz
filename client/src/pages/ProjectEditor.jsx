@@ -8,7 +8,6 @@ import {
 import Logo from '../components/Logo';
 import { project as projectApi } from '../lib/api';
 
-// ── Template map (same as DocViewer) — used for live preview ────────
 import ModernTemplate from '../templates/ModernTemplate';
 import MinimalTemplate from '../templates/MinimalTemplate';
 import TwilioTemplate from '../templates/TwilioTemplate';
@@ -25,7 +24,6 @@ const TemplateMap = {
     aerolatex: AeroLatexTemplate,
 };
 
-// ── Toast notification ──────────────────────────────────────────────
 function Toast({ message, type = 'success', onClose }) {
     useEffect(() => {
         const t = setTimeout(onClose, 3500);
@@ -50,7 +48,6 @@ function Toast({ message, type = 'success', onClose }) {
     );
 }
 
-// ── Field wrapper ───────────────────────────────────────────────────
 function Field({ icon: Icon, label, children }) {
     return (
         <div>
@@ -70,12 +67,11 @@ const inputClass =
 export default function ProjectEditor() {
     const { projectId } = useParams();
 
-    // ── Data state ──────────────────────────────────────────────────
     const [proj, setProj] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
-    // ── Editable fields ─────────────────────────────────────────────
+
     const [subdomain, setSubdomain] = useState('');
     const [logoUrl, setLogoUrl] = useState('');
     const [ownerName, setOwnerName] = useState('');
@@ -83,14 +79,12 @@ export default function ProjectEditor() {
     const [upcomingVersion, setUpcomingVersion] = useState('');
     const [docs, setDocs] = useState('');
 
-    // ── UI state ────────────────────────────────────────────────────
     const [saving, setSaving] = useState(false);
     const [toast, setToast] = useState(null);
     const [settingsOpen, setSettingsOpen] = useState(true);
     const [previewVisible, setPreviewVisible] = useState(true);
     const textareaRef = useRef(null);
 
-    // ── Fetch project on mount ──────────────────────────────────────
     useEffect(() => {
         (async () => {
             try {
@@ -111,7 +105,7 @@ export default function ProjectEditor() {
         })();
     }, [projectId]);
 
-    // ── Save handler ────────────────────────────────────────────────
+
     const handleSave = useCallback(async () => {
         setSaving(true);
         try {
@@ -128,7 +122,7 @@ export default function ProjectEditor() {
         }
     }, [projectId, subdomain, docs, logoUrl, ownerName, currentVersion, upcomingVersion]);
 
-    // ── Ctrl+S shortcut ─────────────────────────────────────────────
+
     useEffect(() => {
         const handler = (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 's') {
@@ -140,7 +134,6 @@ export default function ProjectEditor() {
         return () => window.removeEventListener('keydown', handler);
     }, [handleSave]);
 
-    // ── Build a synthetic project object for live preview ───────────
     const previewProject = proj
         ? {
             ...proj,
@@ -150,7 +143,7 @@ export default function ProjectEditor() {
         }
         : null;
 
-    // ── Loading ─────────────────────────────────────────────────────
+
     if (loading) {
         return (
             <div className="h-screen bg-[#0a0a0a] text-zinc-200 flex items-center justify-center">
@@ -159,7 +152,6 @@ export default function ProjectEditor() {
         );
     }
 
-    // ── Error ───────────────────────────────────────────────────────
     if (error || !proj) {
         return (
             <div className="h-screen bg-[#0a0a0a] text-zinc-200 flex flex-col items-center justify-center gap-4 px-4">
@@ -178,10 +170,10 @@ export default function ProjectEditor() {
 
     return (
         <div className="h-screen flex flex-col bg-[#0a0a0a] text-zinc-200 overflow-hidden">
-            {/* ── Toast ──────────────────────────────────────────── */}
+            {/* ── Toast ─ */}
             {toast && <Toast {...toast} onClose={() => setToast(null)} />}
 
-            {/* ── Header bar ─────────────────────────────────────── */}
+            {/* ── Header bar ─ */}
             <header className="shrink-0 h-12 flex items-center justify-between px-4 border-b border-zinc-800/60 bg-[#0a0a0a]/95 backdrop-blur-sm z-50">
                 <div className="flex items-center gap-3">
                     <Link to="/dashboard" className="text-zinc-500 hover:text-white transition-colors">
@@ -232,10 +224,10 @@ export default function ProjectEditor() {
                 </div>
             </header>
 
-            {/* ── Split layout ───────────────────────────────────── */}
+            {/* ── Split layout ── */}
             <div className="flex flex-1 overflow-hidden">
 
-                {/* ── LEFT PANEL ─────────────────────────────────── */}
+                {/* ── LEFT PANEL  */}
                 <div
                     className={`flex flex-col border-r border-zinc-800/60 transition-all duration-300 relative z-20 ${previewVisible ? 'w-1/2' : 'w-full'
                         }`}
@@ -328,7 +320,7 @@ export default function ProjectEditor() {
                     />
                 </div>
 
-                {/* ── RIGHT PANEL (Live Preview) ─────────────────── */}
+                {/* ── RIGHT PANEL (Live Preview)  */}
                 {previewVisible && (
                     <div className="w-1/2 overflow-hidden bg-zinc-950 flex flex-col">
                         {/* Preview label */}
@@ -345,7 +337,7 @@ export default function ProjectEditor() {
                 )}
             </div>
 
-            {/* ── Keyframes ──────────────────────────────────────── */}
+            {/* ── Keyframes ── */}
             <style>{`
                 @keyframes slideIn {
                     from { opacity: 0; transform: translateX(16px); }

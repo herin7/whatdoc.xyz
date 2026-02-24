@@ -1,7 +1,7 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { getNextApiKey } = require('../utils/keyManager');
 
-// ── Supported providers ─────────────────────────────────────────────
+
 // Add new providers here. Each must expose  generate(rawCode, opts) → string
 const PROVIDERS = {
     gemini: createGeminiProvider,
@@ -13,14 +13,13 @@ const PROVIDER_LABELS = {
     // openai: 'OpenAI (gpt-4o-mini)',  ← future
 };
 
-// ── Retry config ────────────────────────────────────────────────────
 const MAX_RETRIES = 3;
 const INITIAL_BACKOFF_MS = 15_000; // 15 s — generous for free-tier RPM
 
-// ── Token Guillotine ────────────────────────────────────────────────
+
 // Free-tier cap: ~800k chars (~200k tokens). Pro users get full 900k.
 const FREE_TIER_CHAR_LIMIT = 800_000;
-// ── System prompt ───────────────────────────────────────────────────
+
 const SYSTEM_PROMPT = `You are an elite Technical Writer and Principal OSS Maintainer. I am providing you with the raw source code of a repository. Your objective is to write production-grade, highly accurate, and human-readable documentation.
 
 CRITICAL TONE & STYLE GUIDELINES (HUMAN-LIKE):
@@ -110,7 +109,6 @@ STRICT ENFORCEMENT:
 - Base EVERYTHING on the provided source code. 
 - If a section cannot be filled because the code does not exist, OMIT the section entirely rather than hallucinating fake data.
 - Maximize technical depth. If a file contains complex logic, explain that logic step-by-step.`;
-// ── Helpers ─────────────────────────────────────────────────────────
 
 function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -141,7 +139,6 @@ function applyTokenGuillotine(rawCode, isPro = false) {
     return { code: truncated + note, wasTruncated: true };
 }
 
-// ── Gemini provider ─────────────────────────────────────────────────
 function createGeminiProvider() {
     return {
         name: 'gemini',
@@ -190,14 +187,25 @@ function createGeminiProvider() {
             };
 
             let lastError;
+            const startTime = Date.now();
 
             for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
                 try {
+                    console.log(`[llm] Sending payload to ${modelName} (Attempt ${attempt + 1}/${MAX_RETRIES + 1}). Wait for Reasoning...`);
                     const result = await model.generateContent({ contents, generationConfig });
                     const text = result.response.text();
+                    const duration = ((Date.now() - startTime) / 1000).toFixed(1);
 
                     if (!text || text.trim().length === 0) {
                         throw new Error('LLM returned an empty response');
+                    }
+
+                    // Optional: Get token usage if supported by the library version
+                    const usage = result.response.usageMetadata;
+                    if (usage) {
+                        console.log(`[llm] ✅ Generation Successful in ${duration}s | In: ${usage.promptTokenCount} | Out: ${usage.candidatesTokenCount}`);
+                    } else {
+                        console.log(`[llm] ✅ Generation Successful in ${duration}s (Token usage unavailable in response)`);
                     }
 
                     return text;
@@ -223,8 +231,6 @@ function createGeminiProvider() {
         },
     };
 }
-
-// ── Factory ─────────────────────────────────────────────────────────
 
 function getLLMProvider(providerName = 'gemini') {
     const factory = PROVIDERS[providerName];

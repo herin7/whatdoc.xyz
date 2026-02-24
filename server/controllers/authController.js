@@ -62,7 +62,10 @@ async function signup(req, res) {
                 id: user._id,
                 firstName: user.firstName,
                 lastName: user.lastName,
-                email: user.email
+                email: user.email,
+                isPro: user.isPro,
+                planTier: user.planTier,
+                generationCount: user.generationCount
             }
         });
 
@@ -112,7 +115,10 @@ async function signin(req, res) {
                     id: response._id,
                     firstName: response.firstName,
                     lastName: response.lastName,
-                    email: response.email
+                    email: response.email,
+                    isPro: response.isPro,
+                    planTier: response.planTier,
+                    generationCount: response.generationCount
                 }
             });
         }
@@ -194,10 +200,21 @@ async function githubCallback(req, res) {
         });
 
         const githubUser = await userResponse.json();
+        const githubIdRaw = githubUser.id.toString();
 
-        // Save GitHub info to the user
+        // One GitHub = One Email Account security logic
+        const existingAttachment = await UserModel.findOne({
+            githubId: githubIdRaw,
+            _id: { $ne: userId } // Anyone else but the current user
+        });
+
+        if (existingAttachment) {
+            return res.redirect(`${CLIENT_URL}/dashboard?github=error&reason=already_linked`);
+        }
+
+        // Save GitHub info to the active user
         await UserModel.findByIdAndUpdate(userId, {
-            githubId: githubUser.id.toString(),
+            githubId: githubIdRaw,
             githubUsername: githubUser.login,
             githubAccessToken: accessToken
         });
@@ -371,4 +388,53 @@ async function deleteAccount(req, res) {
     }
 }
 
-module.exports = { signup, signin, getMe, githubAuth, githubCallback, getRepos, redeemProCode, updateProfile, unlinkGithub, deleteAccount };
+const googleAuth = async (req, res) => {
+    try {
+        const { email, displayName, photoURL } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ message: "Email is required from Google Auth" });
+        }
+
+        // Try to find if user already exists (doesn't harm existing data)
+        let user = await UserModel.findOne({ email });
+
+        if (!user) {
+            const parts = (displayName || "").split(" ");
+            const firstName = parts[0] || "Google";
+            const lastName = parts.slice(1).join(" ") || "User";
+
+            user = await UserModel.create({
+                email,
+                firstName,
+                lastName,
+                avatarUrl: photoURL || "",
+                password: "", // Not needed for Google SSO
+                planTier: 'free',
+                isPro: false
+            });
+        }
+
+        const token = jwt.sign({ id: user._id.toString() }, JWT_SECRET, { expiresIn: '7d' });
+
+        return res.json({
+            message: "Google login successful",
+            token,
+            user: {
+                id: user._id,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                avatarUrl: user.avatarUrl,
+                githubConnected: !!user.githubId,
+                planTier: user.planTier,
+                isPro: user.isPro
+            }
+        });
+    } catch (error) {
+        console.error("Google Auth controller error:", error);
+        return res.status(500).json({ message: "Failed to authenticate with Google" });
+    }
+};
+
+module.exports = { signup, signin, getMe, githubAuth, githubCallback, getRepos, redeemProCode, updateProfile, unlinkGithub, deleteAccount, googleAuth };

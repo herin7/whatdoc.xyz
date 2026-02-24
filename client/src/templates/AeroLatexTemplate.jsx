@@ -138,7 +138,7 @@ export default function AeroLatexTemplate({ project }) {
     const [headerSolid, setHeaderSolid] = useState(false);
     const contentRef = useRef(null);
 
-    /* ── Intersection-based scroll spy ─────────────────────────────── */
+    /* ── Intersection-based scroll spy ──── */
     useEffect(() => {
         const root = contentRef.current;
         if (!root) return;
@@ -178,7 +178,7 @@ export default function AeroLatexTemplate({ project }) {
         setMobileOpen(false);
     };
 
-    /* ── Section index for numbering ───────────────────────────────── */
+    /* ── Section index for numbering ─ */
     const sectionIdx = (id) => {
         const i = sections.findIndex((s) => s.id === id);
         return i >= 0 ? i + 1 : '';
@@ -187,7 +187,7 @@ export default function AeroLatexTemplate({ project }) {
     return (
         <div className="h-screen flex flex-col bg-[#FAFAFA] text-zinc-800 font-sans relative overflow-hidden">
 
-            {/* ── Very faint background texture ────────────────────── */}
+            {/* ── Very faint background texture ─── */}
             <div className="pointer-events-none absolute inset-0 z-0">
                 {/* Radial wash — warm center */}
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(0,0,0,0.02),transparent)]" />
@@ -201,7 +201,7 @@ export default function AeroLatexTemplate({ project }) {
                 />
             </div>
 
-            {/* ── Reading progress bar ─────────────────────────────── */}
+            {/* ── Reading progress bar ──── */}
             <div className="fixed top-0 left-0 right-0 z-[60] h-[2px] bg-transparent">
                 <div
                     className="h-full bg-zinc-400/60 transition-[width] duration-200 ease-out"
@@ -209,7 +209,7 @@ export default function AeroLatexTemplate({ project }) {
                 />
             </div>
 
-            {/* ── Floating glassmorphic header (pill) ──────────────── */}
+            {/* ── Floating glassmorphic header (pill)  */}
             <header
                 className={`
                     fixed top-6 left-1/2 -translate-x-1/2 w-[90%] max-w-5xl z-50
@@ -256,10 +256,10 @@ export default function AeroLatexTemplate({ project }) {
                 </div>
             </header>
 
-            {/* ── Body (sidebar + content) ─────────────────────────── */}
+            {/* ── Body (sidebar + content)  */}
             <div className="flex flex-1 overflow-hidden relative z-10 pt-28">
 
-                {/* ── Sidebar — borderless, floating text links ────── */}
+                {/* ── Sidebar — borderless, floating text links ─ */}
                 <aside
                     className={`
                         absolute md:static inset-y-0 left-0 z-40 w-[250px] flex flex-col shrink-0
@@ -309,16 +309,16 @@ export default function AeroLatexTemplate({ project }) {
                     </div>
                 </aside>
 
-                {/* ── Mobile overlay ───────────────────────────────── */}
+                {/* ── Mobile overlay ─ */}
                 {mobileOpen && (
                     <div className="fixed inset-0 z-30 bg-black/10 md:hidden" onClick={() => setMobileOpen(false)} />
                 )}
 
-                {/* ── Main scrollable content ──────────────────────── */}
+                {/* ── Main scrollable content  */}
                 <main ref={contentRef} className="flex-1 overflow-y-auto scroll-smooth">
                     <div className="max-w-3xl px-8 md:px-12 pb-24">
 
-                        {/* ── Title block — academic cover ─────────── */}
+                        {/* ── Title block — academic cover ─── */}
                         <div className="mb-16 animate-[riseIn_0.7s_cubic-bezier(0.22,1,0.36,1)_both]">
                             <div className="flex items-center gap-2 mb-4">
                                 <BookOpen className="size-4 text-zinc-400" />
@@ -355,7 +355,7 @@ export default function AeroLatexTemplate({ project }) {
                             <div className="mt-8 h-px w-full bg-gradient-to-r from-zinc-300 via-zinc-200 to-transparent" />
                         </div>
 
-                        {/* ── Rendered sections ────────────────────── */}
+                        {/* ── Rendered sections ─── */}
                         {sections.length === 0 ? (
                             <p className="text-zinc-400 italic font-serif">No documentation has been generated yet.</p>
                         ) : (
@@ -411,7 +411,7 @@ export default function AeroLatexTemplate({ project }) {
                             ))
                         )}
 
-                        {/* ── Colophon ─────────────────────────────── */}
+                        {/* ── Colophon ──── */}
                         <footer className="mt-12 pt-8 border-t border-zinc-200/60 flex items-center justify-between text-xs text-zinc-400">
                             <span>
                                 Typeset by{' '}
@@ -430,7 +430,7 @@ export default function AeroLatexTemplate({ project }) {
                 </main>
             </div>
 
-            {/* ── Floating back-to-top ─────────────────────────────── */}
+            {/* ── Floating back-to-top ──── */}
             <button
                 onClick={() => contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
                 className={`
@@ -443,7 +443,7 @@ export default function AeroLatexTemplate({ project }) {
                 <ArrowUp className="size-4" />
             </button>
 
-            {/* ── Keyframes ────────────────────────────────────────── */}
+            {/* ── Keyframes ──── */}
             <style>{`
                 @keyframes riseIn {
                     from { opacity: 0; transform: translateY(18px); }

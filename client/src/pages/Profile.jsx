@@ -37,8 +37,6 @@ export default function Profile() {
         setToast({ message, type });
         setTimeout(() => setToast(null), 3500);
     }
-
-    // --- Cloudinary upload ---
     function handleUpload() {
         if (!window.cloudinary) {
             showToast('Cloudinary widget not loaded.', 'error');
@@ -63,8 +61,6 @@ export default function Profile() {
         );
         widget.open();
     }
-
-    // --- Save profile ---
     async function handleSave(e) {
         e.preventDefault();
         setSaving(true);
@@ -81,8 +77,6 @@ export default function Profile() {
             setSaving(false);
         }
     }
-
-    // --- Redeem pro code ---
     async function handleRedeem() {
         if (!proCode.trim()) return;
         setRedeemingCode(true);
@@ -100,8 +94,6 @@ export default function Profile() {
             setRedeemingCode(false);
         }
     }
-
-    // --- Link GitHub ---
     async function handleLinkGithub() {
         try {
             const data = await githubApi.getAuthUrl(false);
@@ -110,8 +102,6 @@ export default function Profile() {
             showToast('Failed to start GitHub linking.', 'error');
         }
     }
-
-    // --- Unlink GitHub ---
     async function handleUnlinkGithub() {
         if (!confirm('Are you sure you want to unlink your GitHub account? You won\'t be able to import private repos until you re-link.')) return;
         setUnlinking(true);
@@ -125,8 +115,6 @@ export default function Profile() {
             setUnlinking(false);
         }
     }
-
-    // --- Delete account ---
     async function handleDeleteAccount() {
         setDeleting(true);
         try {
@@ -148,12 +136,12 @@ export default function Profile() {
         <div className="min-h-screen bg-[#050505] text-white">
             <Navbar />
 
-            {/* Toast */}
+
             {toast && (
                 <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50">
                     <div className={`px-5 py-2.5 rounded-lg text-sm font-medium shadow-xl backdrop-blur-md ${toast.type === 'error'
-                            ? 'bg-red-500/10 border border-red-500/20 text-red-400'
-                            : 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                        ? 'bg-red-500/10 border border-red-500/20 text-red-400'
+                        : 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
                         }`}>
                         {toast.message}
                     </div>
@@ -163,7 +151,7 @@ export default function Profile() {
             <main className="mx-auto max-w-2xl px-6 pt-24 pb-16">
                 <h1 className="text-2xl font-semibold tracking-tight mb-8">Profile Settings</h1>
 
-                {/* ── Avatar Card ── */}
+
                 <section className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-8 mb-6">
                     <div className="flex items-center gap-6">
                         <div className="relative group">
@@ -201,7 +189,7 @@ export default function Profile() {
                     </div>
                 </section>
 
-                {/* ── Personal Info Card ── */}
+
                 <section className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-8 mb-6">
                     <h3 className="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-5">Personal Information</h3>
                     <form onSubmit={handleSave} className="space-y-5">
@@ -249,7 +237,7 @@ export default function Profile() {
                     </form>
                 </section>
 
-                {/* ── GitHub Card ── */}
+
                 <section className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-8 mb-6">
                     <h3 className="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-5">GitHub Integration</h3>
                     {isGithubLinked ? (
@@ -300,14 +288,14 @@ export default function Profile() {
                     )}
                 </section>
 
-                {/* ── Plan & Pro Code Card ── */}
+
                 <section className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-8 mb-6">
                     <h3 className="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-5">Current Plan</h3>
 
                     <div className="flex items-center gap-3 mb-6">
                         <div className={`h-10 w-10 rounded-full flex items-center justify-center ${user?.isPro
-                                ? 'bg-gradient-to-br from-amber-500 to-orange-600'
-                                : 'bg-zinc-800 border border-zinc-700'
+                            ? 'bg-gradient-to-br from-amber-500 to-orange-600'
+                            : 'bg-zinc-800 border border-zinc-700'
                             }`}>
                             {user?.isPro ? <Sparkles size={18} className="text-white" /> : <Shield size={18} className="text-zinc-500" />}
                         </div>
@@ -354,7 +342,7 @@ export default function Profile() {
                     )}
                 </section>
 
-                {/* ── Danger Zone ── */}
+
                 <section className="bg-[#0a0a0a] border border-red-500/15 rounded-2xl p-8">
                     <h3 className="text-sm font-medium text-red-400 uppercase tracking-wider mb-2">Danger Zone</h3>
                     <p className="text-xs text-zinc-500 mb-5">Permanently delete your account and all associated data. This action cannot be undone.</p>
@@ -369,7 +357,7 @@ export default function Profile() {
                 </section>
             </main>
 
-            {/* ── Delete Confirmation Modal ── */}
+
             {showDeleteModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
                     <div className="w-full max-w-md mx-4 bg-[#0a0a0a] border border-zinc-800 rounded-2xl p-8 shadow-2xl">

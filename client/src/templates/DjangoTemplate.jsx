@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import Logo from '../components/Logo';
 
-/* ── Parse markdown into sections by ## headings ───────────────────── */
+/* ── Parse markdown into sections by ## headings ── */
 function parseSections(markdown) {
     if (!markdown) return [];
     const lines = markdown.split('\n');
@@ -38,7 +38,7 @@ function parseSections(markdown) {
         .filter((s) => s.content && !s.content.match(/^\s*_?\(?Not enough data/i));
 }
 
-/* ── Markdown component overrides ──────────────────────────────────── */
+/* ── Markdown component overrides ─ */
 const mdComponents = {
     code({ node, inline, className, children, ...props }) {
         const match = /language-(\w+)/.exec(className || '');
@@ -84,7 +84,7 @@ export default function DjangoTemplate({ project }) {
     const [showTop, setShowTop] = useState(false);
     const contentRef = useRef(null);
 
-    /* ── Scroll-spy ────────────────────────────────────────────────── */
+    /* ── Scroll-spy ──── */
     useEffect(() => {
         const root = contentRef.current;
         if (!root) return;
@@ -96,7 +96,7 @@ export default function DjangoTemplate({ project }) {
         return () => ob.disconnect();
     }, [sections]);
 
-    /* ── Back-to-top visibility ────────────────────────────────────── */
+    /* ── Back-to-top visibility  */
     useEffect(() => {
         const root = contentRef.current;
         if (!root) return;
@@ -121,9 +121,9 @@ export default function DjangoTemplate({ project }) {
     return (
         <div className="h-screen flex flex-col bg-[#f8f8f8] text-[#333] overflow-hidden">
 
-            {/* ── Header band ──────────────────────────────────────── */}
+            {/* ── Header band ── */}
             <header className="shrink-0 bg-[#0c4b33] text-white z-50">
-                {/* Top row */}
+
                 <div className="flex items-center justify-between h-14 px-5 max-w-[1440px] mx-auto">
                     <div className="flex items-center gap-3">
                         <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden text-green-200 hover:text-white">
@@ -159,7 +159,7 @@ export default function DjangoTemplate({ project }) {
 
             <div className="flex flex-1 overflow-hidden relative">
 
-                {/* ── Sidebar ──────────────────────────────────────── */}
+                {/* ── Sidebar ── */}
                 <aside
                     className={`
                             absolute md:static inset-y-0 left-0 z-40 w-[260px] flex flex-col
@@ -215,12 +215,12 @@ export default function DjangoTemplate({ project }) {
                     </div>
                 </aside>
 
-                {/* ── Mobile overlay ───────────────────────────────── */}
+                {/* ── Mobile overlay ─ */}
                 {mobileOpen && (
                     <div className="fixed inset-0 z-30 bg-black/30 md:hidden" onClick={() => setMobileOpen(false)} />
                 )}
 
-                {/* ── Main reading area ────────────────────────────── */}
+                {/* ── Main reading area ─── */}
                 <main ref={contentRef} className="flex-1 overflow-y-auto scroll-smooth bg-[#f8f8f8]">
                     <div className="max-w-3xl mx-auto px-6 md:px-10 py-10">
 
@@ -287,7 +287,7 @@ export default function DjangoTemplate({ project }) {
                 </main>
             </div >
 
-            {/* ── Keyframes ────────────────────────────────────────── */}
+            {/* ── Keyframes ──── */}
             < style > {`
                     @keyframes fadeDown {
                         from { opacity: 0; transform: translateY(-10px); }

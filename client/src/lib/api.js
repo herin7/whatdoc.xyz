@@ -66,6 +66,9 @@ export const auth = {
     signin: (body) =>
         apiRequest('/auth/signin', { method: 'POST', body: JSON.stringify(body) }),
 
+    google: (body) =>
+        apiRequest('/auth/google', { method: 'POST', body: JSON.stringify(body) }),
+
     me: () => apiRequest('/auth/me'),
 
     deleteAccount: (password) =>
@@ -74,13 +77,13 @@ export const auth = {
 
 export const project = {
     create: (body) => {
-        const rawKey = (localStorage.getItem('wtd_gemini_key') || '').trim();
-        const customModel = localStorage.getItem('wtd_gemini_model') || 'gemini-2.5-flash-lite';
+        const rawKey = (localStorage.getItem('wtd_custom_key') || '').trim();
+        const customModel = localStorage.getItem('wtd_custom_model') || 'gemini-2.5-flash-lite';
 
-        const isKeyValid = rawKey.length > 30 && rawKey !== 'null';
+        const isKeyValid = rawKey.length > 20 && rawKey !== 'null';
 
         const extraHeaders = { 'x-target-model': customModel };
-        if (isKeyValid) extraHeaders['x-custom-gemini-key'] = rawKey;
+        if (isKeyValid) extraHeaders['x-custom-api-key'] = rawKey;
 
         return apiRequest('/projects', {
             method: 'POST',

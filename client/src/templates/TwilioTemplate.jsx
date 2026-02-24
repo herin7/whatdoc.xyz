@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import Logo from '../components/Logo';
 
-/* ── Parse markdown into sections by ## headings ───────────────────── */
+/* ── Parse markdown into sections by ## headings ── */
 function parseSections(markdown) {
     if (!markdown) return [];
     const lines = markdown.split('\n');
@@ -38,7 +38,7 @@ function parseSections(markdown) {
         .filter((s) => s.content && !s.content.match(/^\s*_?\(?Not enough data/i));
 }
 
-/* ── Copy button for code blocks ───────────────────────────────────── */
+/* ── Copy button for code blocks ── */
 function CopyBtn({ text }) {
     const [copied, setCopied] = useState(false);
     const copy = () => {
@@ -57,7 +57,7 @@ function CopyBtn({ text }) {
     );
 }
 
-/* ── Markdown component overrides ──────────────────────────────────── */
+/* ── Markdown component overrides ─ */
 const mdComponents = {
     code({ node, inline, className, children, ...props }) {
         const match = /language-(\w+)/.exec(className || '');
@@ -103,7 +103,7 @@ export default function TwilioTemplate({ project }) {
     const [searchTerm, setSearchTerm] = useState('');
     const contentRef = useRef(null);
 
-    /* ── Intersection observer for scroll-spy ──────────────────────── */
+    /* ── Intersection observer for scroll-spy  */
     useEffect(() => {
         const root = contentRef.current;
         if (!root) return;
@@ -122,7 +122,7 @@ export default function TwilioTemplate({ project }) {
         return () => observer.disconnect();
     }, [sections]);
 
-    /* ── Sidebar search filter ─────────────────────────────────────── */
+    /* ── Sidebar search filter ─ */
     const filtered = searchTerm
         ? sections.filter((s) => s.title.toLowerCase().includes(searchTerm.toLowerCase()))
         : sections;
@@ -134,14 +134,14 @@ export default function TwilioTemplate({ project }) {
         setMobileOpen(false);
     };
 
-    /* ── Stagger animation helper ──────────────────────────────────── */
+    /* ── Stagger animation helper ─ */
     const fadeClass = (i) =>
         `animate-[fadeSlideUp_0.45s_ease_both] [animation-delay:${i * 60}ms]`;
 
     return (
         <div className="h-screen flex flex-col bg-[#0d122b] text-slate-300 overflow-hidden">
 
-            {/* ── Top bar ──────────────────────────────────────────── */}
+            {/* ── Top bar ─ */}
             <header className="shrink-0 h-14 flex items-center justify-between px-5 border-b border-slate-700/40 bg-[#0d122b]/90 backdrop-blur-lg z-50">
                 <div className="flex items-center gap-3">
                     {/* mobile hamburger */}
@@ -176,7 +176,7 @@ export default function TwilioTemplate({ project }) {
 
             <div className="flex flex-1 overflow-hidden relative">
 
-                {/* ── Sidebar ──────────────────────────────────────── */}
+                {/* ── Sidebar ── */}
                 <aside
                     className={`
                         absolute md:static inset-y-0 left-0 z-40 w-[260px] flex flex-col
@@ -235,12 +235,12 @@ export default function TwilioTemplate({ project }) {
                     </div>
                 </aside>
 
-                {/* ── Mobile overlay ───────────────────────────────── */}
+                {/* ── Mobile overlay ─ */}
                 {mobileOpen && (
                     <div className="fixed inset-0 z-30 bg-black/50 md:hidden" onClick={() => setMobileOpen(false)} />
                 )}
 
-                {/* ── Main content ─────────────────────────────────── */}
+                {/* ── Main content  */}
                 <main ref={contentRef} className="flex-1 overflow-y-auto scroll-smooth">
                     <div className="max-w-4xl mx-auto px-6 md:px-12 py-10">
 
@@ -249,7 +249,7 @@ export default function TwilioTemplate({ project }) {
                             {/* animated shimmer line */}
                             <div className="absolute inset-0 pointer-events-none overflow-hidden">
                                 <div className="absolute -top-1/2 -left-1/4 w-[150%] h-[200%] animate-[spin_8s_linear_infinite] opacity-[0.04]"
-                                     style={{ background: 'conic-gradient(from 0deg, transparent, rgba(96,165,250,0.8), transparent 30%)' }} />
+                                    style={{ background: 'conic-gradient(from 0deg, transparent, rgba(96,165,250,0.8), transparent 30%)' }} />
                             </div>
                             <div className="relative z-10">
                                 <div className="flex items-center gap-2 mb-3">
@@ -314,7 +314,7 @@ export default function TwilioTemplate({ project }) {
                 </main>
             </div>
 
-            {/* ── Keyframe injection ───────────────────────────────── */}
+            {/* ── Keyframe injection ─ */}
             <style>{`
                 @keyframes fadeSlideUp {
                     from { opacity: 0; transform: translateY(12px); }

@@ -7,7 +7,7 @@ export default function Privacy() {
     return (
         <div className="min-h-screen bg-[#050505] text-zinc-300 font-sans relative selection:bg-emerald-500/30 pb-20">
 
-            {/* Ambient Background */}
+
             <div className="fixed inset-0 pointer-events-none flex justify-center z-0">
                 <div className="absolute top-[-20%] w-[800px] h-[400px] rounded-[100%] bg-emerald-500/5 blur-[120px]" />
             </div>
@@ -48,7 +48,7 @@ export default function Privacy() {
                         </p>
                         <ul className="list-disc pl-5 mt-4 space-y-2 text-zinc-400">
                             <li><strong>Account Info:</strong> Your email, name, and GitHub username (if linked).</li>
-                            <li><strong>Repository Data:</strong> We temporarily fetch the code from the public repositories you provide to generate documentation.</li>
+                            <li><strong>Repository Data:</strong> We temporarily fetch the code from the public and authorized private repositories you provide to generate documentation. This codebase data is processed securely in memory and NEVER permanently stored on our servers.</li>
                             <li><strong>Analytics:</strong> Basic, anonymized usage data (like page views) to help us see if our servers are going to crash.</li>
                         </ul>
                     </section>
@@ -61,7 +61,7 @@ export default function Privacy() {
                             <h2 className="text-xl font-bold text-white">2. Your API Keys (Bring Your Own Key)</h2>
                         </div>
                         <p className="text-zinc-400">
-                            If you input your own LLM API key (e.g., Gemini) to bypass our generation limits, it is stored in our database so your account can use it. <strong>We do not use your personal API keys for any requests other than your own.</strong> However, you provide these keys at your own risk. We strongly recommend setting spending limits on your API provider accounts.
+                            If you input your own LLM API key (Bring Your Own Key) to bypass our generation limits or access max-reasoning models, this key is <strong>stored securely in your local browser storage (localStorage)</strong>. It is securely relayed contextually to the AI providers during generation and is NEVER persisted in our databases. We strongly recommend setting spending limits on your API provider accounts.
                         </p>
                     </section>
 

@@ -107,9 +107,21 @@ const apiLimiter = rateLimit({
 
 const authRoutes = require("./routes/auth");
 const projectRoutes = require("./routes/project");
+const paymentRoutes = require("./routes/payment");
 
 app.use("/auth", authRoutes);
 app.use("/projects", apiLimiter, projectRoutes);
+app.use("/payment", paymentRoutes);
+
+// Global Error Boundary (prevents CORS trace loops in terminal)
+app.use((err, req, res, next) => {
+    if (err.message === 'Not allowed by CORS') {
+        return res.status(403).json({ error: 'Not allowed by CORS' });
+    }
+    // Handle other errors gracefully
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

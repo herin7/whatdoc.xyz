@@ -129,7 +129,7 @@ export default function Hero() {
 
             <div className="absolute inset-0 pt-10 bg-[#0a0a0a] flex flex-col md:flex-row">
 
-              {/* LEFT PANE: The Raw Code (Static) */}
+
               <div className="w-full md:w-1/2 h-1/2 md:h-full border-b md:border-b-0 md:border-r border-white/10 flex flex-col relative overflow-hidden">
                 <div className="h-8 bg-[#111] flex items-center px-4 border-b border-white/5 shrink-0">
                   <span className="text-[10px] font-mono text-zinc-400 flex items-center gap-2">
@@ -152,7 +152,7 @@ export default function Hero() {
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-500/10 to-transparent h-[150%] animate-[scan_3s_ease-in-out_infinite]" />
               </div>
 
-              {/* RIGHT PANE: Dynamic Template Showcase */}
+
               <div className={`w-full md:w-1/2 h-1/2 md:h-full flex flex-col relative transition-colors duration-700 ${t.bg}`}>
 
                 {/* Dynamic Header Tab */}
@@ -195,7 +195,7 @@ export default function Hero() {
                 </div>
               </div>
 
-              {/* Center Magic Icon */}
+
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2 z-30">
                 <div className="h-10 w-10 rounded-xl bg-white text-black shadow-[0_0_30px_rgba(255,255,255,0.3)] flex items-center justify-center border border-zinc-200">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" /></svg>
