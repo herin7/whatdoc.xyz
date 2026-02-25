@@ -10,6 +10,18 @@
 
 export const DOC_TEMPLATES = [
   {
+    id: 'modern',
+    name: 'Modern DX',
+    description: 'Sleek, multi-theme layout for SaaS, startups, and modern web apps.',
+    previewUrl: 'https://placehold.co/600x400/18181b/10b981?text=Modern',
+  },
+  {
+    id: 'minimal',
+    name: 'Minimalist',
+    description: 'Ultra-clean, distraction-free docs for focused reading.',
+    previewUrl: 'https://placehold.co/600x400/18181b/d4d4d8?text=Minimal',
+  },
+  {
     id: 'twilio',
     name: 'Twilio',
     description: 'API-first layout inspired by Twilio\'s clean developer docs. Sidebar nav with syntax-highlighted code blocks.',

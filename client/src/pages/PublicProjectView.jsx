@@ -47,9 +47,14 @@ export default function PublicProjectView() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (demoProjects[slug]) {
+        if (slug.endsWith('-demo')) {
             // It's a demo! Load fake data immediately
-            setProject(demoProjects[slug]);
+            const templateId = slug.split('-demo')[0];
+            // If there's a specific payload, use it, else fallback to a generic one
+            const payload = demoProjects[slug] || demoProjects['twilio-demo'];
+
+            // Override the template to ensure it renders the requested style
+            setProject({ ...payload, template: templateId });
             setLoading(false);
         } else {
             // It's a real project! Fetch from DB
@@ -68,27 +73,7 @@ export default function PublicProjectView() {
 
     if (!project) return <div>Project not found.</div>;
 
-    // Route to the correct template (fix: use slug for demo mapping)
-    if (demoProjects[slug]) {
-        // Map demo slugs to correct template component
-        switch (slug) {
-            case 'twilio-demo':
-                return <TwilioTemplate project={demoProjects[slug]} />;
-            case 'aerolatex-demo':
-                return <AeroLatexTemplate project={demoProjects[slug]} />;
-            case 'django-demo':
-                return <DjangoTemplate project={demoProjects[slug]} />;
-            case 'minimal-demo':
-                return <MinimalTemplate project={demoProjects[slug]} />;
-            case 'modern-demo':
-                return <ModernTemplate project={demoProjects[slug]} />;
-            case 'mdn-demo':
-                return <MDNTemplate project={demoProjects[slug]} />;
-            default:
-                return <MDNTemplate project={demoProjects[slug]} />;
-        }
-    }
-    // For real projects, use template field
+    // Use TemplateMap for ALL rendering!
     const SelectedTemplate = TemplateMap[project.template] || TemplateMap.modern;
     return <SelectedTemplate project={project} />;
 }
