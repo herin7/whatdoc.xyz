@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import Logo from '../components/Logo';
 import { project as projectApi } from '../lib/api';
+import templatesData from '../config/templatesData.json';
 
 import ModernTemplate from '../templates/ModernTemplate';
 import MinimalTemplate from '../templates/MinimalTemplate';
@@ -98,6 +99,7 @@ export default function ProjectEditor() {
     const [currentVersion, setCurrentVersion] = useState('1.0.0');
     const [upcomingVersion, setUpcomingVersion] = useState('');
     const [docs, setDocs] = useState('');
+    const [template, setTemplate] = useState('modern');
 
     const [saving, setSaving] = useState(false);
     const [toast, setToast] = useState(null);
@@ -116,6 +118,7 @@ export default function ProjectEditor() {
                 setOwnerName(p.customization?.ownerName || '');
                 setCurrentVersion(p.customization?.currentVersion || '1.0.0');
                 setUpcomingVersion(p.customization?.upcomingVersion || '');
+                setTemplate(p.template || 'modern');
                 setDocs(p.generatedDocs || '');
             } catch (err) {
                 setError(err.error || 'Failed to load project.');
@@ -131,6 +134,7 @@ export default function ProjectEditor() {
         try {
             await projectApi.update(projectId, {
                 subdomain,
+                template,
                 generatedDocs: docs,
                 customization: { logoUrl, ownerName, currentVersion, upcomingVersion },
             });
@@ -140,7 +144,7 @@ export default function ProjectEditor() {
         } finally {
             setSaving(false);
         }
-    }, [projectId, subdomain, docs, logoUrl, ownerName, currentVersion, upcomingVersion]);
+    }, [projectId, subdomain, template, docs, logoUrl, ownerName, currentVersion, upcomingVersion]);
 
 
     useEffect(() => {
@@ -157,6 +161,7 @@ export default function ProjectEditor() {
     const previewProject = proj
         ? {
             ...proj,
+            template,
             subdomain,
             generatedDocs: docs,
             customization: { logoUrl, ownerName, currentVersion, upcomingVersion },
@@ -186,7 +191,7 @@ export default function ProjectEditor() {
         );
     }
 
-    const PreviewTemplate = TemplateMap[proj.template] || TemplateMap.modern;
+    const PreviewTemplate = TemplateMap[template] || TemplateMap.modern;
 
     return (
         <div className="h-screen flex flex-col bg-[#0a0a0a] text-zinc-200 overflow-hidden">
@@ -284,6 +289,25 @@ export default function ProjectEditor() {
                                         placeholder="https://…/logo.svg"
                                         className={inputClass}
                                     />
+                                </Field>
+
+                                <Field icon={Settings2} label="Template">
+                                    <div className="relative">
+                                        <select
+                                            value={template}
+                                            onChange={(e) => setTemplate(e.target.value)}
+                                            className="w-full h-9 px-3 rounded-lg bg-zinc-900/80 border border-zinc-700/50 text-sm text-white outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 transition-all appearance-none cursor-pointer"
+                                        >
+                                            {templatesData.map((t) => (
+                                                <option key={t.id} value={t.id}>
+                                                    {t.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                                            <svg className="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                                        </div>
+                                    </div>
                                 </Field>
 
                                 <Field icon={User} label="Owner name">

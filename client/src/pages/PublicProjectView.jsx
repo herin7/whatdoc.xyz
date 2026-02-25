@@ -47,8 +47,19 @@ export default function PublicProjectView() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (demoProjects[slug]) {
-            // It's a demo! Load fake data immediately
+        if (slug.endsWith('-demo')) {
+            // It's a dynamic demo! Use fallback fake data immediately
+            const templateId = slug.replace('-demo', '');
+            const baseDemoId = Object.keys(demoProjects)[0];
+            const baseDemoProject = demoProjects[slug] || demoProjects[baseDemoId];
+
+            setProject({
+                ...baseDemoProject,
+                template: templateId
+            });
+            setLoading(false);
+        } else if (demoProjects[slug]) {
+            // It's a legacy hardcoded demo! Load fake data immediately
             setProject(demoProjects[slug]);
             setLoading(false);
         } else {
@@ -68,25 +79,22 @@ export default function PublicProjectView() {
 
     if (!project) return <div>Project not found.</div>;
 
-    // Route to the correct template (fix: use slug for demo mapping)
-    if (demoProjects[slug]) {
-        // Map demo slugs to correct template component
-        switch (slug) {
-            case 'twilio-demo':
-                return <TwilioTemplate project={demoProjects[slug]} />;
-            case 'aerolatex-demo':
-                return <AeroLatexTemplate project={demoProjects[slug]} />;
-            case 'django-demo':
-                return <DjangoTemplate project={demoProjects[slug]} />;
-            case 'minimal-demo':
-                return <MinimalTemplate project={demoProjects[slug]} />;
-            case 'modern-demo':
-                return <ModernTemplate project={demoProjects[slug]} />;
-            case 'mdn-demo':
-                return <MDNTemplate project={demoProjects[slug]} />;
-            default:
-                return <MDNTemplate project={demoProjects[slug]} />;
-        }
+    // Route to the correct template for demo projects
+    if (slug.endsWith('-demo')) {
+        const templateId = slug.replace('-demo', '');
+        const SelectedTemplate = TemplateMap[templateId] || TemplateMap.modern;
+
+        // Grab a default demo project as the base content, then override its template ID 
+        // to force the selected template to render the design.
+        const baseDemoId = Object.keys(demoProjects)[0];
+        const baseDemoProject = demoProjects[slug] || demoProjects[baseDemoId];
+
+        const dynamicProject = {
+            ...baseDemoProject,
+            template: templateId
+        };
+
+        return <SelectedTemplate project={dynamicProject} />;
     }
     // For real projects, use template field
     const SelectedTemplate = TemplateMap[project.template] || TemplateMap.modern;

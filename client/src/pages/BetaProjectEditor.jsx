@@ -34,10 +34,35 @@ import TwilioTemplate from '../templates/TwilioTemplate';
 import DjangoTemplate from '../templates/DjangoTemplate';
 import MDNTemplate from '../templates/MDNTemplate';
 import AeroLatexTemplate from '../templates/AeroLatexTemplate';
+import FintechTemplate from '../templates/FintechTemplate';
+import DevToolsTemplate from '../templates/DevToolsTemplate';
+import MinimalistTemplate from '../templates/MinimalistTemplate';
+import OpenSourceTemplate from '../templates/OpenSourceTemplate';
+import WikiTemplate from '../templates/WikiTemplate';
+import ComponentLibTemplate from '../templates/ComponentLibTemplate';
+import ConsumerTechTemplate from '../templates/ConsumerTechTemplate';
+import DeepSpaceTemplate from '../templates/DeepSpaceTemplate';
+import Web3Template from '../templates/Web3Template';
+import EnterpriseTemplate from '../templates/EnterpriseTemplate';
+import templatesData from '../config/templatesData.json';
 
 const TemplateMap = {
-    modern: ModernTemplate, minimal: MinimalTemplate, twilio: TwilioTemplate,
-    django: DjangoTemplate, mdn: MDNTemplate, aerolatex: AeroLatexTemplate,
+    modern: ModernTemplate,
+    minimal: MinimalTemplate,
+    twilio: TwilioTemplate,
+    django: DjangoTemplate,
+    mdn: MDNTemplate,
+    aerolatex: AeroLatexTemplate,
+    fintech: FintechTemplate,
+    devtools: DevToolsTemplate,
+    minimalist: MinimalistTemplate,
+    opensource: OpenSourceTemplate,
+    wiki: WikiTemplate,
+    componentlib: ComponentLibTemplate,
+    consumertech: ConsumerTechTemplate,
+    deepspace: DeepSpaceTemplate,
+    web3: Web3Template,
+    enterprise: EnterpriseTemplate,
 };
 
 // ─
@@ -596,6 +621,7 @@ export default function BetaProjectEditor() {
     const [ownerName, setOwnerName] = useState('');
     const [currentVersion, setCurrentVersion] = useState('1.0.0');
     const [upcomingVersion, setUpcomingVersion] = useState('');
+    const [template, setTemplate] = useState('modern');
 
     const [theme, setTheme] = useState(DEFAULT_THEME);
     const [blocks, setBlocks] = useState([]);
@@ -663,6 +689,7 @@ export default function BetaProjectEditor() {
                 setOwnerName(p.customization?.ownerName || '');
                 setCurrentVersion(p.customization?.currentVersion || '1.0.0');
                 setUpcomingVersion(p.customization?.upcomingVersion || '');
+                setTemplate(p.template || 'modern');
                 if (p.customization?.theme) { const s = { ...DEFAULT_THEME, ...p.customization.theme }; setTheme(s); loadGoogleFont(s.headingFont); loadGoogleFont(s.bodyFont); }
                 const md = p.generatedDocs || '# Documentation\n\nWelcome to your docs.';
                 const parsed = parseSections(md);
@@ -678,12 +705,12 @@ export default function BetaProjectEditor() {
     const handleSave = useCallback(async () => {
         setSaving(true);
         try {
-            await projectApi.update(projectId, { subdomain, generatedDocs: blocks.map(b => b.content).join('\n\n'), customization: { logoUrl, ownerName, currentVersion, upcomingVersion, theme } });
+            await projectApi.update(projectId, { subdomain, template, generatedDocs: blocks.map(b => b.content).join('\n\n'), customization: { logoUrl, ownerName, currentVersion, upcomingVersion, theme } });
             setLastSaved(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
             setToast({ message: 'Saved & deployed successfully!', type: 'success' });
         } catch (err) { setToast({ message: err.error || 'Save failed.', type: 'error' }); }
         finally { setSaving(false); }
-    }, [projectId, subdomain, logoUrl, ownerName, currentVersion, upcomingVersion, theme, blocks]);
+    }, [projectId, subdomain, template, logoUrl, ownerName, currentVersion, upcomingVersion, theme, blocks]);
 
     const handleAddBlock = bt => {
         const nb = { id: `block-${Date.now()}`, type: bt.type, content: bt.defaultContent, bgColor: '', padding: '24px', borderRadius: theme.borderRadius };
@@ -920,12 +947,25 @@ export default function BetaProjectEditor() {
                     <Field icon={Tag} label="Version"><input type="text" value={currentVersion} onChange={e => setCurrentVersion(e.target.value)} className={inputClass} /></Field>
                     <Field icon={Rocket} label="Upcoming"><input type="text" value={upcomingVersion} onChange={e => setUpcomingVersion(e.target.value)} className={inputClass} /></Field>
                 </div>
-                <div className="mt-5 p-3.5 rounded-2xl bg-[#141414] border border-zinc-900">
-                    <p className="text-[10px] text-zinc-600 leading-relaxed">
-                        Template: <span className="text-zinc-300 font-semibold capitalize">{proj.template || 'modern'}</span><br />
-                        Template changes are made from the Deploy page.
-                    </p>
-                </div>
+
+                <Field icon={Settings2} label="Template">
+                    <div className="relative mt-1">
+                        <select
+                            value={template}
+                            onChange={(e) => setTemplate(e.target.value)}
+                            className="w-full h-9 px-3 rounded-lg bg-[#141414] border border-zinc-800 text-sm text-zinc-100 outline-none focus:border-zinc-600 transition-all appearance-none cursor-pointer"
+                        >
+                            {templatesData.map((t) => (
+                                <option key={t.id} value={t.id}>
+                                    {t.name}
+                                </option>
+                            ))}
+                        </select>
+                        <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                            <svg className="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                        </div>
+                    </div>
+                </Field>
             </div>
         </div>
     );
@@ -1079,7 +1119,7 @@ export default function BetaProjectEditor() {
                             </div>
                             <div className="flex items-center gap-1.5 text-[9px] text-zinc-800">
                                 <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: theme.primary }} />
-                                <span className="capitalize">{proj.template || 'modern'} template</span>
+                                <span className="capitalize">{template || 'modern'} template</span>
                             </div>
                         </div>
                     </div>
@@ -1157,7 +1197,7 @@ export default function BetaProjectEditor() {
                                 <div className="flex items-center gap-2">
                                     <div className="flex items-center gap-1.5 text-[9px] text-zinc-800">
                                         <div className="w-1.5 h-1.5 rounded-full" style={{ background: theme.primary }} />
-                                        <span className="capitalize">{proj.template}</span>
+                                        <span className="capitalize">{template}</span>
                                     </div>
                                     {/* fake browser chrome dots */}
                                     <div className="flex gap-1 ml-1 opacity-40">
