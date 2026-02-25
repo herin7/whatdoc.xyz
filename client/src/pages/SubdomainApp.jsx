@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Loader2, AlertCircle } from 'lucide-react';
 
 import ModernTemplate from '../templates/ModernTemplate';
@@ -7,6 +7,16 @@ import TwilioTemplate from '../templates/TwilioTemplate';
 import DjangoTemplate from '../templates/DjangoTemplate';
 import MDNTemplate from '../templates/MDNTemplate';
 import AeroLatexTemplate from '../templates/AeroLatexTemplate';
+import FintechTemplate from '../templates/FintechTemplate';
+import DevToolsTemplate from '../templates/DevToolsTemplate';
+import MinimalistTemplate from '../templates/MinimalistTemplate';
+import OpenSourceTemplate from '../templates/OpenSourceTemplate';
+import WikiTemplate from '../templates/WikiTemplate';
+import ComponentLibTemplate from '../templates/ComponentLibTemplate';
+import ConsumerTechTemplate from '../templates/ConsumerTechTemplate';
+import DeepSpaceTemplate from '../templates/DeepSpaceTemplate';
+import Web3Template from '../templates/Web3Template';
+import EnterpriseTemplate from '../templates/EnterpriseTemplate';
 
 import { API_URL } from '../lib/config';
 
@@ -17,6 +27,16 @@ const TemplateMap = {
     django: DjangoTemplate,
     mdn: MDNTemplate,
     aerolatex: AeroLatexTemplate,
+    fintech: FintechTemplate,
+    devtools: DevToolsTemplate,
+    minimalist: MinimalistTemplate,
+    opensource: OpenSourceTemplate,
+    wiki: WikiTemplate,
+    componentlib: ComponentLibTemplate,
+    consumertech: ConsumerTechTemplate,
+    deepspace: DeepSpaceTemplate,
+    web3: Web3Template,
+    enterprise: EnterpriseTemplate,
 };
 
 /**

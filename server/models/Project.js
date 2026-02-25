@@ -12,7 +12,7 @@ const projectSchema = new mongoose.Schema({
   isPublic: { type: Boolean, default: true },
   status: { type: String, enum: ['idle', 'queued', 'scanning', 'analyzing', 'generating', 'ready', 'failed'], default: 'idle' },
   llmProvider: { type: String, enum: ['gemini', 'openai'], default: 'gemini' },
-  template: { type: String, enum: ['modern', 'minimal', 'twilio', 'django', 'mdn', 'aerolatex'], default: 'twilio' },
+  template: { type: String, enum: ['modern', 'minimal', 'twilio', 'django', 'mdn', 'aerolatex', 'fintech', 'devtools', 'minimalist', 'opensource', 'wiki', 'componentlib', 'consumertech', 'deepspace', 'web3', 'enterprise'], default: 'twilio' },
   customization: {
     logoUrl: { type: String, default: '' },
     ownerName: { type: String, default: '' },

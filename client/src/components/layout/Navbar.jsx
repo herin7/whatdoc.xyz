@@ -254,12 +254,23 @@ export default function Navbar() {
           <div className="h-px bg-white/5 my-2" />
 
           {user ? (
-            <>
-              <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="text-sm font-medium text-emerald-400">
-                Go to Dashboard →
+            <div className="flex flex-col gap-3 mt-2">
+              {!user.isPro && (
+                <button
+                  onClick={() => { setIsUpgradeOpen(true); setMobileOpen(false); }}
+                  className="flex items-center justify-center gap-2 h-10 w-full rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-sm font-bold text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+                >
+                  <Zap className="size-4" />
+                  Upgrade to Pro
+                </button>
+              )}
+              <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="flex items-center justify-center h-10 w-full rounded-xl border border-white/10 bg-[#111] text-sm font-medium text-white hover:bg-white/5 transition-colors">
+                Go to Dashboard
               </Link>
-              <button onClick={handleLogout} className="text-sm font-medium text-red-400 text-left w-fit">Disconnect Session</button>
-            </>
+              <button onClick={handleLogout} className="flex items-center justify-center h-10 w-full rounded-xl border border-red-500/20 bg-red-500/10 text-sm font-medium text-red-400 hover:bg-red-500/20 transition-colors">
+                Disconnect Session
+              </button>
+            </div>
           ) : (
             <div className="flex flex-col gap-3 mt-2">
               <Link to="/login" onClick={() => setMobileOpen(false)} className="flex items-center justify-center h-10 rounded-xl border border-white/10 bg-[#111] text-sm font-medium text-white">Sign In</Link>

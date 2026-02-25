@@ -143,6 +143,23 @@ export default function GenerationTerminal({ projectId, slug, jobId }) {
         return () => { if (cleanup) cleanup(); };
     }, [projectId, jobId]);
 
+    // Robust fallback: Always poll the Project status as the ultimate source of truth
+    useEffect(() => {
+        if (status === 'ready' || status === 'failed') return;
+        const fallbackPoll = setInterval(async () => {
+            try {
+                const pRes = await projectApi.getById(projectId);
+                if (pRes?.project?.status === 'ready' || pRes?.project?.status === 'failed') {
+                    setStatus(pRes.project.status);
+                }
+            } catch (e) {
+                // ignore
+            }
+        }, 3000); // Check every 3s as backup
+
+        return () => clearInterval(fallbackPoll);
+    }, [projectId, status]);
+
     useEffect(() => {
         let timer1, timer2;
         if (status === 'generating') {
