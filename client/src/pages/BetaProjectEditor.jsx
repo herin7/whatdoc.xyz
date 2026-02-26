@@ -576,9 +576,9 @@ function ShortcutsModal({ onClose }) {
 // LIVE PREVIEW
 // ─
 
-function LivePreview({ blocks, theme, proj, subdomain, logoUrl, ownerName, currentVersion, upcomingVersion }) {
+function LivePreview({ blocks, theme, proj, subdomain, logoUrl, ownerName, currentVersion, upcomingVersion, navLinks }) {
     const generatedDocs = blocks.map(b => b.content).join('\n\n');
-    const previewProject = { ...proj, subdomain, generatedDocs, customization: { ...(proj.customization || {}), logoUrl, ownerName, currentVersion, upcomingVersion, theme } };
+    const previewProject = { ...proj, subdomain, generatedDocs, customization: { ...(proj.customization || {}), logoUrl, ownerName, currentVersion, upcomingVersion, theme, navLinks } };
     const PreviewTemplate = TemplateMap[proj.template] || TemplateMap.modern;
     return (
         <div className="h-full overflow-auto relative" style={{ transform: 'scale(1)' }}>
@@ -622,6 +622,7 @@ export default function BetaProjectEditor() {
     const [currentVersion, setCurrentVersion] = useState('1.0.0');
     const [upcomingVersion, setUpcomingVersion] = useState('');
     const [template, setTemplate] = useState('modern');
+    const [navLinks, setNavLinks] = useState([]);
 
     const [theme, setTheme] = useState(DEFAULT_THEME);
     const [blocks, setBlocks] = useState([]);
@@ -690,6 +691,7 @@ export default function BetaProjectEditor() {
                 setCurrentVersion(p.customization?.currentVersion || '1.0.0');
                 setUpcomingVersion(p.customization?.upcomingVersion || '');
                 setTemplate(p.template || 'modern');
+                setNavLinks(p.customization?.navLinks || []);
                 if (p.customization?.theme) { const s = { ...DEFAULT_THEME, ...p.customization.theme }; setTheme(s); loadGoogleFont(s.headingFont); loadGoogleFont(s.bodyFont); }
                 const md = p.generatedDocs || '# Documentation\n\nWelcome to your docs.';
                 const parsed = parseSections(md);
@@ -705,12 +707,12 @@ export default function BetaProjectEditor() {
     const handleSave = useCallback(async () => {
         setSaving(true);
         try {
-            await projectApi.update(projectId, { subdomain, template, generatedDocs: blocks.map(b => b.content).join('\n\n'), customization: { logoUrl, ownerName, currentVersion, upcomingVersion, theme } });
+            await projectApi.update(projectId, { subdomain, template, generatedDocs: blocks.map(b => b.content).join('\n\n'), customization: { logoUrl, ownerName, currentVersion, upcomingVersion, theme, navLinks } });
             setLastSaved(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
             setToast({ message: 'Saved & deployed successfully!', type: 'success' });
         } catch (err) { setToast({ message: err.error || 'Save failed.', type: 'error' }); }
         finally { setSaving(false); }
-    }, [projectId, subdomain, template, logoUrl, ownerName, currentVersion, upcomingVersion, theme, blocks]);
+    }, [projectId, subdomain, template, logoUrl, ownerName, currentVersion, upcomingVersion, theme, blocks, navLinks]);
 
     const handleAddBlock = bt => {
         const nb = { id: `block-${Date.now()}`, type: bt.type, content: bt.defaultContent, bgColor: '', padding: '24px', borderRadius: theme.borderRadius };
@@ -966,6 +968,22 @@ export default function BetaProjectEditor() {
                         </div>
                     </div>
                 </Field>
+
+                <div className="mt-6 pt-4 border-t border-zinc-800">
+                    <p className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-1.5"><Globe className="size-3" /> Navigation Links</p>
+                    <div className="space-y-2">
+                        {navLinks.map((link, i) => (
+                            <div key={i} className="flex gap-2">
+                                <input type="text" value={link.label} onChange={e => { const updated = [...navLinks]; updated[i].label = e.target.value; setNavLinks(updated); }} placeholder="Label" className={`${inputClass} w-2/5 flex-shrink`} />
+                                <input type="text" value={link.url} onChange={e => { const updated = [...navLinks]; updated[i].url = e.target.value; setNavLinks(updated); }} placeholder="URL" className={`${inputClass} flex-1`} />
+                                <button onClick={() => setNavLinks(navLinks.filter((_, idx) => idx !== i))} className="shrink-0 w-9 h-9 flex items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-all"><Trash2 className="size-3.5" /></button>
+                            </div>
+                        ))}
+                    </div>
+                    <button onClick={() => setNavLinks([...navLinks, { label: '', url: '' }])} className="w-full mt-2 h-9 rounded-lg border border-dashed border-zinc-700 text-xs font-semibold text-zinc-500 hover:text-emerald-400 hover:border-emerald-500/50 flex items-center justify-center gap-2 transition-all">
+                        <Plus className="size-3" /> Add Link
+                    </button>
+                </div>
             </div>
         </div>
     );
@@ -1208,7 +1226,7 @@ export default function BetaProjectEditor() {
                                 </div>
                             </div>
                             <div className="flex-1 overflow-hidden">
-                                <LivePreview blocks={blocks} theme={theme} proj={proj} subdomain={subdomain} logoUrl={logoUrl} ownerName={ownerName} currentVersion={currentVersion} upcomingVersion={upcomingVersion} />
+                                <LivePreview blocks={blocks} theme={theme} proj={proj} subdomain={subdomain} logoUrl={logoUrl} ownerName={ownerName} currentVersion={currentVersion} upcomingVersion={upcomingVersion} navLinks={navLinks} />
                             </div>
                         </div>
                     )}

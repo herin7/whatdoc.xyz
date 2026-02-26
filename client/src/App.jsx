@@ -102,6 +102,9 @@ function App() {
 
   return (
     <Suspense fallback={<PageLoader />}>
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[9999] w-[90%] max-w-lg bg-amber-500/10 backdrop-blur-md border border-amber-500/20 text-amber-500 text-xs sm:text-sm py-3 px-4 rounded-xl shadow-lg text-center font-medium animate-in fade-in slide-in-from-bottom-5 duration-500">
+        ⚠️ Infrastructure maintenance: Some features might be temporarily unstable.
+      </div>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/p/:slug" element={<PublicProjectView />} />
