@@ -58,33 +58,6 @@ const createProject = async (req, res) => {
       ? `https://x-access-token:${user.githubAccessToken}@github.com/${repoName}.git`
       : `https://github.com/${repoName}.git`;
 
-    if (commitHash && !user.isPro) {
-      // Check if we've already generated docs for this exact commit across the platform
-      const cachedProject = await Project.findOne({ repoName, commitHash, generatedDocs: { $ne: '' } });
-
-      if (cachedProject) {
-        console.log(`[Cache Hit] Serving cached docs for ${repoName}@${commitHash.substring(0, 7)}`);
-
-        const project = await Project.create({
-          userId: req.userId,
-          repoName,
-          slug,
-          techstack,
-          commitHash,
-          llmProvider: cachedProject.llmProvider, // Inherit
-          template: template || 'modern',
-          generatedDocs: cachedProject.generatedDocs,
-          status: 'ready' // Instantly ready!
-        });
-
-        if (!user.isPro) {
-          user.generationCount += 1;
-          await user.save();
-        }
-
-        return res.status(201).json({ message: 'Project configured successfully', project, cached: true });
-      }
-    }
 
     // Cache Miss: Create Project and Queue Job
     const project = await Project.create({

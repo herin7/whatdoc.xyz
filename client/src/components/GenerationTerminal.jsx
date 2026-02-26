@@ -38,109 +38,83 @@ export default function GenerationTerminal({ projectId, slug, jobId }) {
 
 
     useEffect(() => {
-        if (!jobId) return; // Fallback to direct SSE if no jobId
-
-        const checkQueue = async () => {
-            try {
-                const res = await projectApi.getJobStatus(jobId);
-                if (res.state === 'waiting' || res.state === 'delayed') {
-                    setStatus('queued');
-                    setLogs((prev) => {
-                        // Prevent spamming the exact same log every second
-                        const lastMsg = prev[prev.length - 1];
-                        if (lastMsg && lastMsg.message.includes('Position in queue')) return prev;
-                        return [...prev, { type: 'system', message: 'Job added to queue. Waiting for an available worker...', ts: Date.now() }];
-                    });
-                } else if (res.state === 'active') {
-                    // Job started! Stop polling and let SSE take over.
-                    if (pollInterval.current) clearInterval(pollInterval.current);
-                    connectSSE();
-                } else if (res.state === 'completed' || res.state === 'failed') {
-                    // Missed the active window (job finished extremely fast or failed instantly)
-                    if (pollInterval.current) clearInterval(pollInterval.current);
-                    setStatus(res.state === 'completed' ? 'ready' : 'failed');
-                    connectSSE(); // Connect briefly just in case there are lingering events or to trigger final UI
-                }
-            } catch (err) {
-                console.error('Job polling failed:', err);
-                if (pollInterval.current) clearInterval(pollInterval.current);
-                connectSSE(); // Fallback to raw SSE
-            }
-        };
-
-        checkQueue(); // Fire immediately
-        pollInterval.current = setInterval(checkQueue, 2000);
-
-        return () => {
-            if (pollInterval.current) clearInterval(pollInterval.current);
-        };
-    }, [jobId]);
-
-
-    const connectSSE = () => {
         if (!projectId) return;
 
-        const token = localStorage.getItem('token');
-        const url = `${API_URL}/projects/${projectId}/stream${token ? `?token=${token}` : ''}`;
+        let es;
 
-        const es = new EventSource(url);
+        const connectSSE = () => {
+            const token = localStorage.getItem('token');
+            const url = `${API_URL}/projects/${projectId}/stream${token ? `?token=${token}` : ''}`;
 
-        es.onopen = () => {
-            setConnected(true);
-            setLogs((prev) => [
-                ...prev,
-                { type: 'system', message: 'Connected to pipeline stream', ts: Date.now() },
-            ]);
-        };
+            es = new EventSource(url);
 
-        es.addEventListener('status', (e) => {
-            try {
-                const data = JSON.parse(e.data);
-                setStatus(data.status);
-                setLogs((prev) => [
-                    ...prev,
-                    { type: 'status', status: data.status, message: data.message, ts: data.ts || Date.now() },
-                ]);
+            es.onopen = () => {
+                setConnected(true);
+                setLogs((prev) => [...prev, { type: 'system', message: 'Connected to pipeline stream', ts: Date.now() }]);
+            };
 
-                // Terminal states — close connection
-                if (data.status === 'ready' || data.status === 'failed') {
-                    es.close();
-                }
-            } catch { /* malformed — ignore */ }
-        });
+            es.addEventListener('status', (e) => {
+                try {
+                    const data = JSON.parse(e.data);
+                    setStatus(data.status);
+                    setLogs((prev) => [...prev, { type: 'status', status: data.status, message: data.message, ts: data.ts || Date.now() }]);
 
-        es.addEventListener('log', (e) => {
-            try {
-                const data = JSON.parse(e.data);
-                setLogs((prev) => [
-                    ...prev,
-                    { type: 'log', step: data.step, message: data.message, ts: Date.now() },
-                ]);
-            } catch { /* malformed — ignore */ }
-        });
-
-        es.onerror = () => {
-            // EventSource auto-reconnects; only log if we haven't reached a terminal state
-            setLogs((prev) => {
-                const last = prev[prev.length - 1];
-                if (last?.status === 'ready' || last?.status === 'failed') return prev;
-                return [
-                    ...prev,
-                    { type: 'error', message: 'Connection interrupted — retrying…', ts: Date.now() },
-                ];
+                    if (data.status === 'ready' || data.status === 'failed') {
+                        es.close();
+                    }
+                } catch { /* malformed */ }
             });
+
+            es.addEventListener('log', (e) => {
+                try {
+                    const data = JSON.parse(e.data);
+                    setLogs((prev) => [...prev, { type: 'log', step: data.step, message: data.message, ts: Date.now() }]);
+                } catch { /* malformed */ }
+            });
+
+            es.onerror = () => {
+                setLogs((prev) => {
+                    const last = prev[prev.length - 1];
+                    if (last?.status === 'ready' || last?.status === 'failed') return prev;
+                    return [...prev, { type: 'error', message: 'Connection interrupted — retrying…', ts: Date.now() }];
+                });
+            };
         };
+
+        // ALWAYS hook up to SSE immediately to catch everything!
+        connectSSE();
+
+        if (jobId) {
+            const checkQueue = async () => {
+                try {
+                    const res = await projectApi.getJobStatus(jobId);
+                    if (res.state === 'waiting' || res.state === 'delayed') {
+                        setStatus('queued');
+                        setLogs((prev) => {
+                            const lastMsg = prev[prev.length - 1];
+                            if (lastMsg && lastMsg.message.includes('Waiting for an available worker')) return prev;
+                            return [...prev, { type: 'system', message: 'Job added to queue. Waiting for an available worker...', ts: Date.now() }];
+                        });
+                    } else if (res.state === 'active' || res.state === 'completed' || res.state === 'failed') {
+                        // Job started or finished! Stop polling BullMQ.
+                        if (pollInterval.current) clearInterval(pollInterval.current);
+                        if (res.state === 'completed' || res.state === 'failed') {
+                            setStatus(res.state === 'completed' ? 'ready' : 'failed');
+                        }
+                    }
+                } catch (err) {
+                    if (pollInterval.current) clearInterval(pollInterval.current);
+                }
+            };
+
+            checkQueue();
+            pollInterval.current = setInterval(checkQueue, 2000);
+        }
 
         return () => {
-            es.close();
+            if (es) es.close();
+            if (pollInterval.current) clearInterval(pollInterval.current);
         };
-    };
-
-    // If no jobId was passed, connect SSE immediately for backwards compatibility
-    useEffect(() => {
-        let cleanup;
-        if (!jobId) cleanup = connectSSE();
-        return () => { if (cleanup) cleanup(); };
     }, [projectId, jobId]);
 
     // Robust fallback: Always poll the Project status as the ultimate source of truth

@@ -97,21 +97,12 @@ app.get('/api/usercount', async (req, res) => {
 
 
 
-const apiLimiter = rateLimit({
-    windowMs: 60 * 1000,
-    max: 30,
-    message: { error: 'Too many generation requests.' },
-    standardHeaders: true,
-    legacyHeaders: false,
-    validate: { xForwardedForHeader: false },
-});
-
 const authRoutes = require("./routes/auth");
 const projectRoutes = require("./routes/project");
 const paymentRoutes = require("./routes/payment");
 
 app.use("/auth", authRoutes);
-app.use("/projects", apiLimiter, projectRoutes);
+app.use("/projects", projectRoutes);
 app.use("/payment", paymentRoutes);
 
 // Global Error Boundary (prevents CORS trace loops in terminal)

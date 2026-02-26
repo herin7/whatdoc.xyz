@@ -9,7 +9,7 @@ const redisOptions = {
 };
 
 // Handle Upstash Serverless specifics to prevent ECONNRESET
-if (process.env.REDIS_URL && process.env.REDIS_URL.startsWith('rediss://')) {
+if (process.env.REDIS_URL && (process.env.REDIS_URL.startsWith('rediss://') || process.env.REDIS_URL.includes('upstash'))) {
     redisOptions.tls = { rejectUnauthorized: false };
     redisOptions.pingInterval = 30000;
     redisOptions.family = 0;

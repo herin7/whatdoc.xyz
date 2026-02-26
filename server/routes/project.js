@@ -87,8 +87,19 @@ router.get('/slug/:slug', async (req, res) => {
     } catch (err) { res.status(500).json({ error: 'Server error.' }); }
 });
 
+const rateLimit = require('express-rate-limit');
+
+const apiLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 30,
+    message: { error: 'Too many generation requests.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+    validate: { xForwardedForHeader: false, trustProxy: false },
+});
+
 // 2. PROTECTED ROUTES (Auth Required)
-router.post('/', authmware, createProject);
+router.post('/', authmware, apiLimiter, createProject);
 router.get('/jobs/:id', authmware, getJobStatus);
 
 router.get('/mine', authmware, async (req, res) => {
