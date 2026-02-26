@@ -18,6 +18,10 @@ const projectSchema = new mongoose.Schema({
     ownerName: { type: String, default: '' },
     currentVersion: { type: String, default: '1.0.0' },
     upcomingVersion: { type: String, default: '' },
+    navLinks: [{
+      label: { type: String },
+      url: { type: String }
+    }],
   },
 }, { timestamps: true });
 

@@ -8,7 +8,7 @@ const rateLimit = require('express-rate-limit');
 const { UserModel } = require('./models/User');
 const Project = require('./models/Project');
 const app = express();
-
+app.set("trust proxy", 1);
 mongoose.connect(process.env.MONGO_URI).then(async () => {
     console.log('MongoDB connected');
     await UserModel.syncIndexes();
@@ -103,6 +103,7 @@ const apiLimiter = rateLimit({
     message: { error: 'Too many generation requests.' },
     standardHeaders: true,
     legacyHeaders: false,
+    validate: { xForwardedForHeader: false },
 });
 
 const authRoutes = require("./routes/auth");

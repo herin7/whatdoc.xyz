@@ -3,15 +3,30 @@ const Redis = require('ioredis');
 const { runGenerationPipeline } = require('./engine');
 const Project = require('../models/Project');
 
-// Use typical Redis connection (could be parsed from ENV)
-const connection = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379', {
+const redisOptions = {
     maxRetriesPerRequest: null,
-});
+    enableReadyCheck: false,
+};
+
+// Handle Upstash Serverless specifics to prevent ECONNRESET
+if (process.env.REDIS_URL && process.env.REDIS_URL.startsWith('rediss://')) {
+    redisOptions.tls = { rejectUnauthorized: false };
+    redisOptions.pingInterval = 30000;
+    redisOptions.family = 0;
+}
+
+const connection = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379', redisOptions);
 
 // Configure BullMQ
 const queueName = 'docGenerationQueue';
 
-const docGenerationQueue = new Queue(queueName, { connection });
+const docGenerationQueue = new Queue(queueName, {
+    connection,
+    defaultJobOptions: {
+        removeOnComplete: true,
+        removeOnFail: { count: 10 }
+    }
+});
 
 // Initialize the Worker
 // 15 requests per minute = max 1 request every 4 seconds. Let's use 4.5s (4500ms) to be safe.
@@ -38,6 +53,8 @@ const worker = new Worker(
     {
         connection,
         concurrency: 1, // Strictly one job at a time globally for this worker
+        removeOnComplete: { count: 10 },
+        removeOnFail: { count: 30 },
         limiter: {
             max: 1,
             duration: 4500, // 4.5 seconds
@@ -46,11 +63,11 @@ const worker = new Worker(
 );
 
 worker.on('completed', (job) => {
-    console.log(`[BullMQ] Job ${job.id} has completed!`);
+    console.log(`[BullMQ] Job ${job?.id} has completed!`);
 });
 
 worker.on('failed', (job, err) => {
-    console.log(`[BullMQ] Job ${job.id} has failed with ${err.message}`);
+    console.log(`[BullMQ] Job ${job?.id} has failed with ${err?.message}`);
 });
 
 module.exports = { docGenerationQueue };
