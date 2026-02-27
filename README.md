@@ -1,89 +1,136 @@
-<p align="center">
-  <img src="client/public/logo.png" alt="WhatDoc Logo" width="300" height="300" />
-</p>
+<div align="center">
 
+<img src="./client/public/logo.png" alt="WhatDoc" width="120" />
 
-<p align="center">
-  <strong>Connect your GitHub. Get beautiful, AI-generated documentation instantly.</strong>
-  <br />
-  <em>Docs that don't look boring.</em>
-</p>
+# `whatdoc.xyz`
 
-<p align="center">
-  <a href="https://whatdoc.xyz">Website</a> •
-  <a href="#-features">Features</a> •
-  <a href="#%EF%B8%8F-the-engine">How It Works</a> •
-  <a href="#-quickstart">Quickstart</a> •
-  <a href="#-templates">Templates</a> •
-  <a href="#-tech-stack">Tech Stack</a>
-</p>
+### **Your repo goes in. Docs come out. Magic in the middle.**
 
-<p align="center">
-    <a href="https://github.com/herin7/whatdoc.xyz/releases"><img src="https://img.shields.io/github/v/release/herin7/whatdoc.xyz?style=flat-square" alt="GitHub release"></a>
-    <a href="https://github.com/herin7/whatdoc.xyz/issues"><img src="https://img.shields.io/github/issues/herin7/whatdoc.xyz?style=flat-square" alt="Issues"></a>
-    <a href="https://github.com/herin7/whatdoc.xyz/stargazers"><img src="https://img.shields.io/github/stars/herin7/whatdoc.xyz?style=flat-square" alt="Stars"></a>
-</p>
+*Connect GitHub → pick a theme → get production-ready documentation in under 60 seconds.*  
+*No boilerplate. No suffering. No excuses.*
 
-<br />
+<br/>
 
----
+[![Live Site](https://img.shields.io/badge/🌐_Live-whatdoc.xyz-6366f1?style=for-the-badge)](https://whatdoc.xyz)
+[![Stars](https://img.shields.io/github/stars/herin7/whatdoc.xyz?style=for-the-badge&color=f59e0b)](https://github.com/herin7/whatdoc.xyz/stargazers)
+[![Issues](https://img.shields.io/github/issues/herin7/whatdoc.xyz?style=for-the-badge&color=ef4444)](https://github.com/herin7/whatdoc.xyz/issues)
+[![MIT License](https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge)](./LICENSE)
 
-## The Problem
+<br/>
 
-Every developer knows the pain: you build something great, but writing the docs feels like a second full-time job. So you don't. Your README stays a one-liner, your API has no reference, and your users bounce.
+```
+ ██╗    ██╗██╗  ██╗ █████╗ ████████╗██████╗  ██████╗  ██████╗
+ ██║    ██║██║  ██║██╔══██╗╚══██╔══╝██╔══██╗██╔═══██╗██╔════╝
+ ██║ █╗ ██║███████║███████║   ██║   ██║  ██║██║   ██║██║
+ ██║███╗██║██╔══██║██╔══██║   ██║   ██║  ██║██║   ██║██║
+ ╚███╔███╔╝██║  ██║██║  ██║   ██║   ██████╔╝╚██████╔╝╚██████╗
+  ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═════╝  ╚═════╝  ╚═════╝
+```
 
-**WhatDoc fixes this.** Connect your GitHub, import a repo, pick a template, and get production-ready documentation in under 60 seconds.
+</div>
 
 ---
 
-## ✨ Features
+## 💀 The Ugly Truth About Developer Docs
 
-| | Feature | Description |
+```
+Estimated time building the feature:   ████████████████████  40 hrs
+Estimated time writing the docs:       ██                     3 hrs
+Actual time writing the docs:          ░░░░░░░░░░░░░░░░░░░░  0 hrs
+```
+
+You shipped. The README is still `"TODO: add docs"`.  
+Your API has zero reference. Users open issues asking what your project *does*.
+
+**WhatDoc ends the cycle.** It reads your repo like a senior engineer who never sleeps, and writes docs that look like Stripe hired a designer.
+
+---
+
+## ⚡ 60-Second Demo
+
+```bash
+# What you do:
+1. Connect GitHub
+2. Pick a repo
+3. Pick a template
+4. Click Generate
+
+# What WhatDoc does in those 60 seconds:
+→ Shallow-clones your entire repo to an ephemeral container
+→ Walks every directory, filters out the noise (lockfiles, dist, tests, minified blobs)
+→ Regex-minifies source files to squeeze max signal into the LLM context
+→ Detects whether you built a REST API, a frontend app, a CLI, or a library
+→ Sends a paradigm-aware prompt to Gemini with your full codebase as context
+→ Generates a multi-section README + API reference tailored to your stack
+→ Renders it in your chosen template with syntax highlighting, sidebar nav, and dark mode
+→ Deploys it live at yourproject.whatdoc.xyz
+
+# What remains of your repo on our servers afterward:
+→ Nothing. Ephemeral clone nuked. Zero disk persistence.
+```
+
+---
+
+## ✨ Features That Slap
+
+| | Feature | The Real Story |
 |---|---|---|
-| 🧠 | **Smart Code Ingestion** | Shallow-clones your repo, walks the directory tree, filters noise (lockfiles, dist, tests), and compresses source via a regex-based minifier before sending to the LLM. |
-| 🎨 | **4 Pro Templates** | Choose from Twilio, Django, MDN, or AeroLaTeX-inspired themes. Every template is responsive, dark-mode ready, and gorgeous. |
-| 🌐 | **Custom Subdomains** | Every project gets its own `yourproject.whatdoc.xyz` subdomain — instant shareable docs. |
-| 🔑 | **BYOK (Bring Your Own Key)** | Plug in your Gemini API key for unthrottled, limit-free generation. Stored in local storage, never touches our servers. |
-| 🔗 | **GitHub OAuth** | Connect your GitHub, import repos (public or private), and generate docs in one flow. |
-| ✏️ | **Live Editor** | Edit your generated documentation in a rich markdown editor. Changes save instantly. |
-| 🚀 | **One-Click Deploy** | Generate → customize → deploy. Your docs go live at a permanent URL in seconds. |
-| 🧪 | **API Playground** | Test API endpoints directly from your documentation page — auto-generated from backend routes. |
-| ✂️ | **Token Guillotine** | Caps free-tier payloads at ~200k tokens with a smart file-boundary cutoff. BYOK users get the full context window. |
-| ⌨️ | **Command Palette** | Power-user keyboard shortcuts for fast navigation. |
+| 🧠 | **Smart Code Ingestion** | Doesn't just glob `*.js`. Understands your `.gitignore`, skips `__tests__/`, `dist/`, `.min.js`, source maps, and base64 blobs. Reads your code like a human would. |
+| 🎨 | **4 Pro Templates** | Twilio-dark, Django-classic, MDN-reference, AeroLaTeX-academic. Every one is responsive, dark-mode ready, and looks better than 99% of open source READMEs. |
+| 🔑 | **BYOK — Bring Your Own Key** | Drop in your Gemini API key. It lives in `localStorage`. Never touches our servers. You get the full context window. Zero rate limits. Zero strings attached. |
+| 🌐 | **Instant Subdomains** | Every project gets `yourproject.whatdoc.xyz` — a permanent, shareable URL. Send it to your users before you're done with the PR. |
+| ✏️ | **Live Markdown Editor** | The AI draft is the starting line, not the finish line. Edit inline. Changes save instantly. Your voice, AI's structure. |
+| 🧪 | **API Playground** | WhatDoc reads your backend routes and generates a live, interactive API tester directly inside the docs. Ship docs with a built-in Postman. |
+| 🔪 | **Token Guillotine** | Free tier gets a smart ~200k token cap with file-boundary precision — it never cuts a file mid-parse. BYOK gets the full window. |
+| 🔄 | **Round-Robin Key Rotation** | Free-tier requests rotate across multiple Gemini API keys with exponential backoff (`15s → 30s → 60s`). 429s don't exist in our vocabulary. |
+| ⌨️ | **Command Palette** | Power-user keyboard navigation built in. Because clicking is for people who don't know the shortcut. |
 
 ---
 
-## ⚙️ The Engine
-
-WhatDoc uses a multi-stage pipeline to go from raw repo → polished docs:
+## 🏗️ How The Engine Actually Works
 
 ```
-┌┐
-│                                                              │
-│   ① Shallow Clone        ② Code Ingestion      ③ LLM Call   │
-│   ──     ──     ──   │
-│   simple-git depth-1     Walk dir tree,         Gemini       │
-│   to /tmp, ephemeral     filter noise files,    generates    │
-│                          regex-minify each,     README +     │
-│                          concatenate all         API ref     │
-│                                                              │
-│   ④ Cleanup & Render                                         │
-│   ──                                         │
-│   Nuke cloned files,                                         │
-│   save markdown to DB,                                       │
-│   render with chosen                                         │
-│   React template                                             │
-│                                                              │
-└┘
+╔══════════════════════════════════════════════════════════════════╗
+║                    THE WHATDOC PIPELINE                         ║
+╠══════════════════════════════════════════════════════════════════╣
+║                                                                  ║
+║  YOUR REPO                                                       ║
+║     │                                                            ║
+║     ▼                                                            ║
+║  ① SHALLOW CLONE ──────────────────────────────────────────────  ║
+║     simple-git, depth=1, to /tmp                                 ║
+║     Ephemeral. No persistence. Gone after step 3.                ║
+║     │                                                            ║
+║     ▼                                                            ║
+║  ② FAT TRIMMER ────────────────────────────────────────────────  ║
+║     Blocklist: lockfiles, dist/, __tests__/, *.min.js,           ║
+║     sourcemaps, base64 blobs, existing READMEs                   ║
+║     .gitignore-aware via the `ignore` package                    ║
+║     │                                                            ║
+║     ▼                                                            ║
+║  ③ REGEX GUILLOTINE ───────────────────────────────────────────  ║
+║     Strips block comments, runs of // lines,                     ║
+║     long string literals, collapses blank lines                  ║
+║     Result: maximum signal, minimum token spend                  ║
+║     │                                                            ║
+║     ▼                                                            ║
+║  ④ PARADIGM DETECTION ─────────────────────────────────────────  ║
+║     REST API? Frontend SPA? CLI tool? Library?                   ║
+║     System prompt adapts. Doc structure adapts.                  ║
+║     │                                                            ║
+║     ▼                                                            ║
+║  ⑤ GEMINI LLM CALL ────────────────────────────────────────────  ║
+║     Full codebase as context.                                     ║
+║     Generates: README + API Reference + Usage Guide              ║
+║     │                                                            ║
+║     ▼                                                            ║
+║  ⑥ NUKE + RENDER ──────────────────────────────────────────────  ║
+║     Clone deleted. Markdown saved to MongoDB.                    ║
+║     Rendered in your React template.                             ║
+║     Deployed to yourproject.whatdoc.xyz.                         ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝
 ```
-
-**Key design decisions:**
-- **Ephemeral clones** — Repos are cloned to `/tmp`, parsed, and deleted. Nothing persists on disk.
-- **Regex Guillotine** — Strips block comments, consecutive `//` runs, base64 blobs, long string literals, and collapses blank lines before sending to the LLM. Keeps token count lean.
-- **Paradigm-aware prompting** — The system prompt instructs Gemini to detect the repo type (REST API vs frontend vs CLI) and adapt the doc structure accordingly.
-- **Fat-Trimmer blocklist** — Lockfiles, `dist/`, `__tests__/`, `.min.js`, source maps, and existing READMEs are all excluded automatically.
-- **Round-robin key rotation** — Free-tier requests rotate across multiple Gemini API keys to avoid 429s. BYOK bypasses this entirely.
-- **Retry with exponential backoff** — Rate-limited requests retry up to 3 times with 15s → 30s → 60s delays.
 
 ---
 
@@ -91,39 +138,36 @@ WhatDoc uses a multi-stage pipeline to go from raw repo → polished docs:
 
 <table>
   <tr>
-    <td align="center" width="25%"><strong>Twilio</strong><br/><sub>API-first dark layout with sidebar nav</sub></td>
-    <td align="center" width="25%"><strong>Django</strong><br/><sub>Classic two-column docs with TOC</sub></td>
-    <td align="center" width="25%"><strong>MDN</strong><br/><sub>Reference-style with breadcrumbs</sub></td>
-    <td align="center" width="25%"><strong>AeroLaTeX</strong><br/><sub>Academic glassmorphic on paper-white</sub></td>
+    <td align="center"><b>Twilio</b><br/>API-first · dark · sidebar nav<br/><i>For APIs that mean business</i></td>
+    <td align="center"><b>Django</b><br/>Classic · two-column · TOC<br/><i>For frameworks that have opinions</i></td>
+  </tr>
+  <tr>
+    <td align="center"><b>MDN</b><br/>Reference-style · breadcrumbs<br/><i>For docs that teach, not just describe</i></td>
+    <td align="center"><b>AeroLaTeX</b><br/>Academic · glassmorphic · paper-white<br/><i>For projects that deserve to look serious</i></td>
   </tr>
 </table>
 
 ---
 
-## 🚀 Quickstart
+## 🚀 Quickstart (Self-Host in 5 Minutes)
 
 ### Prerequisites
-
 - **Node.js** 18+
 - **MongoDB** (local or Atlas)
-- **Gemini API Key** — [Get one free](https://aistudio.google.com/apikey)
+- **Gemini API Key** → [free at aistudio.google.com](https://aistudio.google.com/apikey)
 
-### 1. Clone
-
+### Clone
 ```bash
 git clone https://github.com/herin7/whatdoc.xyz.git
 cd whatdoc.xyz
 ```
 
-### 2. Setup Server
-
+### Server
 ```bash
-cd server
-npm install
+cd server && npm install
 ```
 
-Create a `.env` file:
-
+Create `server/.env`:
 ```env
 MONGO_URI=mongodb://localhost:27017/whatdoc
 JWT_SECRET=your-secret-key
@@ -134,59 +178,48 @@ CORS_ORIGINS=http://localhost:5173,http://localhost:4173
 APP_DOMAIN=localhost
 ```
 
-Start the server:
-
 ```bash
 npm start
 ```
 
-### 3. Setup Client
-
+### Client
 ```bash
-cd ../client
-npm install
+cd ../client && npm install
 ```
 
-Create a `.env` file:
-
+Create `client/.env`:
 ```env
 VITE_API_URL=http://localhost:3000
 VITE_APP_DOMAIN=localhost:5173
 ```
 
-Start the dev server:
-
 ```bash
 npm run dev
+# → http://localhost:5173 🎉
 ```
-
-Open [http://localhost:5173](http://localhost:5173) and you're live. 🎉
 
 ---
 
 ## 🛠 Tech Stack
 
 ### Frontend
-| Tech | Purpose |
-|------|---------|
-| React 19 | UI framework |
-| Vite | Build tool & dev server |
-| TailwindCSS | Utility-first styling |
-| React Router | Client-side routing |
-| Lucide Icons | Icon system |
-| React Markdown | Markdown rendering |
-| React Syntax Highlighter | Code blocks |
+| Tech | Why |
+|---|---|
+| React 19 | Latest concurrent features |
+| Vite | Sub-second HMR |
+| TailwindCSS | Zero-runtime styling |
+| React Router | Client-side nav |
+| React Markdown + Syntax Highlighter | Beautiful doc rendering |
 
 ### Backend
-| Tech | Purpose |
-|------|---------|
-| Express 5 | HTTP server |
-| MongoDB + Mongoose | Database & ODM |
-| Gemini API | AI-powered doc generation |
-| simple-git | Ephemeral repo cloning |
-| ignore | `.gitignore`-aware file filtering |
-| JWT + bcrypt | Authentication |
-| Zod | Schema validation |
+| Tech | Why |
+|---|---|
+| Express 5 | Async-native HTTP server |
+| MongoDB + Mongoose | Flexible doc storage |
+| Gemini API | Best-in-class long-context LLM |
+| simple-git | Lightweight ephemeral cloning |
+| JWT + bcrypt | Auth that doesn't embarrass you |
+| Zod | Schema validation with actual error messages |
 
 ---
 
@@ -194,50 +227,63 @@ Open [http://localhost:5173](http://localhost:5173) and you're live. 🎉
 
 ```
 whatdoc.xyz/
-├── client/                 # React frontend
-│   ├── src/
-│   │   ├── app/            # Landing page
-│   │   ├── components/     # Reusable UI components
-│   │   ├── config/         # Template registry
-│   │   ├── context/        # Auth context provider
-│   │   ├── lib/            # API client & utilities
-│   │   ├── pages/          # Route pages
-│   │   └── templates/      # Doc display templates
-│   └── public/             # Static assets
+├── client/
+│   └── src/
+│       ├── app/            ← Landing page
+│       ├── components/     ← Reusable UI
+│       ├── config/         ← Template registry
+│       ├── context/        ← Auth context
+│       ├── lib/            ← API client & utils
+│       ├── pages/          ← Route pages
+│       └── templates/      ← The 4 doc themes
 │
-├── server/                 # Express backend
-│   ├── controllers/        # Route handlers
-│   ├── models/             # Mongoose schemas
-│   ├── routes/             # API routes
-│   ├── services/           # Engine & LLM logic
-│   ├── middlewares/        # Auth middleware
-│   └── utils/              # Key rotation manager
-│
-└── README.md
+└── server/
+    ├── controllers/        ← Route handlers
+    ├── models/             ← Mongoose schemas
+    ├── routes/             ← API definitions
+    ├── services/           ← The actual engine
+    ├── middlewares/        ← Auth middleware
+    └── utils/              ← Key rotation manager
 ```
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Here's how:
+WhatDoc is open source and welcomes contributors. Here's how to get involved:
 
-1. Fork the repo
-2. Create a feature branch (`git checkout -b feat/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-4. Push to branch (`git push origin feat/amazing-feature`)
-5. Open a Pull Request
+```bash
+# 1. Fork the repo
+# 2. Create your feature branch
+git checkout -b feat/something-wild
+
+# 3. Commit with conventional commits
+git commit -m 'feat: add something wild'
+
+# 4. Push and open a PR
+git push origin feat/something-wild
+```
+
+**High-value contribution areas:**
+- New documentation templates
+- Support for more LLM providers (OpenAI, Claude, Ollama)
+- GitHub Actions integration for auto-regenerating docs on push
+- Diff-aware regeneration (only re-doc what changed)
 
 ---
 
 ## 📄 License
 
-This project is open source under the [MIT License](LICENSE).
+MIT — do whatever you want, just don't blame us.
 
 ---
 
-<p align="center">
-  <sub>Built by <a href="https://github.com/herin7">@herin7</a></sub>
-  <br />
-  <sub>If WhatDoc helped you, consider giving it a ⭐</sub>
-</p>
+<div align="center">
+
+Built with ☕ and mild sleep deprivation by [@herin7](https://github.com/herin7)
+
+**If WhatDoc saved you from writing docs at 2am, give it a ⭐**
+
+*The best documentation is the one that actually gets written.*
+
+</div>
