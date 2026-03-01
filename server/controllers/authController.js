@@ -65,7 +65,10 @@ async function signup(req, res) {
                 email: user.email,
                 isPro: user.isPro,
                 planTier: user.planTier,
-                generationCount: user.generationCount
+                generationCount: user.generationCount,
+                has5DocsLimit: user.has5DocsLimit,
+                promoGenerations: user.promoGenerations || 0,
+                hasPremiumTemplates: user.hasPremiumTemplates || false
             }
         });
 
@@ -118,7 +121,10 @@ async function signin(req, res) {
                     email: response.email,
                     isPro: response.isPro,
                     planTier: response.planTier,
-                    generationCount: response.generationCount
+                    generationCount: response.generationCount,
+                    has5DocsLimit: response.has5DocsLimit,
+                    promoGenerations: response.promoGenerations || 0,
+                    hasPremiumTemplates: response.hasPremiumTemplates || false
                 }
             });
         }
@@ -295,14 +301,48 @@ async function redeemProCode(req, res) {
     try {
         const { code } = req.body;
         const PRO_CODE = process.env.PRO_CODE;
+        const FREE_5_DOCS_CODE = process.env.FREE5DOCS_CODE || 'FREE5DOCS';
+        const PROMO_10GEN_CODE = process.env.PROMO_10GEN_CODE || 'WHATDOCFAM';
+        const PROMO_10GEN_LIMIT = parseInt(process.env.PROMO_10GEN_LIMIT || '100', 10);
 
-        if (!code || code !== PRO_CODE) {
-            return res.status(400).json({ message: 'Invalid pro code.' });
+        if (!code) {
+            return res.status(400).json({ message: 'Code is required.' });
         }
 
         const user = await UserModel.findById(req.userId);
         if (!user) {
             return res.status(404).json({ message: 'User not found.' });
+        }
+
+        // — Promo: 10 free generations (shareable, limited redemptions) —
+        if (code === PROMO_10GEN_CODE) {
+            if (user.promoCodesUsed && user.promoCodesUsed.includes(PROMO_10GEN_CODE)) {
+                return res.json({ message: 'You have already redeemed this promo code!' });
+            }
+
+            const redemptionCount = await UserModel.countDocuments({ promoCodesUsed: PROMO_10GEN_CODE });
+            if (redemptionCount >= PROMO_10GEN_LIMIT) {
+                return res.status(400).json({ message: 'Sorry, this promo code has reached its redemption limit!' });
+            }
+
+            user.promoGenerations = (user.promoGenerations || 0) + 10;
+            user.hasPremiumTemplates = true;
+            user.promoCodesUsed = [...(user.promoCodesUsed || []), PROMO_10GEN_CODE];
+            await user.save();
+            return res.json({ message: '🎉 10 bonus generations + premium templates activated! Go build something awesome.' });
+        }
+
+        if (code === FREE_5_DOCS_CODE) {
+            if (user.isPro || user.has5DocsLimit) {
+                return res.json({ message: 'You already have access to this tier or higher!' });
+            }
+            user.has5DocsLimit = true;
+            await user.save();
+            return res.json({ message: '5 Docs limit activated! You can now generate up to 5 documentations.' });
+        }
+
+        if (code !== PRO_CODE) {
+            return res.status(400).json({ message: 'Invalid code.' });
         }
 
         if (user.isPro) {
@@ -428,7 +468,9 @@ const googleAuth = async (req, res) => {
                 avatarUrl: user.avatarUrl,
                 githubConnected: !!user.githubId,
                 planTier: user.planTier,
-                isPro: user.isPro
+                isPro: user.isPro,
+                has5DocsLimit: user.has5DocsLimit,
+                hasPremiumTemplates: user.hasPremiumTemplates || false
             }
         });
     } catch (error) {

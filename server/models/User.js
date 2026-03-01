@@ -13,6 +13,10 @@ const userSchema = new Schema({
     isPro: { type: Boolean, default: false },
     proExpiryDate: { type: Date, default: null },
     generationCount: { type: Number, default: 0 },
+    has5DocsLimit: { type: Boolean, default: false },
+    promoGenerations: { type: Number, default: 0 },
+    promoCodesUsed: [{ type: String }],
+    hasPremiumTemplates: { type: Boolean, default: false },
     planTier: { type: String, enum: ['free', '499', '999'], default: 'free' },
     avatarUrl: { type: String, default: '' }
 })

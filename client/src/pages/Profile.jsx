@@ -313,14 +313,16 @@ export default function Profile() {
                             <p className="text-xs text-zinc-500">
                                 {user?.isPro
                                     ? 'Unlimited documentation generation'
-                                    : '2 docs per day · Upgrade for unlimited'}
+                                    : user?.has5DocsLimit
+                                        ? '5 docs per day · Upgrade for unlimited'
+                                        : '2 docs per day · Upgrade for unlimited'}
                             </p>
                         </div>
                     </div>
 
                     {!user?.isPro && (
                         <div className="bg-white/[0.02] border border-white/5 rounded-xl p-5">
-                            <p className="text-sm text-zinc-400 mb-3">Have a special access code? Enter it below to unlock unlimited generation.</p>
+                            <p className="text-sm text-zinc-400 mb-3">Have a special access code? Enter it below to unlock higher limits or unlimited generation.</p>
                             <div className="flex gap-3">
                                 <input
                                     type="text"

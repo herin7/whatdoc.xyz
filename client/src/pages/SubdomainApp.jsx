@@ -94,5 +94,5 @@ export default function SubdomainApp({ subdomain }) {
     }
 
     const SelectedTemplate = TemplateMap[project.template] || TemplateMap.modern;
-    return <SelectedTemplate project={project} />;
+    return <SelectedTemplate project={project} isPremium={project.isPremium} />;
 }

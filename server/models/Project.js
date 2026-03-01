@@ -13,6 +13,7 @@ const projectSchema = new mongoose.Schema({
   status: { type: String, enum: ['idle', 'queued', 'scanning', 'analyzing', 'generating', 'ready', 'failed'], default: 'idle' },
   llmProvider: { type: String, enum: ['gemini', 'openai'], default: 'gemini' },
   template: { type: String, enum: ['modern', 'minimal', 'twilio', 'django', 'mdn', 'aerolatex', 'fintech', 'devtools', 'minimalist', 'opensource', 'wiki', 'componentlib', 'consumertech', 'deepspace', 'web3', 'enterprise'], default: 'twilio' },
+  isPremium: { type: Boolean, default: false },
   customization: {
     logoUrl: { type: String, default: '' },
     ownerName: { type: String, default: '' },

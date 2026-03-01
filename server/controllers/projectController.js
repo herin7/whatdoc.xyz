@@ -30,7 +30,9 @@ const createProject = async (req, res) => {
     }
 
     if (!user.isPro) {
-      if (user.generationCount >= 2) {
+      const baseLimit = user.has5DocsLimit ? 5 : 2;
+      const currentLimit = baseLimit + (user.promoGenerations || 0);
+      if (user.generationCount >= currentLimit) {
         return res.status(403).json({ error: 'Free tier limit reached!', code: 'UPGRADE_REQUIRED' });
       }
     } else {
@@ -67,6 +69,7 @@ const createProject = async (req, res) => {
       techstack,
       llmProvider: llmProvider || 'gemini',
       template: template || 'modern',
+      isPremium: user.isPro || user.hasPremiumTemplates || false,
       commitHash: commitHash || '', // Store what we found (if any)
       status: 'queued' // Mark as queued
     });

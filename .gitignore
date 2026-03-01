@@ -12,7 +12,7 @@ server/.env
 # Build outputs
 client/dist/
 client/build/
-
+email-campaign
 # Server tmp (cloned repos, generated files)
 server/tmp/
 
