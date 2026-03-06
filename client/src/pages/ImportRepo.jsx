@@ -72,7 +72,7 @@ export default function ImportRepo() {
     const [search, setSearch] = useState('');
     const [filter, setFilter] = useState('all'); // all | public | private
     const [filterOpen, setFilterOpen] = useState(false);
-    const [includePrivate, setIncludePrivate] = useState(true);
+    const [includePrivate, setIncludePrivate] = useState(false);
 
     const isGithubConnected = !!user?.githubId;
 

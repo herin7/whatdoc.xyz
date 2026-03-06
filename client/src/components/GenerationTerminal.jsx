@@ -40,6 +40,7 @@ export default function GenerationTerminal({ projectId, slug, jobId }) {
     useEffect(() => {
         if (!projectId) return;
 
+        
         let es;
 
         const connectSSE = () => {
