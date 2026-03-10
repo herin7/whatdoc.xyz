@@ -1,5 +1,4 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const { getNextApiKey } = require('../utils/keyManager');
 
 
 // Add new providers here. Each must expose  generate(rawCode, opts) → string
@@ -156,18 +155,18 @@ function createGeminiProvider() {
          * @returns {Promise<string>}      Combined Markdown (README + SPLIT + API_REFERENCE)
          */
         async generate(rawCode, { customKey, targetModel, isPro } = {}) {
-            // BULLETPROOF BYOK: only use the key if it exists, isn't "null", and is long enough
-            const isCustomKeyValid = customKey && customKey !== 'null' && customKey.trim().length > 30;
-            const apiKeyToUse = isCustomKeyValid ? customKey.trim() : getNextApiKey();
+            // BYOK-only: user MUST provide their own API key
+            const isCustomKeyValid = customKey && customKey !== 'null' && customKey.trim().length > 20;
+            if (!isCustomKeyValid) {
+                throw new Error('API key is required. Please provide your own API key (BYOK) to generate documentation.');
+            }
+            const apiKeyToUse = customKey.trim();
             const modelName = targetModel || 'gemini-2.5-flash';
             const genAI = new GoogleGenerativeAI(apiKeyToUse);
-            console.log(`⚡️ Engine starting... Model: ${modelName} | BYOK Active: ${isCustomKeyValid}`);
+            console.log(`⚡️ Engine starting... Model: ${modelName} | BYOK Active: true`);
 
-            // Token Guillotine — cap free-tier users (BYOK users bypass)
-            const { code, wasTruncated } = applyTokenGuillotine(rawCode, isPro || isCustomKeyValid);
-            if (wasTruncated) {
-                console.log(`[guillotine] Truncated from ${rawCode.length} → ${code.length} chars (free tier)`);
-            }
+            // BYOK users get full context window (no truncation)
+            const code = rawCode;
 
             const model = genAI.getGenerativeModel({ model: modelName });
 

@@ -3,12 +3,12 @@ import { ChevronDown, Lock, Zap, Check } from 'lucide-react';
 export const models = [
     { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Lite', badge: 'Fast', isPremium: false, provider: 'gemini' },
     { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', badge: 'Balanced', isPremium: false, provider: 'gemini' },
-    { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash', badge: 'Smart', isPremium: true, provider: 'gemini' },
-    { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro', badge: 'Max Reasoning', isPremium: true, provider: 'gemini' },
-    { id: 'gpt-4o-mini', name: 'GPT-4o Mini', badge: 'Balanced', isPremium: true, provider: 'openai' },
-    { id: 'gpt-4o', name: 'GPT-4o', badge: 'Max Reasoning', isPremium: true, provider: 'openai' },
-    { id: 'claude-3-5-haiku-latest', name: 'Claude 3.5 Haiku', badge: 'Balanced', isPremium: true, provider: 'anthropic' },
-    { id: 'claude-3-7-sonnet-latest', name: 'Claude 3.7 Sonnet', badge: 'Max Reasoning', isPremium: true, provider: 'anthropic' }
+    { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash', badge: 'Smart', isPremium: false, provider: 'gemini' },
+    { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro', badge: 'Max Reasoning', isPremium: false, provider: 'gemini' },
+    { id: 'gpt-4o-mini', name: 'GPT-4o Mini', badge: 'Balanced', isPremium: false, provider: 'openai' },
+    { id: 'gpt-4o', name: 'GPT-4o', badge: 'Max Reasoning', isPremium: false, provider: 'openai' },
+    { id: 'claude-3-5-haiku-latest', name: 'Claude 3.5 Haiku', badge: 'Balanced', isPremium: false, provider: 'anthropic' },
+    { id: 'claude-3-7-sonnet-latest', name: 'Claude 3.7 Sonnet', badge: 'Max Reasoning', isPremium: false, provider: 'anthropic' }
 ];
 
 export default function ModelSelector({ hasCustomKey, selectedModel, setSelectedModel, onRequestKey }) {

@@ -78,12 +78,16 @@ export const auth = {
 export const project = {
     create: (body) => {
         const rawKey = (localStorage.getItem('wtd_custom_key') || '').trim();
-        const customModel = localStorage.getItem('wtd_custom_model') || 'gemini-2.5-flash-lite';
+        const customModel = localStorage.getItem('wtd_custom_model') || 'gemini-2.5-flash';
 
-        const isKeyValid = rawKey.length > 20 && rawKey !== 'null';
+        if (!rawKey || rawKey.length <= 20 || rawKey === 'null') {
+            return Promise.reject({ error: 'API key is required. Please provide your own API key to generate documentation.' });
+        }
 
-        const extraHeaders = { 'x-target-model': customModel };
-        if (isKeyValid) extraHeaders['x-custom-api-key'] = rawKey;
+        const extraHeaders = {
+            'x-target-model': customModel,
+            'x-custom-api-key': rawKey,
+        };
 
         return apiRequest('/projects', {
             method: 'POST',

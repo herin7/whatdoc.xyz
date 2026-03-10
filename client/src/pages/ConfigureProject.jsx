@@ -55,13 +55,16 @@ export default function ConfigureProject() {
             return;
         }
 
+        if (!customKey.trim() || customKey.trim().length <= 20) {
+            setError('API key is required. Provide your own API key to generate documentation.');
+            return;
+        }
+
         setLoading(true);
         try {
             // Persist BYOK settings to localStorage so api.js sends them as headers
             localStorage.setItem('wtd_custom_model', customModel);
-            // Don't persist if they cleared it
-            if (customKey.trim()) localStorage.setItem('wtd_custom_key', customKey);
-            else localStorage.removeItem('wtd_custom_key');
+            localStorage.setItem('wtd_custom_key', customKey);
 
             const res = await project.create({ repoName, slug: slug.trim(), techstack, template: selectedTemplateId, llmProvider });
 
@@ -244,7 +247,7 @@ export default function ConfigureProject() {
                         {/* ── BYOK: Model & API Key  */}
                         <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-4">
                             <label className="block text-sm font-medium text-zinc-300">
-                                Model &amp; API Key <span className="text-zinc-600 font-normal">(optional — Bring Your Own Key)</span>
+                                Model &amp; API Key <span className="text-red-400 font-normal">(required — Bring Your Own Key)</span>
                             </label>
 
                             {/* Model select */}
@@ -271,7 +274,7 @@ export default function ConfigureProject() {
                                     placeholder={
                                         llmProvider === 'openai' ? 'sk-proj-... (API Key required)' :
                                             llmProvider === 'anthropic' ? 'sk-ant-... (API Key required)' :
-                                                'AIzaSy... (leave blank for free models)'
+                                                'AIzaSy... (API Key required)'
                                     }
                                     className="w-full h-11 px-4 rounded-lg bg-[#111] border border-zinc-800 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-transparent transition-all placeholder:text-zinc-600"
                                 />
@@ -293,7 +296,7 @@ export default function ConfigureProject() {
                             {/* Trust badge */}
                             <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-3 rounded-lg flex items-start gap-2 text-xs">
                                 <ShieldCheck className="size-4 mt-0.5 shrink-0" />
-                                <span>Your key stays in your browser. It is relayed to {llmProvider.charAt(0).toUpperCase() + llmProvider.slice(1)} and never persisted in our database.</span>
+                                <span>Your API key is required to generate docs. It stays in your browser, is relayed to {llmProvider.charAt(0).toUpperCase() + llmProvider.slice(1)}, and is never stored in our database.</span>
                             </div>
                         </div>
 

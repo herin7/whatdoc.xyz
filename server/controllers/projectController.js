@@ -76,9 +76,12 @@ const createProject = async (req, res) => {
 
     const rawCustomKey = (req.headers['x-custom-api-key'] || '').trim();
     const isCustomKeyValid = rawCustomKey && rawCustomKey !== 'null' && rawCustomKey.length > 20;
+    if (!isCustomKeyValid) {
+      return res.status(400).json({ error: 'API key is required. Provide your own key (BYOK) to generate docs.', code: 'API_KEY_REQUIRED' });
+    }
     const byokOptions = {
-      customKey: isCustomKeyValid ? rawCustomKey : '',
-      targetModel: req.headers['x-target-model'] || 'gemini-2.5-flash-lite',
+      customKey: rawCustomKey,
+      targetModel: req.headers['x-target-model'] || 'gemini-2.5-flash',
     };
 
     // Add to BullMQ Queue (Async)
@@ -121,15 +124,11 @@ const getJobStatus = async (req, res) => {
       return res.status(404).json({ error: 'Job not found' });
     }
 
-    const state = await job.getState();
-    const progress = job.progress;
-    const failedReason = job.failedReason;
-
     return res.json({
       jobId: id,
-      state, // e.g., 'waiting', 'active', 'completed', 'failed'
-      progress,
-      failedReason
+      state: job.status,
+      progress: job.progress || 0,
+      failedReason: job.error || null
     });
   } catch (error) {
     console.error('Error fetching job status:', error);

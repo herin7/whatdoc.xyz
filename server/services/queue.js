@@ -1,73 +1,40 @@
-const { Queue, Worker } = require('bullmq');
-const Redis = require('ioredis');
 const { runGenerationPipeline } = require('./engine');
 const Project = require('../models/Project');
 
-const redisOptions = {
-    maxRetriesPerRequest: null,
-    enableReadyCheck: false,
-};
+// In-memory job tracking (replaces Redis/BullMQ)
+const jobs = new Map();
+let jobCounter = 0;
 
-// Handle Upstash Serverless specifics to prevent ECONNRESET
-if (process.env.REDIS_URL && (process.env.REDIS_URL.startsWith('rediss://') || process.env.REDIS_URL.includes('upstash'))) {
-    redisOptions.tls = { rejectUnauthorized: false };
-    redisOptions.pingInterval = 30000;
-    redisOptions.family = 0;
-}
+const docGenerationQueue = {
+    async add(_name, data, _opts) {
+        const jobId = String(++jobCounter);
+        const job = { id: jobId, data, status: 'active', progress: 0 };
+        jobs.set(jobId, job);
 
-const connection = new Redis(process.env.REDIS_URL || 'redis://127.0.0.1:6379', redisOptions);
+        // Run generation async (fire-and-forget)
+        (async () => {
+            const { projectId, repoUrl, commitHash, llmProvider, byokOptions } = data;
+            const safeLogUrl = repoUrl.replace(/https:\/\/.*@github\.com/, 'https://github.com');
+            console.log(`[Queue] Started processing project ${projectId} for repo ${safeLogUrl} @ hash ${commitHash}`);
 
-// Configure BullMQ
-const queueName = 'docGenerationQueue';
+            try {
+                await Project.findByIdAndUpdate(projectId, { commitHash });
+                await runGenerationPipeline(projectId, repoUrl, llmProvider, byokOptions);
+                job.status = 'completed';
+                console.log(`[Queue] Finished processing project ${projectId}`);
+            } catch (error) {
+                job.status = 'failed';
+                job.error = error.message;
+                console.error(`[Queue] Error processing project ${projectId}:`, error);
+            }
+        })();
 
-const docGenerationQueue = new Queue(queueName, {
-    connection,
-    defaultJobOptions: {
-        removeOnComplete: true,
-        removeOnFail: { count: 10 }
-    }
-});
-
-// Initialize the Worker
-// 15 requests per minute = max 1 request every 4 seconds. Let's use 4.5s (4500ms) to be safe.
-const worker = new Worker(
-    queueName,
-    async (job) => {
-        const { projectId, repoUrl, commitHash, llmProvider, byokOptions } = job.data;
-        const safeLogUrl = repoUrl.replace(/https:\/\/.*@github\.com/, 'https://github.com');
-        console.log(`[Worker] Started processing project ${projectId} for repo ${safeLogUrl} @ hash ${commitHash}`);
-
-        try {
-            // Save the commitHash we are generating for
-            await Project.findByIdAndUpdate(projectId, { commitHash });
-
-            // Execute the heavily restricted RAG/LLM process
-            await runGenerationPipeline(projectId, repoUrl, llmProvider, byokOptions);
-
-            console.log(`[Worker] Finished processing project ${projectId}`);
-        } catch (error) {
-            console.error(`[Worker] Error processing project ${projectId}:`, error);
-            throw error; // Let BullMQ handle failure/retries 
-        }
+        return job;
     },
-    {
-        connection,
-        concurrency: 1, // Strictly one job at a time globally for this worker
-        removeOnComplete: { count: 10 },
-        removeOnFail: { count: 30 },
-        limiter: {
-            max: 1,
-            duration: 4500, // 4.5 seconds
-        },
-    }
-);
 
-worker.on('completed', (job) => {
-    console.log(`[BullMQ] Job ${job?.id} has completed!`);
-});
-
-worker.on('failed', (job, err) => {
-    console.log(`[BullMQ] Job ${job?.id} has failed with ${err?.message}`);
-});
+    async getJob(jobId) {
+        return jobs.get(jobId) || null;
+    },
+};
 
 module.exports = { docGenerationQueue };
