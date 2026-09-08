@@ -54,8 +54,16 @@ app.use(cors({
 // 3. SECURITY & UTILITY MIDDLEWARE
 app.use(helmet());
 
-// Bypass rate limiting and domain routing for health check
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
+// Health reflects the required database dependency, not only the Node process.
+app.get('/health', (req, res) => {
+    const mongo = mongoose.connection.readyState === 1 ? 'ok' : 'unavailable';
+    const healthy = mongo === 'ok';
+    res.status(healthy ? 200 : 503).json({
+        status: healthy ? 'ok' : 'degraded',
+        mongo,
+        queue: 'in-memory',
+    });
+});
 
 
 
