@@ -38,3 +38,5 @@ coverage/
 # Misc
 *.tgz
 .cache/
+.vercel
+.env*
